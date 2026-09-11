@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: trackr-gateway
+    env: docker
+    dockerfilePath: ./gateway/Dockerfile
+    dockerContext: ./gateway
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DATABASE_URL
+        sync: false # Provide your Supabase / Neon connection string (e.g. postgres://...:5432/postgres?sslmode=require)
+      - key: REDIS_URL
+        value: "" # Optional: Gateway runs smoothly without Redis
