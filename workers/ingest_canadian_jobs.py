@@ -11,6 +11,8 @@ async def main():
     print("         Lever (AltaML)")
     print("=" * 70)
 
+    if not config.DATABASE_URL:
+        raise ValueError("DATABASE_URL environment variable is required")
     db_url = config.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
     print(f"Connecting to database...")
     pool = await asyncpg.create_pool(db_url)
