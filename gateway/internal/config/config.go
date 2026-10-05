@@ -30,8 +30,8 @@ func LoadConfig() *Config {
 		RedisURL:          getEnv("REDIS_URL", "redis://localhost:6379/0"),
 		AIWorkerURL:       getEnv("AI_WORKER_URL", "http://localhost:8085"),
 		S3Endpoint:        getEnv("S3_ENDPOINT", "http://localhost:9000"),
-		S3AccessKey:       getEnv("S3_ACCESS_KEY", "minioadmin"),
-		S3SecretKey:       getEnv("S3_SECRET_KEY", "minioadmin"),
+		S3AccessKey:       os.Getenv("S3_ACCESS_KEY"),
+		S3SecretKey:       os.Getenv("S3_SECRET_KEY"),
 		S3BucketSnapshots: getEnv("S3_BUCKET_SNAPSHOTS", "trackr-snapshots"),
 		S3BucketEmails:    getEnv("S3_BUCKET_EMAILS", "trackr-emails"),
 	}

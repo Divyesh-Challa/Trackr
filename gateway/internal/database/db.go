@@ -19,6 +19,9 @@ type DB struct {
 }
 
 func ConnectDB(ctx context.Context, databaseURL string) (*DB, error) {
+	if databaseURL == "" {
+		return nil, fmt.Errorf("DATABASE_URL environment variable is required")
+	}
 	config, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse database config: %w", err)

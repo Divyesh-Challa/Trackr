@@ -1,6 +1,18 @@
 # Environment & Secrets
 .env
+.env.*
+*.env
 *.env.local
+*.env.*.local
+!.env.example
+!*.env.example
+!.env.*.example
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+secrets/
 
 # Python
 __pycache__/

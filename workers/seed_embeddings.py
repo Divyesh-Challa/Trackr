@@ -4,6 +4,8 @@ from app.config import config
 from app.services.embedding_engine import embedding_engine
 
 async def main():
+    if not config.DATABASE_URL:
+        raise ValueError("DATABASE_URL environment variable is required")
     db_url = config.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
     pool = await asyncpg.create_pool(db_url)
     async with pool.acquire() as conn:
