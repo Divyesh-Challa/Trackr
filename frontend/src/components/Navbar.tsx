@@ -45,10 +45,10 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200/90 bg-white/95 backdrop-blur-md transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-      <div className="max-w-[1720px] mx-auto flex items-center justify-between px-6 py-3">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200/90 bg-white/95 backdrop-blur-md transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-x-auto">
+      <div className="max-w-[1720px] mx-auto flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3 gap-4">
         {/* Left: Brand & Nav Links */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-3 sm:gap-8">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="h-8 w-8 rounded-xl bg-[#0066FF] flex items-center justify-center text-white font-black text-sm shadow-sm group-hover:scale-105 transition-transform">
               Tr.

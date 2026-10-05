@@ -496,7 +496,8 @@ export default function KanbanBoard() {
       </div>
       {/* VIEW 1: KANBAN BOARD */}
       {activeView === "BOARD" && (
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 min-h-[640px] items-start pb-6">
+        <div className="w-full overflow-x-auto pb-6 scrollbar-thin">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 min-h-[640px] items-start min-w-full sm:min-w-[1200px]">
           {COLUMNS.map((col) => {
             const colApps = filteredApplications.filter((a) => a.status === col.id);
             const isTargeted = activeDragTarget === col.id;
@@ -629,6 +630,7 @@ export default function KanbanBoard() {
             );
           })}
         </div>
+      </div>
       )}
 
       {/* VIEW 2: LIST / TABLE VIEW */}

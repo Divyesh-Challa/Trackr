@@ -226,15 +226,20 @@ func (db *DB) UpdateApplicationStatus(ctx context.Context, id uuid.UUID, toStatu
 	a.AppliedDate = appliedDate
 
 	// Record state transition
-	metaBytes, _ := json.Marshal(metadata)
+	metaStr := "{}"
+	if metadata != nil && len(metadata) > 0 {
+		if b, err := json.Marshal(metadata); err == nil {
+			metaStr = string(b)
+		}
+	}
 	queryTransition := `
 		INSERT INTO application_state_transitions (
 			id, application_id, from_status, to_status, transitioned_at, metadata
 		) VALUES (
-			gen_random_uuid(), $1, $2, $3, NOW(), $4
+			gen_random_uuid(), $1, $2, $3, NOW(), $4::jsonb
 		)
 	`
-	_, err = tx.Exec(ctx, queryTransition, id, currentStatus, toStatus, metaBytes)
+	_, err = tx.Exec(ctx, queryTransition, id, currentStatus, toStatus, metaStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to record state transition: %w", err)
 	}
