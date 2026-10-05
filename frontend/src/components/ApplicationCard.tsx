@@ -52,6 +52,16 @@ const KNOWN_DOMAINS: Record<string, string> = {
   cloudflare: "cloudflare.com",
   cohere: "cohere.com",
   stackadapt: "stackadapt.com",
+  nokia: "nokia.com",
+  "definity financial": "definityfinancial.com",
+  intel: "intel.com",
+  manulife: "manulife.ca",
+  td: "td.com",
+  "td bank": "td.com",
+  cenovus: "cenovus.com",
+  "cenovus energy": "cenovus.com",
+  acuity: "acuity.com",
+  trc: "trccompanies.com",
 };
 
 export default function ApplicationCard({
@@ -86,12 +96,12 @@ export default function ApplicationCard({
     };
   }, [isMenuOpen]);
 
-  // Derive domain for Clearbit logo
+  // Derive domain for company logo
   const normalized = application.company_name.toLowerCase().trim();
   const domain =
     KNOWN_DOMAINS[normalized] ||
     `${normalized.replace(/[^a-z0-9]/g, "")}.com`;
-  const logoUrl = `https://logo.clearbit.com/${domain}`;
+  const logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
   const renderMatchScore = (score?: number) => {
     if (score === undefined || score === null) return null;
@@ -122,6 +132,7 @@ export default function ApplicationCard({
   return (
     <motion.div
       layout
+      data-testid="application-card"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.98 }}
@@ -294,6 +305,7 @@ export default function ApplicationCard({
           {onQuickAdvance && (
             <button
               type="button"
+              data-testid="advance-stage-btn"
               onClick={(e) => {
                 e.stopPropagation();
                 onQuickAdvance(application.id, application.status as ApplicationStatus);

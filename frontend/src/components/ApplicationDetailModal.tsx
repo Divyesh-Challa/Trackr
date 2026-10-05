@@ -406,6 +406,7 @@ export default function ApplicationDetailModal({
               <span className="text-xs text-slate-500 dark:text-slate-400">Stage:</span>
               <div className="relative">
                 <select
+                  data-testid="stage-select"
                   value={application.status}
                   onChange={(e) => handleStatusSelect(e.target.value as ApplicationStatus)}
                   className="appearance-none bg-white dark:bg-[#161b22] border border-slate-200 dark:border-[#30363d] rounded-lg px-3 py-1.5 pr-8 text-xs font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500 shadow-sm"
