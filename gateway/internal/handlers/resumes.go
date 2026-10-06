@@ -78,6 +78,47 @@ func (h *HandlerContext) CreateBullet(c *gin.Context) {
 	})
 }
 
+func (h *HandlerContext) UpdateBullet(c *gin.Context) {
+	idStr := c.Param("id")
+	bulletID, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid bullet id UUID"})
+		return
+	}
+
+	var req struct {
+		Content  string `json:"content" binding:"required"`
+		Category string `json:"category"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if req.Category == "" {
+		req.Category = "EXPERIENCE"
+	}
+
+	bullet, err := h.DB.UpdateResumeBullet(c.Request.Context(), bulletID, req.Content, req.Category)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update bullet: " + err.Error()})
+		return
+	}
+
+	// Dispatch asynchronous vectorization
+	if h.Redis != nil {
+		_ = h.Redis.EnqueueResumeVectorization(c.Request.Context(), redis.ResumeVectorizationPayload{
+			BulletID: bullet.ID.String(),
+			UserID:   bullet.UserID.String(),
+			Content:  bullet.Content,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":    bullet,
+		"message": "resume bullet updated and queued for vector embedding",
+	})
+}
+
 func (h *HandlerContext) DeleteBullet(c *gin.Context) {
 	idStr := c.Param("id")
 	bulletID, err := uuid.Parse(idStr)
