@@ -144,12 +144,12 @@ export default function JakesResumePreview({
           </div>
 
           {/* EDUCATION SECTION */}
-          <div className="mt-4">
-            <div className="border-b-[1.25px] border-black pb-0.5 mb-2">
+          <div className="resume-section mt-4 print:mt-2">
+            <div className="border-b-[1.25px] border-black pb-0.5 mb-2 print:mb-1">
               <h2 className="text-[11pt] font-bold tracking-wider uppercase text-black">Education</h2>
             </div>
             {resume.education.map((edu, idx) => (
-              <div key={idx} className="mb-2 text-[9.5pt] leading-tight">
+              <div key={idx} className="mb-2 print:mb-1 text-[9.5pt] leading-tight">
                 <div className="flex justify-between items-baseline font-bold text-black">
                   <span>{edu.school}</span>
                   <span className="text-neutral-800 font-normal">{edu.location}</span>
@@ -166,21 +166,21 @@ export default function JakesResumePreview({
           </div>
 
           {/* EXPERIENCE SECTION */}
-          <div className="mt-4">
-            <div className="border-b-[1.25px] border-black pb-0.5 mb-2">
+          <div className="resume-section mt-4 print:mt-2">
+            <div className="border-b-[1.25px] border-black pb-0.5 mb-2 print:mb-1">
               <h2 className="text-[11pt] font-bold tracking-wider uppercase text-black">Experience</h2>
             </div>
             {resume.experience.map((exp, idx) => (
-              <div key={idx} className="mb-3 text-[9.5pt]">
+              <div key={idx} className="mb-3 print:mb-1.5 text-[9.5pt]">
                 <div className="flex justify-between items-baseline leading-tight">
                   <span className="font-bold text-black">{exp.role}</span>
                   <span className="text-neutral-800">{exp.dates}</span>
                 </div>
-                <div className="flex justify-between items-baseline italic text-neutral-800 leading-tight mb-1">
+                <div className="flex justify-between items-baseline italic text-neutral-800 leading-tight mb-1 print:mb-0.5">
                   <span>{exp.company}</span>
                   <span className="not-italic text-neutral-800">{exp.location}</span>
                 </div>
-                <ul className="list-disc ml-5 space-y-0.5 text-neutral-900 text-[9pt] leading-relaxed">
+                <ul className="list-disc ml-5 print:ml-4 space-y-0.5 print:space-y-0 text-neutral-900 text-[9pt] leading-relaxed print:leading-snug">
                   {exp.bullets.map((bullet, bIdx) => (
                     <li key={bIdx} className="pl-1 text-justify">
                       {bullet}
@@ -192,13 +192,13 @@ export default function JakesResumePreview({
           </div>
 
           {/* PROJECTS SECTION */}
-          <div className="mt-4">
-            <div className="border-b-[1.25px] border-black pb-0.5 mb-2">
+          <div className="resume-section mt-4 print:mt-2">
+            <div className="border-b-[1.25px] border-black pb-0.5 mb-2 print:mb-1">
               <h2 className="text-[11pt] font-bold tracking-wider uppercase text-black">Projects</h2>
             </div>
             {resume.projects.map((proj, idx) => (
-              <div key={idx} className="mb-3 text-[9.5pt]">
-                <div className="flex justify-between items-baseline leading-tight mb-1">
+              <div key={idx} className="mb-3 print:mb-1.5 text-[9.5pt]">
+                <div className="flex justify-between items-baseline leading-tight mb-1 print:mb-0.5">
                   <div>
                     <span className="font-bold text-black">{proj.title}</span>
                     {proj.technologies && (
@@ -209,7 +209,7 @@ export default function JakesResumePreview({
                   </div>
                   <span className="text-neutral-800">{proj.date}</span>
                 </div>
-                <ul className="list-disc ml-5 space-y-0.5 text-neutral-900 text-[9pt] leading-relaxed">
+                <ul className="list-disc ml-5 print:ml-4 space-y-0.5 print:space-y-0 text-neutral-900 text-[9pt] leading-relaxed print:leading-snug">
                   {proj.bullets.map((bullet, bIdx) => (
                     <li key={bIdx} className="pl-1 text-justify">
                       {bullet}
@@ -221,11 +221,11 @@ export default function JakesResumePreview({
           </div>
 
           {/* TECHNICAL SKILLS SECTION */}
-          <div className="mt-4">
-            <div className="border-b-[1.25px] border-black pb-0.5 mb-2">
+          <div className="resume-section mt-4 print:mt-2">
+            <div className="border-b-[1.25px] border-black pb-0.5 mb-2 print:mb-1">
               <h2 className="text-[11pt] font-bold tracking-wider uppercase text-black">Technical Skills</h2>
             </div>
-            <div className="text-[9pt] text-neutral-900 space-y-1 leading-snug">
+            <div className="text-[9pt] text-neutral-900 space-y-1 print:space-y-0.5 leading-snug">
               <div>
                 <span className="font-bold text-black">Languages: </span>
                 <span>{resume.technical_skills.languages}</span>
