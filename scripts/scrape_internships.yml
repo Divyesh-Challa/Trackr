@@ -1,0 +1,32 @@
+name: Scrape Canadian Tech Internships
+
+on:
+  schedule:
+    - cron: '0 12 * * *' # Runs daily at 12:00 UTC (free GitHub Actions runners)
+  workflow_dispatch:      # Allows manual one-click trigger from the GitHub Actions UI
+
+jobs:
+  scrape-and-ingest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r workers/requirements.txt
+
+      - name: Ingest Canadian Tech Internships (BC & Alberta)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          cd workers
+          python clean_and_reingest_internships.py
