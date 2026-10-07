@@ -26,6 +26,30 @@ KEYWORD_VOCAB = [
     "AI", "Vector Search", "pgvector", "SQL", "Tailwind CSS", "Pandas", "NumPy"
 ]
 
+LATEX_ESCAPE_MAP = {
+    '&': r'\&',
+    '%': r'\%',
+    '$': r'\$',
+    '#': r'\#',
+    '_': r'\_',
+    '{': r'\{',
+    '}': r'\}',
+    '~': r'\textasciitilde{}',
+    '^': r'\textasciicircum{}',
+    '\\': r'\textbackslash{}',
+}
+LATEX_ESCAPE_REGEX = re.compile(r'[&%$#_{}~^\\]')
+
+def escape_latex(text: Any) -> str:
+    """
+    Escapes all LaTeX special characters in a single pass to ensure 100% clean compilation
+    in TeX Live and Overleaf without recursive re-escaping.
+    """
+    if text is None:
+        return ""
+    s = str(text)
+    return LATEX_ESCAPE_REGEX.sub(lambda m: LATEX_ESCAPE_MAP[m.group(0)], s)
+
 class ResumeTailor:
     def __init__(self):
         self.gemini_model = None
@@ -152,6 +176,14 @@ class ResumeTailor:
             tailored_data = self._tailor_deterministic(
                 company_name, role_title, job_description, profile, bullets, matched_keywords
             )
+
+        # Ensure match_score is cleanly bounded 0-100%
+        try:
+            raw_score = tailored_data.get("match_score", 88)
+            clean_score = int(float(str(raw_score).replace("%", "").strip()))
+            tailored_data["match_score"] = min(100, max(0, clean_score))
+        except Exception:
+            tailored_data["match_score"] = 88
 
         # 4. Generate Jake's Template LaTeX
         latex_code = self._generate_jakes_latex(tailored_data)
@@ -386,17 +418,21 @@ Return ONLY a valid JSON object with the following schema:
         (Based on /Users/divyeshchalla/Desktop/Jake's template.pdf).
         """
         h = data.get("header", {})
-        name = h.get("name", "Divyesh Challa")
-        phone = h.get("phone", "+1 (604) 555-0199")
-        email = h.get("email", "divyesh.challa@alumni.ubc.ca")
-        linkedin = h.get("linkedin", "linkedin.com/in/divyeshchalla")
-        github = h.get("github", "github.com/divyeshchalla")
+        name = escape_latex(h.get("name", "Divyesh Challa"))
+        phone = escape_latex(h.get("phone", "+1 (604) 555-0199"))
+        email_raw = (h.get("email") or "divyesh.challa@alumni.ubc.ca").replace("mailto:", "").strip()
+        linkedin_raw = (h.get("linkedin") or "linkedin.com/in/divyeshchalla").replace("https://", "").replace("http://", "").strip()
+        github_raw = (h.get("github") or "github.com/divyeshchalla").replace("https://", "").replace("http://", "").strip()
+
+        email_display = escape_latex(email_raw)
+        linkedin_display = escape_latex(linkedin_raw)
+        github_display = escape_latex(github_raw)
 
         skills = data.get("skills", {})
-        langs = skills.get("languages", "Python, Go, Java, TypeScript, C++, SQL")
-        fworks = skills.get("frameworks", "React, Next.js, FastAPI, Node.js, Tailwind CSS")
-        tools = skills.get("developer_tools", "Git, Docker, AWS, PostgreSQL, Redis, Linux")
-        libs = skills.get("libraries", "pgvector, HNSW, PyTorch, Pandas, REST APIs")
+        langs = escape_latex(skills.get("languages", "Python, Go, Java, TypeScript, C++, SQL"))
+        fworks = escape_latex(skills.get("frameworks", "React, Next.js, FastAPI, Node.js, Tailwind CSS"))
+        tools = escape_latex(skills.get("developer_tools", "Git, Docker, AWS, PostgreSQL, Redis, Linux"))
+        libs = escape_latex(skills.get("libraries", "pgvector, HNSW, PyTorch, Pandas, REST APIs"))
 
         edu_items = data.get("education", [])
         exp_items = data.get("experience", [])
@@ -486,9 +522,9 @@ Return ONLY a valid JSON object with the following schema:
 %----------HEADING----------
 \begin{center}
     \textbf{\Huge \scshape """ + name + r"""} \\ \vspace{1pt}
-    \small """ + phone + r""" $|$ \href{mailto:""" + email + r"""}{\underline{""" + email + r"""}} $|$ 
-    \href{https://""" + linkedin + r"""}{\underline{""" + linkedin + r"""}} $|$
-    \href{https://""" + github + r"""}{\underline{""" + github + r"""}}
+    \small """ + phone + r""" $|$ \href{mailto:""" + email_raw + r"""}{\underline{""" + email_display + r"""}} $|$ 
+    \href{https://""" + linkedin_raw + r"""}{\underline{""" + linkedin_display + r"""}} $|$
+    \href{https://""" + github_raw + r"""}{\underline{""" + github_display + r"""}}
 \end{center}
 
 
@@ -497,10 +533,12 @@ Return ONLY a valid JSON object with the following schema:
   \resumeSubHeadingListStart
 """
         for edu in edu_items:
-            school = edu.get("school", "University of British Columbia")
-            loc = edu.get("location", "Vancouver, BC")
-            degree = edu.get("degree", "Bachelor of Science in Computer Science")
-            dates = edu.get("dates", "Sept. 2023 – May 2027")
+            school = escape_latex(edu.get("school", "University of British Columbia"))
+            loc = escape_latex(edu.get("location", "Vancouver, BC"))
+            degree = escape_latex(edu.get("degree", "Bachelor of Science in Computer Science"))
+            if edu.get("gpa"):
+                degree += f" (GPA: {escape_latex(edu.get('gpa'))})"
+            dates = escape_latex(edu.get("dates", "Sept. 2023 – May 2027"))
             latex += f"""    \\resumeSubheading
       {{{school}}}{{{loc}}}
       {{{degree}}}{{{dates}}}
@@ -513,17 +551,17 @@ Return ONLY a valid JSON object with the following schema:
   \resumeSubHeadingListStart
 """
         for exp in exp_items:
-            role = exp.get("role", "Software Engineering Intern")
-            dates = exp.get("dates", "May 2025 – Aug. 2025")
-            company = exp.get("company", "Tech Company")
-            loc = exp.get("location", "Vancouver, BC")
+            role = escape_latex(exp.get("role", "Software Engineering Intern"))
+            dates = escape_latex(exp.get("dates", "May 2025 – Aug. 2025"))
+            company = escape_latex(exp.get("company", "Tech Company"))
+            loc = escape_latex(exp.get("location", "Vancouver, BC"))
             latex += f"""    \\resumeSubheading
       {{{role}}}{{{dates}}}
       {{{company}}}{{{loc}}}
       \\resumeItemListStart
 """
             for b in exp.get("bullets", []):
-                clean_b = b.replace("%", "\\%").replace("&", "\\&").replace("$", "\\$")
+                clean_b = escape_latex(b)
                 latex += f"        \\resumeItem{{{clean_b}}}\n"
             latex += "      \\resumeItemListEnd\n\n"
 
@@ -535,15 +573,15 @@ Return ONLY a valid JSON object with the following schema:
     \resumeSubHeadingListStart
 """
         for proj in proj_items:
-            p_name = proj.get("name", "Project")
-            tech = proj.get("technologies", "Go, Python, Docker")
-            p_dates = proj.get("dates", "Jan. 2026 – Present")
+            p_name = escape_latex(proj.get("name", "Project"))
+            tech = escape_latex(proj.get("technologies", "Go, Python, Docker"))
+            p_dates = escape_latex(proj.get("dates", "Jan. 2026 – Present"))
             latex += f"""      \\resumeProjectHeading
           {{\\textbf{{{p_name}}} $|$ \\emph{{{tech}}}}}{{{p_dates}}}
           \\resumeItemListStart
 """
             for b in proj.get("bullets", []):
-                clean_b = b.replace("%", "\\%").replace("&", "\\&").replace("$", "\\$")
+                clean_b = escape_latex(b)
                 latex += f"            \\resumeItem{{{clean_b}}}\n"
             latex += "          \\resumeItemListEnd\n\n"
 

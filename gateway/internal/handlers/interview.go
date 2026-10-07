@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -29,28 +30,39 @@ func (h *HandlerContext) SimulateEvaluateSSE(c *gin.Context) {
 	c.Writer.Header().Set("Cache-Control", "no-cache")
 	c.Writer.Header().Set("Connection", "keep-alive")
 	c.Writer.Header().Set("Transfer-Encoding", "chunked")
+	c.Writer.Header().Set("X-Accel-Buffering", "no")
 
-	// Check if Python AI worker microservice is available to stream
+	// Attempt live proxy to Python AI worker microservice
 	aiWorkerEndpoint := fmt.Sprintf("%s/api/v1/interview/stream", h.Config.AIWorkerURL)
 	reqBytes, _ := json.Marshal(req)
 
-	client := &http.Client{Timeout: 60 * time.Second}
-	aiResp, err := client.Post(aiWorkerEndpoint, "application/json", bytes.NewBuffer(reqBytes))
-
-	if err == nil && aiResp.StatusCode == http.StatusOK {
-		defer aiResp.Body.Close()
-		buf := make([]byte, 1024)
-		for {
-			n, readErr := aiResp.Body.Read(buf)
-			if n > 0 {
-				_, _ = c.Writer.Write(buf[:n])
-				c.Writer.Flush()
+	httpReq, err := http.NewRequestWithContext(c.Request.Context(), "POST", aiWorkerEndpoint, bytes.NewBuffer(reqBytes))
+	if err == nil {
+		httpReq.Header.Set("Content-Type", "application/json")
+		aiResp, reqErr := h.HTTPClient.Do(httpReq)
+		if reqErr == nil && aiResp.StatusCode == http.StatusOK {
+			defer aiResp.Body.Close()
+			buf := make([]byte, 1024)
+			for {
+				select {
+				case <-c.Request.Context().Done():
+					return
+				default:
+				}
+				n, readErr := aiResp.Body.Read(buf)
+				if n > 0 {
+					_, _ = c.Writer.Write(buf[:n])
+					c.Writer.Flush()
+				}
+				if readErr != nil {
+					break
+				}
 			}
-			if readErr != nil {
-				break
-			}
+			return
 		}
-		return
+		if aiResp != nil {
+			_ = aiResp.Body.Close()
+		}
 	}
 
 	// Fallback streaming STAR rubric evaluator (ensures zero downtime even if worker is warming up)
@@ -96,15 +108,17 @@ func (h *HandlerContext) StartInterview(c *gin.Context) {
 	payloadBytes, _ := json.Marshal(body)
 	workerURL := fmt.Sprintf("%s/api/v1/interview/start", h.Config.AIWorkerURL)
 
-	httpReq, err := http.NewRequestWithContext(c.Request.Context(), "POST", workerURL, bytes.NewBuffer(payloadBytes))
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 90*time.Second)
+	defer cancel()
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", workerURL, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 90 * time.Second}
-	resp, err := client.Do(httpReq)
+	resp, err := h.HTTPClient.Do(httpReq)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to connect to AI Worker: " + err.Error()})
 		return
@@ -130,15 +144,17 @@ func (h *HandlerContext) RespondInterview(c *gin.Context) {
 	payloadBytes, _ := json.Marshal(body)
 	workerURL := fmt.Sprintf("%s/api/v1/interview/respond", h.Config.AIWorkerURL)
 
-	httpReq, err := http.NewRequestWithContext(c.Request.Context(), "POST", workerURL, bytes.NewBuffer(payloadBytes))
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 90*time.Second)
+	defer cancel()
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", workerURL, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 90 * time.Second}
-	resp, err := client.Do(httpReq)
+	resp, err := h.HTTPClient.Do(httpReq)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to connect to AI Worker: " + err.Error()})
 		return

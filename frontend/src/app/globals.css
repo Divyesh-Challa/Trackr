@@ -89,3 +89,89 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* -----------------------------------------------------------------------------
+   Strict 1-Page Print Stylesheet for Jake's Resume (ATS Standard)
+   ----------------------------------------------------------------------------- */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 0.35in 0.45in;
+  }
+
+  html, body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    font-size: 9.5pt !important;
+  }
+
+  /* Hide navigation, sidebars, toast containers, headers, and print buttons */
+  nav,
+  header,
+  footer,
+  aside,
+  button,
+  .print\:hidden,
+  [data-print-hidden="true"] {
+    display: none !important;
+  }
+
+  /* Reset main container layout */
+  main {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Force Resume sheet into exact single page */
+  #jakes-resume-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    width: 100% !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Spacing constraints to enforce strict 1-page bounds */
+  #jakes-resume-sheet h1 {
+    font-size: 20pt !important;
+    line-height: 1.1 !important;
+    margin-bottom: 2pt !important;
+  }
+
+  #jakes-resume-sheet h2 {
+    font-size: 10pt !important;
+    line-height: 1.15 !important;
+  }
+
+  #jakes-resume-sheet .resume-section {
+    margin-top: 5pt !important;
+  }
+
+  #jakes-resume-sheet ul {
+    margin-top: 1pt !important;
+    margin-bottom: 2pt !important;
+  }
+
+  #jakes-resume-sheet li {
+    font-size: 8.8pt !important;
+    line-height: 1.25 !important;
+    margin-bottom: 1.5pt !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+

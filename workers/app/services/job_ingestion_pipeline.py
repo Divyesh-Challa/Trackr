@@ -17,11 +17,12 @@ Computes 768d vector embeddings and upserts into Supabase PostgreSQL.
 """
 
 import asyncio
-import re
+import hashlib
 import json
 import logging
+import re
 from typing import List, Dict, Any, Optional
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import httpx
 from bs4 import BeautifulSoup
 
@@ -599,24 +600,78 @@ async def fetch_ats_canadian_jobs(client: httpx.AsyncClient) -> List[Dict[str, A
 # DEDUPLICATION & VALIDATION PIPELINE
 # -----------------------------------------------------------------------------
 
+def canonicalize_job_url(url: str) -> str:
+    """
+    Normalizes job URLs to ensure consistent deduplication and eliminate tracking parameters:
+    - Strips UTM parameters (utm_source, utm_medium, utm_campaign, etc.)
+    - Strips tracking query parameters (ref, gh_src, lever-origin, source, fbclid, etc.)
+    - Normalizes scheme and host to lowercase
+    - Strips trailing slashes from path
+    """
+    if not url or not url.startswith("http"):
+        return url
+    try:
+        parsed = urlparse(url.strip())
+        tracking_params = {
+            "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
+            "ref", "source", "gh_src", "lever-source", "lever-origin", "origin",
+            "fbclid", "gclid", "tracking", "trk", "refid", "sub_id"
+        }
+        qs = parse_qs(parsed.query, keep_blank_values=False)
+        clean_qs = {k: v for k, v in qs.items() if k.lower() not in tracking_params}
+        clean_query = urlencode(clean_qs, doseq=True)
+
+        clean_path = parsed.path.rstrip("/") if parsed.path != "/" else "/"
+        return urlunparse((
+            parsed.scheme.lower(),
+            parsed.netloc.lower(),
+            clean_path,
+            parsed.params,
+            clean_query,
+            ""
+        ))
+    except Exception:
+        return url.strip()
+
+def compute_job_content_hash(job: Dict[str, Any]) -> str:
+    """
+    Computes a deterministic content hash for a job posting based on normalized
+    company, role title, location, and description snippet.
+    """
+    comp = (job.get("company_name") or "").strip().lower()
+    title = (job.get("role_title") or "").strip().lower()
+    city = (job.get("city") or "").strip().lower()
+    prov = (job.get("province") or "").strip().lower()
+    desc_snippet = (job.get("description") or "").strip()[:120].lower()
+    key = f"{comp}::{title}::{city}::{prov}::{desc_snippet}"
+    return hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
+
 def deduplicate_jobs(jobs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     seen_urls = set()
+    seen_hashes = set()
     seen_pairs = set()
     unique = []
 
     for j in jobs:
-        url = (j.get("job_url") or "").strip()
-        comp = j.get("company_name", "").strip().lower()
-        title = j.get("role_title", "").strip().lower()
-        pair = (comp, title)
+        raw_url = (j.get("job_url") or "").strip()
+        canon_url = canonicalize_job_url(raw_url)
+        j["job_url"] = canon_url
 
-        if url and url in seen_urls:
+        comp = (j.get("company_name") or "").strip().lower()
+        title = (j.get("role_title") or "").strip().lower()
+        pair = (comp, title)
+        content_hash = compute_job_content_hash(j)
+
+        if canon_url and canon_url in seen_urls:
+            continue
+        if content_hash in seen_hashes:
             continue
         if pair in seen_pairs:
             continue
 
-        if url:
-            seen_urls.add(url)
+        if canon_url:
+            seen_urls.add(canon_url)
+        seen_hashes.add(content_hash)
         seen_pairs.add(pair)
         unique.append(j)
 
@@ -731,47 +786,52 @@ async def run_mass_ingestion(
         import asyncpg
         try:
             conn = await asyncpg.connect(db_url, statement_cache_size=0)
+            upsert_query = """
+            INSERT INTO discovered_jobs (
+                company_name, company_domain, role_title, city, province,
+                work_model, job_type, salary_range_cad, job_url, description,
+                requirements, skills, embedding, created_at
+            ) VALUES (
+                $1, $2, $3, $4, $5,
+                $6, $7, $8, $9, $10,
+                $11::jsonb, $12::jsonb, $13::vector, NOW()
+            )
+            ON CONFLICT (job_url) DO UPDATE SET
+                company_name = EXCLUDED.company_name,
+                company_domain = COALESCE(EXCLUDED.company_domain, discovered_jobs.company_domain),
+                role_title = EXCLUDED.role_title,
+                city = EXCLUDED.city,
+                province = EXCLUDED.province,
+                work_model = COALESCE(EXCLUDED.work_model, discovered_jobs.work_model),
+                job_type = COALESCE(EXCLUDED.job_type, discovered_jobs.job_type),
+                salary_range_cad = COALESCE(EXCLUDED.salary_range_cad, discovered_jobs.salary_range_cad),
+                description = EXCLUDED.description,
+                requirements = EXCLUDED.requirements,
+                skills = EXCLUDED.skills,
+                embedding = COALESCE(EXCLUDED.embedding, discovered_jobs.embedding);
+            """
             for j in final_jobs:
-                comp = j["company_name"].replace("'", "''")
-                domain = j["company_domain"].replace("'", "''") if j.get("company_domain") else "NULL"
-                domain_sql = f"'{domain}'" if domain != "NULL" else "NULL"
-                title = j["role_title"].replace("'", "''")
-                city = j["city"].replace("'", "''")
-                prov = j["province"].replace("'", "''")
+                comp = (j.get("company_name") or "").strip()
+                domain = j.get("company_domain")
+                title = (j.get("role_title") or "").strip()
+                city = (j.get("city") or "Canada").strip()
+                prov = (j.get("province") or "REMOTE").strip()
                 wm = j.get("work_model", "ONSITE")
                 jt = j.get("job_type", "INTERNSHIP")
-                sal = j.get("salary_range_cad", "$42 - $58 / hr CAD").replace("'", "''")
-                url = j["job_url"].replace("'", "''")
-                desc = j["description"].replace("'", "''")
-                req_json = json.dumps(j.get("requirements", [])).replace("'", "''")
-                skills_json = json.dumps(j.get("skills", [])).replace("'", "''")
-
+                sal = j.get("salary_range_cad", "$42 - $58 / hr CAD")
+                url = (j.get("job_url") or "").strip()
+                desc = j.get("description", "")
+                req_json = json.dumps(j.get("requirements", []))
+                skills_json = json.dumps(j.get("skills", []))
                 vec_str = "[" + ",".join(f"{x:.6f}" for x in j["embedding"]) + "]"
 
-                sql = f"""
-                INSERT INTO discovered_jobs (
-                    company_name, company_domain, role_title, city, province,
-                    work_model, job_type, salary_range_cad, job_url, description,
-                    requirements, skills, embedding, created_at
-                ) VALUES (
-                    '{comp}', {domain_sql}, '{title}', '{city}', '{prov}',
-                    '{wm}', '{jt}', '{sal}', '{url}', '{desc}',
-                    '{req_json}'::jsonb, '{skills_json}'::jsonb, '{vec_str}'::vector, NOW()
-                )
-                ON CONFLICT (job_url) DO UPDATE SET
-                    company_name = EXCLUDED.company_name,
-                    role_title = EXCLUDED.role_title,
-                    city = EXCLUDED.city,
-                    province = EXCLUDED.province,
-                    work_model = COALESCE(EXCLUDED.work_model, discovered_jobs.work_model),
-                    job_type = COALESCE(EXCLUDED.job_type, discovered_jobs.job_type),
-                    description = EXCLUDED.description,
-                    requirements = EXCLUDED.requirements,
-                    skills = EXCLUDED.skills,
-                    embedding = COALESCE(EXCLUDED.embedding, discovered_jobs.embedding);
-                """
                 try:
-                    await conn.execute(sql)
+                    await conn.execute(
+                        upsert_query,
+                        comp, domain, title, city, prov,
+                        wm, jt, sal, url, desc,
+                        req_json, skills_json, vec_str
+                    )
                     upserted_count += 1
                 except Exception as row_err:
                     logger.warning(f"Row upsert error: {row_err}")

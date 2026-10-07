@@ -82,26 +82,26 @@ async def stream_star_evaluation(request: Request):
     payload = await request.json()
     question = payload.get("question", "")
     answer = payload.get("answer", "")
+    company_values = payload.get("company_values", "")
+
+    stages = interview_simulator.generate_star_stream_stages(question, answer, company_values)
 
     async def event_generator():
-        stages = [
-            ("SITUATION", "Analyzing Situation: Candidate provides foundational project context and problem scope.", 88),
-            ("TASK", "Assessing Task Ownership: Personal ownership and specific technical constraints are clearly outlined.", 92),
-            ("ACTION", "Evaluating Action Execution: Strong technical articulation of architecture choices, trade-offs, and implementation.", 89),
-            ("RESULT", "Measuring Results: Identified performance outcomes. Suggestion: Add exact numeric metric improvements (e.g. latency, throughput, scale).", 84),
-            ("SUMMARY", "Overall STAR Score: 88/100. High-caliber response meeting Tier-1 tech standards.", 88)
-        ]
-        for idx, (stage, content, score) in enumerate(stages):
-            await asyncio.sleep(0.4)
-            data = {
-                "stage": stage,
-                "content": content,
-                "score": score,
-                "done": (idx == len(stages) - 1)
-            }
-            yield f"data: {json.dumps(data)}\n\n"
+        for item in stages:
+            if await request.is_disconnected():
+                break
+            await asyncio.sleep(0.35)
+            yield f"data: {json.dumps(item)}\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        }
+    )
 
 @app.post("/api/v1/resumes/upload")
 async def upload_and_parse_resume(
