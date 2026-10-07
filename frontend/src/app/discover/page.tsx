@@ -32,15 +32,33 @@ import {
 
 // Known domain mappings for logo resolution
 const KNOWN_DOMAINS: Record<string, string> = {
+  nokia: "nokia.com",
+  "definity financial": "definityfinancial.com",
+  definity: "definityfinancial.com",
+  intel: "intel.com",
+  manulife: "manulife.ca",
+  td: "td.com",
+  "td bank": "td.com",
+  cenovus: "cenovus.com",
+  "cenovus energy": "cenovus.com",
+  acuity: "acuity.com",
+  "acuity inc": "acuity.com",
+  trc: "trccompanies.com",
+  "trc companies": "trccompanies.com",
   "amazon vancouver": "amazon.com",
+  amazon: "amazon.com",
   clio: "clio.com",
   "electronic arts (ea)": "ea.com",
+  "electronic arts": "ea.com",
+  ea: "ea.com",
   "d-wave quantum": "dwavesys.com",
+  "d-wave": "dwavesys.com",
   benevity: "benevity.com",
   "neo financial": "neofinancial.com",
   jobber: "getjobber.com",
   altaml: "altaml.com",
   "garmin canada": "garmin.com",
+  garmin: "garmin.com",
   shopify: "shopify.com",
   wealthsimple: "wealthsimple.com",
   hootsuite: "hootsuite.com",
@@ -51,6 +69,12 @@ const KNOWN_DOMAINS: Record<string, string> = {
   ritual: "ritual.co",
   unbounce: "unbounce.com",
   stackadapt: "stackadapt.com",
+  stripe: "stripe.com",
+  palantir: "palantir.com",
+  tesla: "tesla.com",
+  cloudflare: "cloudflare.com",
+  rivian: "rivian.com",
+  databricks: "databricks.com",
 };
 
 export default function DiscoverPage() {
@@ -190,11 +214,30 @@ export default function DiscoverPage() {
     },
   });
 
-  const getLogoUrl = (name: string, domain?: string) => {
-    if (domain) return `https://logo.clearbit.com/${domain}`;
+  const getLogoUrl = (name: string, rawDomain?: string) => {
     const norm = name.toLowerCase().trim();
-    const mapped = KNOWN_DOMAINS[norm] || `${norm.replace(/[^a-z0-9]/g, "")}.com`;
-    return `https://logo.clearbit.com/${mapped}`;
+    if (KNOWN_DOMAINS[norm]) {
+      return `https://www.google.com/s2/favicons?domain=${KNOWN_DOMAINS[norm]}&sz=64`;
+    }
+    let domain = rawDomain || "";
+    // If domain belongs to an ATS platform or subdomain, derive clean domain
+    if (
+      !domain ||
+      domain.includes("workdayjobs.com") ||
+      domain.includes("oraclecloud.com") ||
+      domain.includes("greenhouse.io") ||
+      domain.includes("lever.co") ||
+      domain.includes("workable.com") ||
+      domain.includes("ashbyhq.com")
+    ) {
+      domain = `${norm.replace(/[^a-z0-9]/g, "")}.com`;
+    } else {
+      const parts = domain.split(".");
+      if (parts.length > 2 && !domain.endsWith(".co.uk") && !domain.endsWith(".gc.ca")) {
+        domain = parts.slice(-2).join(".");
+      }
+    }
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
   };
 
   return (
