@@ -11,7 +11,11 @@ import {
   ATSAutofillExport,
 } from "../types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== "undefined"
+    ? "/api/v1"
+    : "https://trackr-gateway.onrender.com/api/v1");
 
 export async function fetchApplications(): Promise<Application[]> {
   const res = await fetch(`${API_BASE}/applications`, { cache: "no-store" });
@@ -234,7 +238,12 @@ export async function createResumeBullet(
 
 export async function uploadResumeFile(
   file: File
-): Promise<{ data: ResumeBullet[]; count: number; filename: string }> {
+): Promise<{
+  data: ResumeBullet[];
+  count: number;
+  filename: string;
+  profile?: Partial<UserProfile>;
+}> {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -249,6 +258,24 @@ export async function uploadResumeFile(
   }
 
   return res.json();
+}
+
+export async function updateResumeBullet(
+  id: string,
+  content: string,
+  category: string = "EXPERIENCE"
+): Promise<ResumeBullet> {
+  const res = await fetch(`${API_BASE}/resumes/bullets/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content, category }),
+  });
+  if (!res.ok) {
+    const errJson = await res.json().catch(() => ({}));
+    throw new Error(errJson.error || "Failed to update resume bullet");
+  }
+  const json = await res.json();
+  return json.data;
 }
 
 export async function deleteResumeBullet(id: string): Promise<void> {

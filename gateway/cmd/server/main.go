@@ -97,6 +97,7 @@ func main() {
 		// Resume Bullets & Tailoring
 		v1.GET("/resumes/bullets", hCtx.ListBullets)
 		v1.POST("/resumes/bullets", hCtx.CreateBullet)
+		v1.PUT("/resumes/bullets/:id", hCtx.UpdateBullet)
 		v1.DELETE("/resumes/bullets/:id", hCtx.DeleteBullet)
 		v1.POST("/resumes/upload", hCtx.UploadResume)
 		v1.POST("/resumes/tailor", hCtx.TailorResume)

@@ -26,7 +26,7 @@ func getEnv(key, defaultVal string) string {
 func LoadConfig() *Config {
 	return &Config{
 		Port:              getEnv("PORT", "8080"),
-		DatabaseURL:       getEnv("DATABASE_URL", "postgres://trackr:[REDACTED_PASSWORD]@localhost:5432/trackr_db?sslmode=disable"),
+		DatabaseURL:       getEnv("DATABASE_URL", "postgres://trackr:trackr_secret@127.0.0.1:5432/trackr_db?sslmode=disable"),
 		RedisURL:          getEnv("REDIS_URL", "redis://localhost:6379/0"),
 		AIWorkerURL:       getEnv("AI_WORKER_URL", "http://localhost:8085"),
 		S3Endpoint:        getEnv("S3_ENDPOINT", "http://localhost:9000"),

@@ -321,6 +321,23 @@ func (db *DB) CreateResumeBullet(ctx context.Context, b *models.ResumeBullet) er
 	return db.Pool.QueryRow(ctx, query, b.ID, b.UserID, b.Category, b.Content).Scan(&b.CreatedAt)
 }
 
+func (db *DB) UpdateResumeBullet(ctx context.Context, id uuid.UUID, content string, category string) (*models.ResumeBullet, error) {
+	query := `
+		UPDATE resume_bullets
+		SET content = $1, category = $2
+		WHERE id = $3
+		RETURNING id, user_id, category, content, created_at
+	`
+	var b models.ResumeBullet
+	err := db.Pool.QueryRow(ctx, query, content, category, id).Scan(
+		&b.ID, &b.UserID, &b.Category, &b.Content, &b.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &b, nil
+}
+
 func (db *DB) DeleteResumeBullet(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM resume_bullets WHERE id = $1`
 	_, err := db.Pool.Exec(ctx, query, id)

@@ -1,5 +1,6 @@
 "use client";
 
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -581,6 +582,13 @@ export default function ProfilePage() {
                       Synchronized achievement records extracted by the Resume Studio parser
                     </p>
                   </div>
+                  <a
+                    href="/resume"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0066FF]/10 text-[#0066FF] hover:bg-[#0066FF]/20 transition"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Manage in Resume Studio</span>
+                  </a>
                 </div>
 
                 <div className="space-y-3">

@@ -112,7 +112,7 @@ async def upload_and_parse_resume(
         raise HTTPException(status_code=500, detail="Database connection pool unavailable")
     try:
         content = await file.read()
-        bullets = await resume_extractor.parse_and_embed(
+        result = await resume_extractor.parse_and_embed(
             file_bytes=content,
             filename=file.filename or "resume.pdf",
             user_id=user_id,
@@ -121,8 +121,9 @@ async def upload_and_parse_resume(
         return {
             "status": "success",
             "filename": file.filename,
-            "count": len(bullets),
-            "data": bullets
+            "count": len(result.get("bullets", [])),
+            "data": result.get("bullets", []),
+            "profile": result.get("profile", {})
         }
     except Exception as e:
         logger.error(f"Failed to parse resume: {e}")
