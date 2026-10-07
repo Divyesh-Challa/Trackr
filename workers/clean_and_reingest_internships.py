@@ -7,7 +7,9 @@ from app.services.embedding_engine import embedding_engine
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgres://trackr:[REDACTED_PASSWORD]@localhost:5432/trackr_db?sslmode=disable")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required")
 CLEAN_DSN = DATABASE_URL.replace("?sslmode=disable", "")
 
 # High-quality seeded Canadian student & tech internship roles

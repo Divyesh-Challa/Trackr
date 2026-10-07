@@ -16,14 +16,13 @@ if current_dir not in sys.path:
 
 from app.services.job_ingestion_pipeline import run_mass_ingestion
 
-DEFAULT_SUPABASE_URL = "postgresql://postgres.user:[REDACTED_SECRET]@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Trackr Mass Job Ingestion Runner")
     parser.add_argument(
         "--db-url",
-        default=os.getenv("DATABASE_URL") or DEFAULT_SUPABASE_URL,
-        help="PostgreSQL connection string (Supabase pooler)"
+        default=os.getenv("DATABASE_URL"),
+        help="PostgreSQL connection string (from DATABASE_URL or CLI)"
     )
     parser.add_argument(
         "--gateway-url",
@@ -38,11 +37,17 @@ def parse_args():
     )
     return parser.parse_args()
 
+
 async def main():
     args = parse_args()
+    if not args.db_url:
+        sys.exit("Error: Database connection URL must be provided via --db-url argument or DATABASE_URL environment variable.")
+
+    target_display = "Supabase (Connected)" if "supabase" in args.db_url.lower() else "Custom Database (Connected)"
+
     print("=" * 70)
     print(" TRACKR MASS JOB INGESTION PIPELINE")
-    print(f" Target DB: {'Supabase (Connected)' if 'supabase' in args.db_url else args.db_url}")
+    print(f" Target DB: {target_display}")
     print(f" Target Gateway: {args.gateway_url}")
     print(f" Ingestion Cap: {args.max_records} roles")
     print("=" * 70)
@@ -59,6 +64,7 @@ async def main():
     print(f" Verified Active Roles:         {stats.get('unique_verified', stats.get('unique_ingested', 0))}")
     print(f" Database Records Upserted:    {stats.get('db_upserted', 0)}")
     print("=" * 70)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
