@@ -40,15 +40,21 @@ def parse_args():
 
 async def main():
     args = parse_args()
-    if not args.db_url:
-        sys.exit("Error: Database connection URL must be provided via --db-url argument or DATABASE_URL environment variable.")
+    if not args.db_url and not args.gateway_url:
+        sys.exit("Error: Either database connection URL (--db-url/DATABASE_URL) or gateway URL (--gateway-url/GATEWAY_URL) must be provided.")
 
-    target_display = "Supabase (Connected)" if "supabase" in args.db_url.lower() else "Custom Database (Connected)"
+    if args.db_url:
+        target_display = "Supabase (Direct SQL)" if "supabase" in (args.db_url or "").lower() else "PostgreSQL (Direct SQL)"
+    else:
+        target_display = f"Go Gateway Batch API ({args.gateway_url})"
 
     print("=" * 70)
     print(" TRACKR MASS JOB INGESTION PIPELINE")
-    print(f" Target DB: {target_display}")
-    print(f" Target Gateway: {args.gateway_url}")
+    print(f" Target Mode: {target_display}")
+    if args.db_url:
+        print(f" Target DB: {'Supabase' if 'supabase' in (args.db_url or '').lower() else 'PostgreSQL'}")
+    if args.gateway_url:
+        print(f" Target Gateway: {args.gateway_url}")
     print(f" Ingestion Cap: {args.max_records} roles")
     print("=" * 70)
 
@@ -63,6 +69,8 @@ async def main():
     print(f" Total Raw Listings Collected:  {stats.get('total_fetched', 0)}")
     print(f" Verified Active Roles:         {stats.get('unique_verified', stats.get('unique_ingested', 0))}")
     print(f" Database Records Upserted:    {stats.get('db_upserted', 0)}")
+    if stats.get('gateway_upserted', 0) > 0:
+        print(f" Gateway Records Pushed:       {stats.get('gateway_upserted', 0)}")
     print("=" * 70)
 
 

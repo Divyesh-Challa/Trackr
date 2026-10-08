@@ -1,7 +1,10 @@
 import os
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
-load_dotenv()
 
 class Config:
     PORT: int = int(os.getenv("PORT", os.getenv("AI_WORKER_PORT", "8085")))
