@@ -34,6 +34,9 @@ import {
   Copy,
   Check,
 } from "lucide-react";
+import ShinyBadge from "../../components/ui/ShinyBadge";
+import Magnet from "../../components/ui/Magnet";
+import SpotlightCard from "../../components/ui/SpotlightCard";
 
 interface TurnHistoryItem {
   round: number;
@@ -276,9 +279,9 @@ export default function SimulatorPage() {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Interactive AI Interview Simulator
             </h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+            <ShinyBadge variant="blue">
               STAR Rubric &bull; Multi-Turn
-            </span>
+            </ShinyBadge>
           </div>
           <p className="text-sm text-slate-600 mt-1">
             Practice real technical &amp; behavioral interviews tailored to top Canadian employers with instant conversational feedback.
@@ -394,23 +397,25 @@ export default function SimulatorPage() {
                 Includes speech recognition (mic), real-time audio playback, and multi-turn follow-ups.
               </span>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-[#0066FF] hover:bg-blue-700 rounded-lg shadow-xs transition-all disabled:opacity-60 cursor-pointer"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Initializing Interviewer...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    Enter Interview Room
-                  </>
-                )}
-              </button>
+              <Magnet radius={50} pullFactor={0.25}>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-[#0066FF] hover:bg-blue-700 rounded-lg shadow-xs transition-all disabled:opacity-60 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Initializing Interviewer...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      Enter Interview Room
+                    </>
+                  )}
+                </button>
+              </Magnet>
             </div>
           </form>
         </div>
@@ -455,7 +460,7 @@ export default function SimulatorPage() {
           </div>
 
           {/* Interviewer Speech Card */}
-          <div className="bg-gradient-to-br from-blue-50/70 to-slate-50 rounded-xl border border-blue-100 p-5 shadow-xs space-y-3">
+          <SpotlightCard className="bg-gradient-to-br from-blue-50/70 to-slate-50 border-blue-100 p-5 shadow-xs space-y-3" spotlightColor="rgba(59, 130, 246, 0.15)">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-700">
               <Bot className="w-4 h-4" />
               Round {currentRound} Question:
@@ -475,7 +480,7 @@ export default function SimulatorPage() {
                 </span>
               ))}
             </div>
-          </div>
+          </SpotlightCard>
 
           {/* User Answer Form */}
           <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">

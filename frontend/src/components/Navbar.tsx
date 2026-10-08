@@ -16,6 +16,9 @@ import {
   MapPin,
 } from "lucide-react";
 import { springs } from "../lib/motion-tokens";
+import DecryptedText from "./ui/DecryptedText";
+import ShinyBadge from "./ui/ShinyBadge";
+import Magnet from "./ui/Magnet";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -54,9 +57,11 @@ export default function Navbar() {
               Tr.
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-base tracking-tight text-slate-900 group-hover:text-[#0066FF] transition-colors">
-                trackr
-              </span>
+              <DecryptedText
+                text="trackr"
+                className="font-bold text-base tracking-tight text-slate-900 group-hover:text-[#0066FF] transition-colors"
+                animateOn="hover"
+              />
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                 Canada
               </span>
@@ -88,9 +93,9 @@ export default function Navbar() {
                   <Icon className={`h-4 w-4 ${isActive ? "text-[#0066FF]" : "text-slate-500"}`} />
                   <span>{item.label}</span>
                   {item.badge && (
-                    <span className="text-[9px] px-1.5 py-0.2 rounded-full font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <ShinyBadge variant="emerald" className="text-[9px] py-0 px-2 font-medium">
                       {item.badge}
-                    </span>
+                    </ShinyBadge>
                   )}
                 </Link>
               );
@@ -107,13 +112,15 @@ export default function Navbar() {
             </span>
           </div>
 
-          <Link
-            href="/profile"
-            className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#0066FF] hover:bg-blue-700 text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>Master Profile</span>
-          </Link>
+          <Magnet radius={50} pullFactor={0.25}>
+            <Link
+              href="/profile"
+              className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#0066FF] hover:bg-blue-700 text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span>Master Profile</span>
+            </Link>
+          </Magnet>
 
           {/* Theme Toggle Button */}
           <button
