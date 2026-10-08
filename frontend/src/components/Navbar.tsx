@@ -19,6 +19,7 @@ import { springs } from "../lib/motion-tokens";
 import DecryptedText from "./ui/DecryptedText";
 import ShinyBadge from "./ui/ShinyBadge";
 import Magnet from "./ui/Magnet";
+import BackendStatusBadge from "./BackendStatusBadge";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -103,9 +104,11 @@ export default function Navbar() {
           </nav>
         </div>
 
-        {/* Right: Regional Scope, Autofill Profile Link & Theme Toggle */}
-        <div className="flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-2 text-xs text-slate-600 font-medium">
+        {/* Right: Regional Scope, Backend Health, Autofill Profile Link & Theme Toggle */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <BackendStatusBadge />
+
+          <div className="hidden xl:flex items-center gap-2 text-xs text-slate-600 font-medium">
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200">
               <MapPin className="h-3 w-3 text-[#0066FF]" />
               <span>Vancouver • Calgary • Toronto • Remote</span>

@@ -11,11 +11,45 @@ import {
   ATSAutofillExport,
 } from "../types";
 
+const DIRECT_API_BASE = "https://trackr-gateway.onrender.com/api/v1";
+const PROXY_API_BASE = "/api/v1";
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== "undefined"
-    ? "/api/v1"
-    : "https://trackr-gateway.onrender.com/api/v1");
+  (typeof window !== "undefined" ? PROXY_API_BASE : DIRECT_API_BASE);
+
+const nativeFetch = typeof window !== "undefined" ? window.fetch.bind(window) : globalThis.fetch;
+
+async function resilientFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const urlStr = typeof input === "string" ? input : input.toString();
+
+  try {
+    const res = await nativeFetch(input, init);
+    // If Render cold-starts (502/503/504) or 404, fallback to proxy or direct
+    if (!res.ok && (res.status === 502 || res.status === 503 || res.status === 504)) {
+      if (urlStr.includes(DIRECT_API_BASE)) {
+        const altUrl = urlStr.replace(DIRECT_API_BASE, PROXY_API_BASE);
+        return await nativeFetch(altUrl, init);
+      } else if (urlStr.includes(PROXY_API_BASE)) {
+        const altUrl = urlStr.replace(PROXY_API_BASE, DIRECT_API_BASE);
+        return await nativeFetch(altUrl, init);
+      }
+    }
+    return res;
+  } catch (err) {
+    if (urlStr.includes(DIRECT_API_BASE)) {
+      const altUrl = urlStr.replace(DIRECT_API_BASE, PROXY_API_BASE);
+      return await nativeFetch(altUrl, init);
+    } else if (urlStr.includes(PROXY_API_BASE)) {
+      const altUrl = urlStr.replace(PROXY_API_BASE, DIRECT_API_BASE);
+      return await nativeFetch(altUrl, init);
+    }
+    throw err;
+  }
+}
+
+// Shadow fetch for all functions in this module
+const fetch = resilientFetch;
 
 export async function fetchApplications(): Promise<Application[]> {
   const res = await fetch(`${API_BASE}/applications`, { cache: "no-store" });

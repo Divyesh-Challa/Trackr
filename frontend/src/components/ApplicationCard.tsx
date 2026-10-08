@@ -13,6 +13,9 @@ import {
   Archive,
 } from "lucide-react";
 import { springs } from "../lib/motion-tokens";
+import SpotlightCard from "./ui/SpotlightCard";
+import ShinyBadge from "./ui/ShinyBadge";
+import DecryptedText from "./ui/DecryptedText";
 
 interface ApplicationCardProps {
   application: Application;
@@ -106,6 +109,14 @@ export default function ApplicationCard({
   const renderMatchScore = (score?: number) => {
     if (score === undefined || score === null) return null;
     const rounded = Math.round(score);
+    if (rounded >= 85) {
+      return (
+        <ShinyBadge variant="emerald" className="text-[10px] py-0.5 px-2 font-bold">
+          <Sparkles className="h-2.5 w-2.5 inline mr-1" />
+          {rounded}% Match
+        </ShinyBadge>
+      );
+    }
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
         <Sparkles className="h-3 w-3" />
@@ -141,29 +152,36 @@ export default function ApplicationCard({
       draggable
       onDragStart={(e: any) => onDragStart(e, application.id)}
       onClick={onClick}
-      className="group relative cursor-grab active:cursor-grabbing select-none rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 p-4 sm:p-5 space-y-3 transition-all shadow-simplify-card hover:shadow-simplify-hover"
+      className="group relative cursor-grab active:cursor-grabbing select-none"
     >
-      {/* Top Row: Company Logo + Name & Match Score */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="h-7 w-7 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0 shadow-xs">
-            {!imgError ? (
-              <img
-                src={logoUrl}
-                alt={application.company_name}
-                onError={() => setImgError(true)}
-                className="h-full w-full object-contain"
-              />
-            ) : (
-              <span className="text-[11px] font-bold text-slate-800">
-                {application.company_name.slice(0, 1).toUpperCase()}
-              </span>
-            )}
+      <SpotlightCard
+        spotlightColor="rgba(0, 102, 255, 0.08)"
+        borderColor="rgba(0, 102, 255, 0.3)"
+        className="rounded-2xl border border-slate-200/90 hover:border-blue-300 p-4 sm:p-5 space-y-3 transition-all shadow-simplify-card hover:shadow-simplify-hover bg-white"
+      >
+        {/* Top Row: Company Logo + Name & Match Score */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-7 w-7 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0 shadow-xs">
+              {!imgError ? (
+                <img
+                  src={logoUrl}
+                  alt={application.company_name}
+                  onError={() => setImgError(true)}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <span className="text-[11px] font-bold text-slate-800">
+                  {application.company_name.slice(0, 1).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <DecryptedText
+              text={application.company_name}
+              className="font-semibold text-xs text-slate-900 truncate"
+              animateOn="hover"
+            />
           </div>
-          <span className="font-semibold text-xs text-slate-900 truncate">
-            {application.company_name}
-          </span>
-        </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
           {renderMatchScore(application.match_score)}
@@ -319,6 +337,7 @@ export default function ApplicationCard({
           )}
         </div>
       </div>
+      </SpotlightCard>
     </motion.div>
   );
 }

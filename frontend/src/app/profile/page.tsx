@@ -32,6 +32,11 @@ import {
   MapPin,
   Sparkles,
 } from "lucide-react";
+import SpotlightCard from "../../components/ui/SpotlightCard";
+import ShinyBadge from "../../components/ui/ShinyBadge";
+import Magnet from "../../components/ui/Magnet";
+import DecryptedText from "../../components/ui/DecryptedText";
+import VantaBackground from "../../components/ui/VantaBackground";
 
 const CANADIAN_UNIVERSITIES = [
   "University of British Columbia (UBC)",
