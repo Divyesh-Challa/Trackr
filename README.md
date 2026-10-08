@@ -1,4 +1,4 @@
-# Trackr — Career Pipeline & Internship Accelerator
+# Trackr — Internship Job Board
 
 > Built for Canadian tech students  
 > **Live Demo:** [trackr-vercel-app.vercel.app](https://trackr-vercel-app.vercel.app) • **API Gateway:** [trackr-gateway.onrender.com](https://trackr-gateway.onrender.com/health)
