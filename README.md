@@ -1,6 +1,6 @@
-# Trackr — Career Pipeline & Internship Accelerator
+# Trackr — Internship Job Board
 
-> Built by **Divyesh Challa** (Computer Science, University of British Columbia)  
+> Built by **Divyesh Challa** (Computer Science, University of Alberta)  
 > **Live Demo:** [trackr-vercel-app.vercel.app](https://trackr-vercel-app.vercel.app) • **API Gateway:** [trackr-gateway.onrender.com](https://trackr-gateway.onrender.com/health)
 
 [![Next.js 15](https://img.shields.io/badge/Next.js-15%20App%20Router-black?style=flat&logo=next.js)](https://nextjs.org/)
