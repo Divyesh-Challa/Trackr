@@ -686,7 +686,7 @@ export default function SimulatorPage() {
                     Key Strengths Observed:
                   </h5>
                   <ul className="list-disc ml-4 space-y-1 text-xs text-emerald-800">
-                    {lastTurnData.final_debrief.key_strengths.map((s, idx) => (
+                    {(lastTurnData.final_debrief.key_strengths || []).map((s, idx) => (
                       <li key={idx}>{s}</li>
                     ))}
                   </ul>
@@ -697,7 +697,7 @@ export default function SimulatorPage() {
                     High-Leverage Growth Areas:
                   </h5>
                   <ul className="list-disc ml-4 space-y-1 text-xs text-amber-800">
-                    {lastTurnData.final_debrief.growth_areas.map((g, idx) => (
+                    {(lastTurnData.final_debrief.growth_areas || []).map((g, idx) => (
                       <li key={idx}>{g}</li>
                     ))}
                   </ul>
