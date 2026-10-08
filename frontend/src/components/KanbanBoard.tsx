@@ -21,6 +21,8 @@ import SpotlightCard from "./ui/SpotlightCard";
 import Magnet from "./ui/Magnet";
 import ShinyBadge from "./ui/ShinyBadge";
 import VantaBackground from "./ui/VantaBackground";
+import DecryptedText from "./ui/DecryptedText";
+import { useGSAPStagger } from "../lib/useGSAPStagger";
 import {
   Plus,
   Sparkles,
@@ -88,12 +90,16 @@ export default function KanbanBoard() {
   const [workModelFilter, setWorkModelFilter] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<"DATE" | "SCORE" | "COMPANY">("SCORE");
 
-  const { data: applications = INITIAL_APPLICATIONS, isLoading } = useQuery({
+  const { data: rawApps = [], isLoading } = useQuery({
     queryKey: ["applications"],
     queryFn: fetchApplications,
     initialData: INITIAL_APPLICATIONS,
-    refetchInterval: 5000,
+    refetchInterval: 6000,
   });
+
+  const applications = useMemo(() => {
+    return rawApps && rawApps.length > 0 ? rawApps : INITIAL_APPLICATIONS;
+  }, [rawApps]);
 
   const { data: milestones = [] } = useQuery({
     queryKey: ["milestones"],
@@ -262,6 +268,13 @@ export default function KanbanBoard() {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
   }, [applications, searchQuery, workModelFilter, sortBy]);
+
+  const boardRef = useGSAPStagger({
+    selector: "[data-testid='application-card']",
+    triggerDeps: [filteredApplications.length, sortBy, workModelFilter],
+    duration: 0.35,
+    stagger: 0.03,
+  });
 
   // Comprehensive Pipeline Analytics
   const metrics = useMemo(() => {
@@ -504,7 +517,7 @@ export default function KanbanBoard() {
       {/* VIEW 1: KANBAN BOARD */}
       {activeView === "BOARD" && (
         <div className="w-full overflow-x-auto pb-6 scrollbar-thin">
-          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 min-h-[640px] items-start min-w-full sm:min-w-[1200px]">
+          <div ref={boardRef} className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 min-h-[640px] items-start min-w-full sm:min-w-[1200px]">
           {COLUMNS.map((col) => {
             const colApps = filteredApplications.filter((a) => a.status === col.id);
             const isTargeted = activeDragTarget === col.id;

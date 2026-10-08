@@ -33,6 +33,9 @@ import {
 import VantaBackground from "../../components/ui/VantaBackground";
 import ShinyBadge from "../../components/ui/ShinyBadge";
 import Magnet from "../../components/ui/Magnet";
+import SpotlightCard from "../../components/ui/SpotlightCard";
+import DecryptedText from "../../components/ui/DecryptedText";
+import { useGSAPStagger } from "../../lib/useGSAPStagger";
 
 // Known domain mappings for logo resolution
 const KNOWN_DOMAINS: Record<string, string> = {
@@ -241,8 +244,14 @@ export default function DiscoverPage() {
         domain = parts.slice(-2).join(".");
       }
     }
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
   };
+
+  const jobsListRef = useGSAPStagger({
+    selector: "[data-testid='job-feed-card']",
+    triggerDeps: [filteredJobs.length, activeLocationFilter],
+    duration: 0.35,
+    stagger: 0.04,
+  });
 
   return (
     <div className="space-y-6">
@@ -335,7 +344,7 @@ export default function DiscoverPage() {
       {/* Dual-Pane Discover Feed Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-[700px] items-start pb-6">
         {/* Left Pane: Dense Scrollable Job List (5 cols) with Gliding Active Selection */}
-        <div className="lg:col-span-5 space-y-3 max-h-[820px] overflow-y-auto pr-1.5 no-scrollbar momentum-scroll">
+        <div ref={jobsListRef} className="lg:col-span-5 space-y-3 max-h-[820px] overflow-y-auto pr-1.5 no-scrollbar momentum-scroll">
           {isLoading ? (
             <div className="p-12 text-center text-xs text-slate-500 rounded-2xl bg-white border border-slate-200/90 shadow-simplify-card">
               Loading verified tech roles...
@@ -361,85 +370,94 @@ export default function DiscoverPage() {
               return (
                 <motion.div
                   key={job.id}
+                  data-testid="job-feed-card"
                   onClick={() => setSelectedJobId(job.id)}
                   whileHover={{ y: -2, transition: springs.snappy }}
                   whileTap={{ scale: 0.99 }}
-                  className={`group relative cursor-pointer rounded-2xl p-4 sm:p-5 transition-all text-left bg-white border ${
-                    isSelected
-                      ? "border-[#0066FF] bg-blue-50/20 shadow-simplify-hover"
-                      : "border-slate-200/90 hover:border-slate-300 shadow-simplify-card hover:shadow-simplify-hover"
-                  }`}
+                  className="group relative cursor-pointer"
                 >
-                  {/* Gliding Active Selection Ring via Framer Motion layoutId */}
-                  {isSelected && (
-                    <motion.div
-                      layoutId="activeJobHighlight"
-                      className="absolute inset-0 rounded-2xl border-2 border-[#0066FF] bg-blue-50/20 pointer-events-none shadow-[0_0_16px_rgba(0,102,255,0.12)] z-10"
-                      transition={springs.glide}
-                    />
-                  )}
+                  <SpotlightCard
+                    spotlightColor="rgba(0, 102, 255, 0.08)"
+                    borderColor="rgba(0, 102, 255, 0.3)"
+                    className={`rounded-2xl p-4 sm:p-5 transition-all text-left bg-white border ${
+                      isSelected
+                        ? "border-[#0066FF] bg-blue-50/20 shadow-simplify-hover"
+                        : "border-slate-200/90 hover:border-slate-300 shadow-simplify-card hover:shadow-simplify-hover"
+                    }`}
+                  >
+                    {/* Gliding Active Selection Ring via Framer Motion layoutId */}
+                    {isSelected && (
+                      <motion.div
+                        layoutId="activeJobHighlight"
+                        className="absolute inset-0 rounded-2xl border-2 border-[#0066FF] bg-blue-50/20 pointer-events-none shadow-[0_0_16px_rgba(0,102,255,0.12)] z-10"
+                        transition={springs.glide}
+                      />
+                    )}
 
-                  {/* Top Row: Logo + Company + Match Pill */}
-                  <div className="flex items-start justify-between gap-2 relative z-0">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="h-7 w-7 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0 shadow-xs">
-                        <img
-                          src={getLogoUrl(job.company_name, job.company_domain)}
-                          alt={job.company_name}
-                          onError={(e: any) => {
-                            e.target.style.display = "none";
-                          }}
-                          className="h-full w-full object-contain"
-                        />
+                    {/* Top Row: Logo + Company + Match Pill */}
+                    <div className="flex items-start justify-between gap-2 relative z-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="h-7 w-7 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0 shadow-xs">
+                          <img
+                            src={getLogoUrl(job.company_name, job.company_domain)}
+                            alt={job.company_name}
+                            onError={(e: any) => {
+                              e.target.style.display = "none";
+                            }}
+                            className="h-full w-full object-contain"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <DecryptedText
+                            text={job.company_name}
+                            className="font-semibold text-xs text-slate-900 truncate block"
+                            animateOn="hover"
+                          />
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <span className="font-semibold text-xs text-slate-900 truncate block">
-                          {job.company_name}
+
+                      {job.match_score !== undefined && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                          <Sparkles className="h-3 w-3" />
+                          <span>{Math.round(job.match_score)}% Match</span>
                         </span>
-                      </div>
+                      )}
                     </div>
 
-                    {job.match_score !== undefined && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                        <Sparkles className="h-3 w-3" />
-                        <span>{Math.round(job.match_score)}% Match</span>
+                    {/* Role Title */}
+                    <h3 className="font-semibold text-sm text-slate-900 group-hover:text-[#0066FF] transition-colors mt-2.5 line-clamp-2 leading-snug relative z-0">
+                      {job.role_title}
+                    </h3>
+
+                    {/* Location & Work Model & Salary */}
+                    <div className="flex items-center gap-2 text-xs text-slate-600 mt-2 flex-wrap relative z-0">
+                      <span>{job.city}, {job.province}</span>
+                      <span>•</span>
+                      <span>{job.work_model}</span>
+                      {job.salary_range_cad && (
+                        <>
+                          <span>•</span>
+                          <span className="text-emerald-700 font-medium">
+                            {job.salary_range_cad}
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Footer Pill Row */}
+                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100 text-[10px] relative z-0">
+                      <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">
+                        Student / Co-op
                       </span>
-                    )}
-                  </div>
 
-                  {/* Role Title */}
-                  <h3 className="font-semibold text-sm text-slate-900 group-hover:text-[#0066FF] transition-colors mt-2.5 line-clamp-2 leading-snug relative z-0">
-                    {job.role_title}
-                  </h3>
-
-                  {/* Location & Work Model & Salary */}
-                  <div className="flex items-center gap-2 text-xs text-slate-600 mt-2 flex-wrap relative z-0">
-                    <span>{job.city}, {job.province}</span>
-                    <span>•</span>
-                    <span>{job.work_model}</span>
-                    {job.salary_range_cad && (
-                      <>
-                        <span>•</span>
-                        <span className="text-emerald-700 font-medium">
-                          {job.salary_range_cad}
+                      {hasAdded && (
+                        <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                          <Check className="h-3 w-3" />
+                          In {hasAdded}
                         </span>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Footer Pill Row */}
-                  <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100 text-[10px] relative z-0">
-                    <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">
-                      Student / Co-op
-                    </span>
-
-                    {hasAdded && (
-                      <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                        <Check className="h-3 w-3" />
-                        In {hasAdded}
-                      </span>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  </SpotlightCard>
                 </motion.div>
               );
             })

@@ -54,6 +54,11 @@ import {
   Calendar,
   Building2,
 } from "lucide-react";
+import SpotlightCard from "../../components/ui/SpotlightCard";
+import ShinyBadge from "../../components/ui/ShinyBadge";
+import Magnet from "../../components/ui/Magnet";
+import DecryptedText from "../../components/ui/DecryptedText";
+import VantaBackground from "../../components/ui/VantaBackground";
 
 export default function ResumePage() {
   const queryClient = useQueryClient();

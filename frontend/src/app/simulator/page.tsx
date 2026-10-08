@@ -37,6 +37,8 @@ import {
 import ShinyBadge from "../../components/ui/ShinyBadge";
 import Magnet from "../../components/ui/Magnet";
 import SpotlightCard from "../../components/ui/SpotlightCard";
+import DecryptedText from "../../components/ui/DecryptedText";
+import VantaBackground from "../../components/ui/VantaBackground";
 
 interface TurnHistoryItem {
   round: number;
