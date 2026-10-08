@@ -785,7 +785,11 @@ async def run_mass_ingestion(
         logger.info(f"Upserting {len(final_jobs)} verified jobs into PostgreSQL...")
         import asyncpg
         try:
-            conn = await asyncpg.connect(db_url, statement_cache_size=0)
+            db_conn_str = db_url.replace("postgresql+asyncpg://", "postgres://").replace("postgresql://", "postgres://")
+            if "sslmode=disable" in db_conn_str and "supabase" in db_conn_str.lower():
+                db_conn_str = db_conn_str.replace("sslmode=disable", "sslmode=require")
+
+            conn = await asyncpg.connect(db_conn_str, statement_cache_size=0)
             upsert_query = """
             INSERT INTO discovered_jobs (
                 company_name, company_domain, role_title, city, province,
@@ -794,7 +798,9 @@ async def run_mass_ingestion(
             ) VALUES (
                 $1, $2, $3, $4, $5,
                 $6, $7, $8, $9, $10,
-                $11::jsonb, $12::jsonb, $13::vector, NOW()
+                $11::jsonb, $12::jsonb,
+                CASE WHEN $13::text IS NOT NULL THEN ($13)::vector ELSE NULL END,
+                NOW()
             )
             ON CONFLICT (job_url) DO UPDATE SET
                 company_name = EXCLUDED.company_name,
@@ -823,7 +829,7 @@ async def run_mass_ingestion(
                 desc = j.get("description", "")
                 req_json = json.dumps(j.get("requirements", []))
                 skills_json = json.dumps(j.get("skills", []))
-                vec_str = "[" + ",".join(f"{x:.6f}" for x in j["embedding"]) + "]"
+                vec_str = "[" + ",".join(f"{x:.6f}" for x in j["embedding"]) + "]" if j.get("embedding") else None
 
                 try:
                     await conn.execute(
@@ -841,20 +847,34 @@ async def run_mass_ingestion(
         except Exception as db_err:
             logger.error(f"PostgreSQL connection error: {db_err}")
 
-    # Step 6: Optional Gateway batch push
+    # Step 6: Gateway batch push
+    gateway_upserted = 0
     if gateway_url:
+        logger.info(f"Pushing jobs to Gateway batch endpoint: {gateway_url}/api/v1/jobs/batch-ingest...")
         try:
-            async with httpx.AsyncClient(timeout=25.0) as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 chunk_size = 50
                 for i in range(0, len(final_jobs), chunk_size):
                     chunk = final_jobs[i:i+chunk_size]
-                    await client.post(f"{gateway_url}/api/v1/jobs/batch-ingest", json={"jobs": chunk})
-        except Exception:
-            pass
+                    try:
+                        resp = await client.post(f"{gateway_url}/api/v1/jobs/batch-ingest", json={"jobs": chunk})
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            gateway_upserted += data.get("upserted", 0)
+                        else:
+                            logger.warning(f"Gateway batch chunk returned {resp.status_code}: {resp.text[:200]}")
+                    except Exception as chunk_err:
+                        logger.warning(f"Gateway chunk push error: {chunk_err}")
+            logger.info(f"Gateway batch push complete: {gateway_upserted} jobs upserted via Gateway.")
+        except Exception as gw_err:
+            logger.warning(f"Gateway batch push error: {gw_err}")
 
     return {
         "status": "success",
         "total_fetched": len(all_candidates),
         "unique_verified": len(final_jobs),
-        "db_upserted": upserted_count,
+        "db_upserted": upserted_count if upserted_count > 0 else gateway_upserted,
+        "direct_db_upserted": upserted_count,
+        "gateway_upserted": gateway_upserted,
     }
+
