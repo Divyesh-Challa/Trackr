@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -170,11 +171,12 @@ func (h *HandlerContext) UploadResume(c *gin.Context) {
 		_ = writer.Close()
 
 		workerURL := h.Config.AIWorkerURL + "/api/v1/resumes/upload"
-		req, err := http.NewRequestWithContext(c.Request.Context(), "POST", workerURL, &body)
+		uploadCtx, uploadCancel := context.WithTimeout(c.Request.Context(), 90*time.Second)
+		defer uploadCancel()
+		req, err := http.NewRequestWithContext(uploadCtx, "POST", workerURL, &body)
 		if err == nil {
 			req.Header.Set("Content-Type", writer.FormDataContentType())
-			client := &http.Client{Timeout: 90 * time.Second}
-			resp, err := client.Do(req)
+			resp, err := h.HTTPClient.Do(req)
 			if err == nil {
 				defer resp.Body.Close()
 				if resp.StatusCode == http.StatusOK {
@@ -217,15 +219,17 @@ func (h *HandlerContext) TailorResume(c *gin.Context) {
 	payloadBytes, _ := json.Marshal(body)
 	workerURL := fmt.Sprintf("%s/api/v1/resumes/tailor", h.Config.AIWorkerURL)
 
-	httpReq, err := http.NewRequestWithContext(c.Request.Context(), "POST", workerURL, bytes.NewBuffer(payloadBytes))
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 90*time.Second)
+	defer cancel()
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", workerURL, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 90 * time.Second}
-	resp, err := client.Do(httpReq)
+	resp, err := h.HTTPClient.Do(httpReq)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to connect to AI Worker: " + err.Error()})
 		return
@@ -251,15 +255,17 @@ func (h *HandlerContext) GenerateCoverLetter(c *gin.Context) {
 	payloadBytes, _ := json.Marshal(body)
 	workerURL := fmt.Sprintf("%s/api/v1/cover-letter/generate", h.Config.AIWorkerURL)
 
-	httpReq, err := http.NewRequestWithContext(c.Request.Context(), "POST", workerURL, bytes.NewBuffer(payloadBytes))
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 90*time.Second)
+	defer cancel()
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", workerURL, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 90 * time.Second}
-	resp, err := client.Do(httpReq)
+	resp, err := h.HTTPClient.Do(httpReq)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to connect to AI Worker: " + err.Error()})
 		return

@@ -135,8 +135,22 @@ Return ONLY a JSON object:
     ) -> Dict[str, Any]:
         """
         Evaluates candidate's answer and generates next dynamic follow-up question or final debrief.
+        Maintains conversational continuity using history from previous rounds.
         """
         is_final = current_round >= total_rounds
+
+        # Format historical turns for conversational context
+        history_str = ""
+        if history:
+            history_lines = []
+            for h in history:
+                rnd = h.get("round", "?")
+                q_text = h.get("question", "")
+                a_text = h.get("answer", "")
+                sc = h.get("overall_score") or (h.get("evaluation", {}).get("overall_score") if isinstance(h.get("evaluation"), dict) else None)
+                score_label = f" (Score: {sc}/100)" if sc is not None else ""
+                history_lines.append(f"Round {rnd}:\nInterviewer: \"{q_text}\"\nCandidate: \"{a_text}\"{score_label}")
+            history_str = "Prior Conversation History:\n" + "\n\n".join(history_lines) + "\n\n"
 
         if self.gemini_model:
             try:
@@ -145,7 +159,7 @@ You are an expert interviewer evaluating a candidate for {role_title} at {compan
 Interview Type: {interview_type}
 Round: {current_round} of {total_rounds} (Final: {is_final})
 
-Question Asked:
+{history_str}Current Round {current_round} Question Asked:
 "{question}"
 
 Candidate Answer:
@@ -153,16 +167,16 @@ Candidate Answer:
 
 Evaluation Instructions:
 1. Break down the answer thoroughly using the STAR rubric:
-   - Situation: Context and problem complexity (score 0-100, concise feedback)
-   - Task: Specific personal responsibility and ownership (score 0-100, concise feedback)
-   - Action: Technical rigor, architecture, tooling, and execution (score 0-100, concise feedback)
-   - Result: Quantifiable metrics and outcome impact (score 0-100, concise feedback)
+   - Situation: Context and problem complexity (score 0-100, concise feedback referencing the candidate's specific context)
+   - Task: Specific personal responsibility and ownership (score 0-100, concise feedback on 'I' vs 'we')
+   - Action: Technical rigor, architecture, tooling, and execution (score 0-100, concise feedback on code and trade-offs)
+   - Result: Quantifiable metrics and outcome impact (score 0-100, concise feedback on measurable gains)
 2. Identify 2 concrete Strengths and 2 specific Areas for Improvement.
 3. Provide a Senior FAANG-caliber Model Answer illustrating how to elevate this response.
 4. If NOT final round:
-   - Formulate an intelligent, probing Follow-Up Question challenging a specific claim, tool, or edge-case mentioned in the candidate's answer.
+   - Formulate an intelligent, probing Follow-Up Question challenging a specific claim, architectural trade-off, edge case, or technology choice mentioned in the candidate's answer or prior turns. Ensure conversational continuity.
 5. If FINAL round:
-   - Provide overall interview score (0-100), Recommendation ("Strong Hire", "Hire", "Leaning Hire", "Needs Practice"), and final debrief summary.
+   - Provide overall interview score (0-100), Recommendation ("Strong Hire", "Hire", "Leaning Hire", "Needs Practice"), and final debrief summary evaluating candidate growth across all rounds.
 
 Return ONLY a JSON object:
 {{
@@ -205,7 +219,7 @@ Return ONLY a JSON object:
                 logger.warning(f"Gemini turn evaluation error: {e}. Falling back to deterministic engine.")
 
         return self._evaluate_turn_deterministic(
-            company_name, role_title, interview_type, current_round, total_rounds, question, answer, is_final
+            company_name, role_title, interview_type, current_round, total_rounds, question, answer, is_final, history
         )
 
     def _evaluate_turn_deterministic(
@@ -217,15 +231,16 @@ Return ONLY a JSON object:
         total_rounds: int,
         question: str,
         answer: str,
-        is_final: bool
+        is_final: bool,
+        history: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
         ans_lower = answer.lower()
-        has_metrics = any(char.isdigit() for char in answer) or any(w in ans_lower for w in ["percent", "%", "ms", "seconds", "reduced", "scaled"])
-        has_tech = any(w in ans_lower for w in ["api", "database", "sql", "cache", "redis", "postgres", "microservice", "docker", "pipeline", "latency", "async"])
-        has_action = any(w in ans_lower for w in ["designed", "engineered", "implemented", "built", "optimized", "refactored", "analyzed"])
+        has_metrics = any(char.isdigit() for char in answer) or any(w in ans_lower for w in ["percent", "%", "ms", "seconds", "reduced", "scaled", "throughput", "qps"])
+        has_tech = any(w in ans_lower for w in ["api", "database", "sql", "cache", "redis", "postgres", "microservice", "docker", "pipeline", "latency", "async", "kafka", "index"])
+        has_action = any(w in ans_lower for w in ["designed", "engineered", "implemented", "built", "optimized", "refactored", "analyzed", "profiled", "benchmarked"])
 
         sit_score = 88 if len(answer.split()) > 40 else 76
-        task_score = 90 if any(w in ans_lower for w in ["i owned", "my role", "i took", "responsible for", "my responsibility"]) else 80
+        task_score = 90 if any(w in ans_lower for w in ["i owned", "my role", "i took", "responsible for", "my responsibility", "i spearheaded", "i led"]) else 80
         action_score = 92 if has_tech and has_action else 82
         result_score = 90 if has_metrics else 78
         overall = round((sit_score + task_score + action_score + result_score) / 4)
@@ -235,23 +250,32 @@ Return ONLY a JSON object:
             "Demonstrated proactive ownership in selecting tools and validating solutions."
         ]
         improvements = [
-            "Quantify business and engineering metrics more explicitly (e.g. latency percentiles, server memory freed, or deployment hours saved).",
-            "Discuss edge cases or trade-offs considered before committing to this architecture."
+            "Quantify business and engineering metrics more explicitly (e.g. latency percentiles, memory footprint, or operational cost savings).",
+            "Discuss failure modes and architectural trade-offs considered before committing to this implementation."
         ]
 
         if not is_final:
-            if current_round == 1:
-                follow_up = f"You touched on your technical execution in that project. If this service had experienced a 10x surge in concurrent requests, where would the system break first, and how would you redesign it?"
+            # Contextually dynamic follow-up questioning based on candidate's specific claims
+            if "redis" in ans_lower or "cache" in ans_lower:
+                follow_up = f"You highlighted caching with Redis. How did you handle cache invalidation, cache stampedes (dogpiling), and TTL tuning under heavy concurrent reads?"
+            elif "database" in ans_lower or "sql" in ans_lower or "postgres" in ans_lower:
+                follow_up = f"You touched on database operations. How did you structure query plans, compound indexes, and connection pooling to prevent connection starvation under high concurrency?"
+            elif "latency" in ans_lower or "profil" in ans_lower or "bottleneck" in ans_lower:
+                follow_up = f"Regarding latency optimization, what profiling methodology did you use to isolate hot paths, and what was your p99 degradation threshold before triggering alerts?"
+            elif "microservice" in ans_lower or "api" in ans_lower or "kafka" in ans_lower:
+                follow_up = f"In distributed architectures like this, how did you handle partial network failures, timeouts, and idempotent retry semantics across service boundaries?"
+            elif current_round == 1:
+                follow_up = f"If this service experienced a sudden 10x spike in concurrent traffic with strict 50ms latency SLAs, where would the system break first, and what trade-off would you make?"
             else:
-                follow_up = f"How did you collaborate with teammates, product managers, or external stakeholders who held differing technical views during this delivery at {company_name}?"
+                follow_up = f"If you were starting this project over from scratch today with full hindsight, what architectural decision or library choice would you reverse to improve reliability?"
             decision = None
             debrief = None
         else:
             follow_up = None
             decision = "Strong Hire" if overall >= 88 else ("Hire" if overall >= 80 else "Leaning Hire")
-            debrief = f"Demonstrated solid technical problem solving and engineering clarity. Well suited for high-autonomy teams at {company_name}."
+            debrief = f"Demonstrated solid technical problem solving, structured communication, and engineering clarity. Well suited for high-autonomy teams at {company_name}."
 
-        model_answer = f"At my previous position, our team faced a bottleneck where API latency climbed under high concurrency (Situation). As the primary backend engineer, I took end-to-end ownership of identifying the root cause and refactoring the pipeline (Task). I analyzed query plans with EXPLAIN ANALYZE, implemented compound database indexes, and introduced asynchronous Redis caching with a write-through invalidation strategy (Action). Within three weeks, p99 response times dropped from 450ms to 38ms, and database load decreased by 70% under peak load (Result)."
+        model_answer = f"At my previous position, our service experienced increased latency during peak traffic (Situation). As the primary backend engineer, I took end-to-end ownership of identifying the bottleneck and refactoring the pipeline (Task). I analyzed query execution plans with EXPLAIN ANALYZE, added targeted compound indexes, and introduced asynchronous Redis caching with a write-through invalidation strategy (Action). Within three weeks, p99 response times dropped from 450ms to 38ms, and database CPU utilization decreased by 70% under peak load (Result)."
 
         return {
             "current_round": current_round,
@@ -271,5 +295,55 @@ Return ONLY a JSON object:
             "final_decision": decision,
             "final_debrief": debrief
         }
+
+    def generate_star_stream_stages(self, question: str, answer: str, company_values: str = "") -> List[Dict[str, Any]]:
+        """
+        Generates dynamic 5-stage STAR rubric feedback for SSE streaming,
+        tailored to candidate's answer text and question context.
+        """
+        ans_lower = answer.lower()
+        has_metrics = any(char.isdigit() for char in answer) or any(w in ans_lower for w in ["percent", "%", "ms", "seconds", "reduced", "scaled", "throughput"])
+        has_tech = any(w in ans_lower for w in ["api", "database", "sql", "cache", "redis", "postgres", "microservice", "docker", "pipeline", "latency", "async"])
+        has_ownership = any(w in ans_lower for w in ["i owned", "my role", "i designed", "i built", "i led", "responsible for"])
+        word_count = len(answer.split())
+
+        sit_score = 88 if word_count >= 35 else 74
+        sit_msg = (
+            f"Analyzing Situation context: Candidate clearly articulates technical constraints and problem scope ({word_count} words)."
+            if word_count >= 35 else
+            "Analyzing Situation context: Context is brief. Clarify the business impact, system scale, and team constraints."
+        )
+
+        task_score = 92 if has_ownership else 78
+        task_msg = (
+            "Evaluating Task ownership: Strong demonstration of personal accountability and distinct role boundaries."
+            if has_ownership else
+            "Evaluating Task ownership: Ensure personal contributions ('I built/designed') are distinguished from the broader team's work."
+        )
+
+        action_score = 92 if has_tech else 80
+        action_msg = (
+            "Examining Action execution: Robust technical depth, architecture trade-offs, and implementation choices articulated."
+            if has_tech else
+            "Examining Action execution: Deepen technical specificity by referencing specific tools, design patterns, and debugging steps."
+        )
+
+        result_score = 90 if has_metrics else 76
+        result_msg = (
+            "Scoring Result impact: Solid quantifiable metrics presented. Highlight both engineering performance and business value."
+            if has_metrics else
+            "Scoring Result impact: Recommendation: Quantify impact with exact metrics (e.g. latency percentiles, memory reduction, or hours saved)."
+        )
+
+        overall = round((sit_score + task_score + action_score + result_score) / 4)
+        summary_msg = f"Overall STAR Score: {overall}/100. {'Tier-1 engineering caliber response.' if overall >= 85 else 'Good foundation; strengthen numeric metrics and technical depth.'}"
+
+        return [
+            {"stage": "SITUATION", "content": sit_msg, "score": sit_score, "done": False},
+            {"stage": "TASK", "content": task_msg, "score": task_score, "done": False},
+            {"stage": "ACTION", "content": action_msg, "score": action_score, "done": False},
+            {"stage": "RESULT", "content": result_msg, "score": result_score, "done": False},
+            {"stage": "SUMMARY", "content": summary_msg, "score": overall, "done": True},
+        ]
 
 interview_simulator = InterviewSimulator()

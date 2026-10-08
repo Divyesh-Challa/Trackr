@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -257,15 +258,17 @@ func (h *HandlerContext) GenerateOutreach(c *gin.Context) {
 	payloadBytes, _ := json.Marshal(payload)
 
 	workerURL := h.Config.AIWorkerURL + "/api/v1/outreach/generate"
-	httpReq, err := http.NewRequestWithContext(c.Request.Context(), "POST", workerURL, bytes.NewBuffer(payloadBytes))
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 60*time.Second)
+	defer cancel()
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", workerURL, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 60 * time.Second}
-	resp, err := client.Do(httpReq)
+	resp, err := h.HTTPClient.Do(httpReq)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to connect to AI worker: " + err.Error()})
 		return
@@ -292,15 +295,18 @@ func (h *HandlerContext) ScrapeJD(c *gin.Context) {
 
 	payloadBytes, _ := json.Marshal(req)
 	workerURL := h.Config.AIWorkerURL + "/api/v1/scraper/scrape"
-	httpReq, err := http.NewRequestWithContext(c.Request.Context(), "POST", workerURL, bytes.NewBuffer(payloadBytes))
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", workerURL, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(httpReq)
+	resp, err := h.HTTPClient.Do(httpReq)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to connect to headless scraper: " + err.Error()})
 		return
