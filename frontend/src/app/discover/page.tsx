@@ -30,6 +30,9 @@ import {
   X,
   Building,
 } from "lucide-react";
+import VantaBackground from "../../components/ui/VantaBackground";
+import ShinyBadge from "../../components/ui/ShinyBadge";
+import Magnet from "../../components/ui/Magnet";
 
 // Known domain mappings for logo resolution
 const KNOWN_DOMAINS: Record<string, string> = {
@@ -259,15 +262,16 @@ export default function DiscoverPage() {
       </AnimatePresence>
 
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-simplify-card flex flex-col md:flex-row md:items-center justify-between gap-5">
-        <div className="space-y-1.5">
+      <div className="relative overflow-hidden p-6 rounded-2xl bg-white border border-slate-200/90 shadow-simplify-card flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <VantaBackground className="opacity-25" />
+        <div className="relative z-10 space-y-1.5">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="font-serif text-3xl md:text-4xl font-semibold tracking-tight text-slate-900">
               Discover Canadian Tech Roles, <span className="italic font-normal text-slate-500">Curated & Matched.</span>
             </h1>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
+            <ShinyBadge variant="emerald" className="py-0.5 px-3">
               🇨🇦 100% Verified Canadian Roles (ON, BC, QC, AB & Remote)
-            </span>
+            </ShinyBadge>
           </div>
           <p className="text-xs text-slate-600 max-w-3xl">
             Exclusively active Canadian tech internships and co-ops with verified live application links.
@@ -275,7 +279,7 @@ export default function DiscoverPage() {
         </div>
 
         {/* Quick Search */}
-        <div className="relative w-full md:w-80 shrink-0">
+        <div className="relative z-10 w-full md:w-80 shrink-0">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -483,14 +487,16 @@ export default function DiscoverPage() {
                     + Wishlist
                   </button>
 
-                  <button
-                    onClick={() => addMutation.mutate({ job: activeJob, status: "APPLIED" })}
-                    disabled={addMutation.isPending}
-                    className="px-4 py-2 rounded-lg text-xs font-medium bg-[#0066FF] hover:bg-blue-700 text-white shadow-sm transition flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span>Add to Applied</span>
-                  </button>
+                  <Magnet radius={50} pullFactor={0.25}>
+                    <button
+                      onClick={() => addMutation.mutate({ job: activeJob, status: "APPLIED" })}
+                      disabled={addMutation.isPending}
+                      className="px-4 py-2 rounded-lg text-xs font-medium bg-[#0066FF] hover:bg-blue-700 text-white shadow-sm transition flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>Add to Applied</span>
+                    </button>
+                  </Magnet>
 
                   {activeJob.job_url && (
                     <a

@@ -17,6 +17,10 @@ import ApplicationDetailModal from "./ApplicationDetailModal";
 import JDIngestModal from "./JDIngestModal";
 import { springs } from "../lib/motion-tokens";
 import { INITIAL_APPLICATIONS } from "../lib/initial-data";
+import SpotlightCard from "./ui/SpotlightCard";
+import Magnet from "./ui/Magnet";
+import ShinyBadge from "./ui/ShinyBadge";
+import VantaBackground from "./ui/VantaBackground";
 import {
   Plus,
   Sparkles,
@@ -346,15 +350,16 @@ export default function KanbanBoard() {
       </AnimatePresence>
 
       {/* Top Header & Simplify View Switcher */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 p-6 rounded-2xl bg-white border border-slate-200/90 shadow-simplify-card">
-        <div className="space-y-1.5">
+      <div className="relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-5 p-6 rounded-2xl bg-white border border-slate-200/90 shadow-simplify-card">
+        <VantaBackground className="opacity-25" />
+        <div className="relative z-10 space-y-1.5">
           <div className="flex items-center gap-4 flex-wrap">
             <h1 className="font-serif text-3xl md:text-4xl font-semibold tracking-tight text-slate-900">
               Your Career Pipeline, <span className="italic font-normal text-slate-500">Accelerated.</span>
             </h1>
 
             {/* View Switcher Pills */}
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 text-xs font-medium">
+            <div className="flex items-center gap-1 bg-slate-100/80 backdrop-blur-sm p-1 rounded-xl border border-slate-200/80 text-xs font-medium">
               <button
                 onClick={() => setActiveView("BOARD")}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all ${
@@ -396,24 +401,24 @@ export default function KanbanBoard() {
         </div>
 
         {/* Live Velocity Metrics Pills */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2">
+        <div className="relative z-10 flex flex-wrap items-center gap-2.5">
+          <div className="px-3.5 py-1.5 rounded-xl bg-slate-50/90 backdrop-blur-sm border border-slate-200 flex items-center gap-2">
             <Layers className="h-3.5 w-3.5 text-slate-500" />
             <span className="text-xs text-slate-500">Applications:</span>
             <span className="text-xs font-semibold text-slate-900">{applications.length}</span>
           </div>
 
-          <div className="px-3.5 py-1.5 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center gap-2">
+          <ShinyBadge variant="blue" className="py-1 px-3">
             <Activity className="h-3.5 w-3.5 text-[#0066FF]" />
             <span className="text-xs text-blue-700">Interview Rate:</span>
-            <span className="text-xs font-semibold text-[#0066FF]">{metrics.interviewRate}%</span>
-          </div>
+            <span className="text-xs font-bold text-[#0066FF]">{metrics.interviewRate}%</span>
+          </ShinyBadge>
 
-          <div className="px-3.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center gap-2">
+          <ShinyBadge variant="emerald" className="py-1 px-3">
             <Trophy className="h-3.5 w-3.5 text-emerald-600" />
             <span className="text-xs text-emerald-700">Offers:</span>
-            <span className="text-xs font-semibold text-emerald-700">{metrics.offers}</span>
-          </div>
+            <span className="text-xs font-bold text-emerald-700">{metrics.offers}</span>
+          </ShinyBadge>
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
@@ -425,13 +430,15 @@ export default function KanbanBoard() {
               <Download className="h-4 w-4" />
             </button>
 
-            <button
-              onClick={() => setIsIngestOpen(true)}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#0066FF] hover:bg-blue-700 text-white transition-all shadow-sm flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Import Job Posting</span>
-            </button>
+            <Magnet radius={50} pullFactor={0.25}>
+              <button
+                onClick={() => setIsIngestOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#0066FF] hover:bg-blue-700 text-white transition-all shadow-sm flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Import Job Posting</span>
+              </button>
+            </Magnet>
           </div>
         </div>
       </div>
@@ -778,7 +785,7 @@ export default function KanbanBoard() {
         <div className="space-y-6">
           {/* Top Velocity KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl bg-white border border-slate-200/90 space-y-2 shadow-simplify-card">
+            <SpotlightCard className="p-5 space-y-2 shadow-simplify-card" spotlightColor="rgba(59, 130, 246, 0.1)">
               <span className="text-xs text-slate-500 uppercase tracking-wider block font-medium">
                 Total Tracked Pipeline
               </span>
@@ -787,9 +794,9 @@ export default function KanbanBoard() {
                 <span className="text-xs text-slate-500">Jobs</span>
               </div>
               <p className="text-[11px] text-slate-400">Across wishlist, applied, and active interviewing stages</p>
-            </div>
+            </SpotlightCard>
 
-            <div className="p-5 rounded-2xl bg-white border border-slate-200/90 space-y-2 shadow-simplify-card">
+            <SpotlightCard className="p-5 space-y-2 shadow-simplify-card" spotlightColor="rgba(59, 130, 246, 0.15)">
               <span className="text-xs text-slate-500 uppercase tracking-wider block font-medium">
                 Interview Response Rate
               </span>
@@ -798,9 +805,9 @@ export default function KanbanBoard() {
                 <span className="text-xs text-[#0066FF]/80">Conversion</span>
               </div>
               <p className="text-[11px] text-slate-400">Percentage of submitted applications reaching OA or Interview</p>
-            </div>
+            </SpotlightCard>
 
-            <div className="p-5 rounded-2xl bg-white border border-slate-200/90 space-y-2 shadow-simplify-card">
+            <SpotlightCard className="p-5 space-y-2 shadow-simplify-card" spotlightColor="rgba(16, 185, 129, 0.15)">
               <span className="text-xs text-slate-500 uppercase tracking-wider block font-medium">
                 Offer Win Rate
               </span>
@@ -809,9 +816,9 @@ export default function KanbanBoard() {
                 <span className="text-xs text-emerald-700/80">({metrics.offers} Total)</span>
               </div>
               <p className="text-[11px] text-slate-400">Final offer conversion rate from submitted jobs</p>
-            </div>
+            </SpotlightCard>
 
-            <div className="p-5 rounded-2xl bg-white border border-slate-200/90 space-y-2 shadow-simplify-card">
+            <SpotlightCard className="p-5 space-y-2 shadow-simplify-card" spotlightColor="rgba(99, 102, 241, 0.15)">
               <span className="text-xs text-slate-500 uppercase tracking-wider block font-medium">
                 Tasks Completed
               </span>
@@ -824,7 +831,7 @@ export default function KanbanBoard() {
               <p className="text-[11px] text-slate-400">
                 {metrics.totalContacts} networking contacts recorded across pipeline
               </p>
-            </div>
+            </SpotlightCard>
           </div>
 
           {/* Visual Pipeline Conversion Funnel Chart */}

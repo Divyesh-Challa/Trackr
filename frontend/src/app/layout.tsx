@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "./providers";
 import Navbar from "../components/Navbar";
 import PageTransition from "../components/PageTransition";
+import SmoothScroll from "../components/providers/SmoothScroll";
 
 const newsreader = Newsreader({
   subsets: ["latin"],
@@ -32,12 +33,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${newsreader.variable} ${inter.variable}`}>
       <body className="min-h-screen bg-[#F8FAFC] text-slate-900 antialiased flex flex-col selection:bg-blue-500/20 selection:text-blue-600 font-sans overflow-x-hidden">
-        <Providers>
-          <Navbar />
-          <main className="flex-1 max-w-[1720px] w-full mx-auto px-4 sm:px-6 py-6 overflow-x-hidden">
-            <PageTransition>{children}</PageTransition>
-          </main>
-        </Providers>
+        <SmoothScroll>
+          <Providers>
+            <Navbar />
+            <main className="flex-1 max-w-[1720px] w-full mx-auto px-4 sm:px-6 py-6 overflow-x-hidden">
+              <PageTransition>{children}</PageTransition>
+            </main>
+          </Providers>
+        </SmoothScroll>
       </body>
     </html>
   );

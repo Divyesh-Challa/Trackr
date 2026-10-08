@@ -56,6 +56,19 @@ body {
   font-family: var(--font-serif), "Newsreader", "Playfair Display", Georgia, serif;
 }
 
+/* Shimmer Animation for ShinyBadge & React-Bits */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.animate-shimmer {
+  animation: shimmer 2.5s infinite;
+}
+
 /* Minimal Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
