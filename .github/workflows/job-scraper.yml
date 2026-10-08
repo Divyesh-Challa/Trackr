@@ -28,7 +28,7 @@ jobs:
       - name: Install Ingestion Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install httpx beautifulsoup4 numpy asyncpg
+          pip install httpx beautifulsoup4 numpy asyncpg python-dotenv
 
       - name: Run Trackr Multi-Source Ingestion Pipeline
         env:
