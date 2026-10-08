@@ -614,7 +614,7 @@ export default function ResumePage() {
 
                 {/* Matched Keywords Tags */}
                 <div className="flex flex-wrap gap-1.5 max-w-md justify-end">
-                  {tailorResult.matched_keywords.map((kw, i) => (
+                  {(tailorResult.matched_keywords || []).map((kw, i) => (
                     <span
                       key={i}
                       className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"
@@ -795,7 +795,7 @@ export default function ResumePage() {
                   Pain Points &amp; Technical Matches Addressed:
                 </span>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                  {clResult.candidate_matches.map((m, idx) => (
+                  {(clResult.candidate_matches || []).map((m, idx) => (
                     <div key={idx} className="bg-white p-2.5 rounded border border-slate-200">
                       <span className="font-semibold text-slate-700">Their Need: </span>
                       <span className="text-slate-600">{m.employer_need}</span>
@@ -1100,7 +1100,7 @@ export default function ResumePage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {userProfile.experiences.map((exp, expIdx) => {
+                {(userProfile?.experiences || []).map((exp, expIdx) => {
                   const isEditingThisExp = editingExpIndex === expIdx;
                   const isAddingBulletToThis = addingBulletExpIndex === expIdx;
 

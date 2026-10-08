@@ -63,13 +63,15 @@ func (h *HandlerContext) InboundEmailWebhook(c *gin.Context) {
 		return
 	}
 
-	// Enqueue for async classification worker
-	_ = h.Redis.EnqueueEmailClassification(c.Request.Context(), redis.EmailClassificationPayload{
-		LogID:   logEntry.ID.String(),
-		Sender:  sender,
-		Subject: subject,
-		Body:    body,
-	})
+	// Enqueue for async classification worker if Redis is connected
+	if h.Redis != nil {
+		_ = h.Redis.EnqueueEmailClassification(c.Request.Context(), redis.EmailClassificationPayload{
+			LogID:   logEntry.ID.String(),
+			Sender:  sender,
+			Subject: subject,
+			Body:    body,
+		})
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":                 "received",
