@@ -51,23 +51,27 @@ export function formatRealisticSalary(job: {
     return "$25 - $32 / hr CAD";
   }
 
-  // 5. Product Design / UI / UX
-  if (/design|ui|ux|graphic/i.test(title)) {
+  // 5. Hardware / Mechanical / Electrical / Firmware / Robotics / Silicon / Analog
+  if (
+    /hardware|mechanical|thermal|electrical|firmware|robotics|analog|silicon|fpga|circuit|embedded/i.test(
+      title
+    )
+  ) {
+    return "$28 - $38 / hr CAD";
+  }
+
+  // 6. Product Design / UI / UX / Graphic
+  if (/(?:product|ui|ux|graphic|visual|brand|interaction)\s*design|ui\b|ux\b|graphic|designer\b/i.test(title)) {
     return "$28 - $36 / hr CAD";
   }
 
-  // 6. Business Analyst / Data Analyst / QA / Testing / Datacenter Support
+  // 7. Business Analyst / Data Analyst / QA / Testing / Datacenter Support
   if (
     /analyst|qa\b|quality|test|support|datacenter|technicien|centre de donn/i.test(
       title
     )
   ) {
     return "$26 - $34 / hr CAD";
-  }
-
-  // 7. Hardware / Mechanical / Electrical / Firmware / Robotics
-  if (/hardware|mechanical|thermal|electrical|firmware|robotics/i.test(title)) {
-    return "$28 - $38 / hr CAD";
   }
 
   // 8. Product Management
