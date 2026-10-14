@@ -656,14 +656,14 @@ func EstimateRealisticSalary(roleTitle, companyName string, existingSal *string)
 	if strings.Contains(title, "finance") || strings.Contains(title, "accounting") || strings.Contains(title, "audit") || strings.Contains(title, "tax") || strings.Contains(title, "counsel") || strings.Contains(title, "legal") {
 		return "$25 - $32 / hr CAD"
 	}
-	if strings.Contains(title, "design") || strings.Contains(title, "ui") || strings.Contains(title, "ux") {
+	if strings.Contains(title, "hardware") || strings.Contains(title, "mechanical") || strings.Contains(title, "thermal") || strings.Contains(title, "electrical") || strings.Contains(title, "firmware") || strings.Contains(title, "robotics") || strings.Contains(title, "analog") || strings.Contains(title, "silicon") || strings.Contains(title, "fpga") || strings.Contains(title, "circuit") || strings.Contains(title, "embedded") {
+		return "$28 - $38 / hr CAD"
+	}
+	if strings.Contains(title, "design") || strings.Contains(title, "ui") || strings.Contains(title, "ux") || strings.Contains(title, "graphic") {
 		return "$28 - $36 / hr CAD"
 	}
 	if strings.Contains(title, "analyst") || strings.Contains(title, "qa") || strings.Contains(title, "test") || strings.Contains(title, "quality") || strings.Contains(title, "datacenter") || strings.Contains(title, "support") || strings.Contains(title, "technicien") || strings.Contains(title, "centre de donn") {
 		return "$26 - $34 / hr CAD"
-	}
-	if strings.Contains(title, "hardware") || strings.Contains(title, "mechanical") || strings.Contains(title, "thermal") || strings.Contains(title, "electrical") || strings.Contains(title, "firmware") || strings.Contains(title, "robotics") {
-		return "$28 - $38 / hr CAD"
 	}
 	if strings.Contains(title, "machine learning") || strings.Contains(title, "research") || strings.Contains(title, "ai") {
 		if strings.Contains(comp, "cohere") || strings.Contains(comp, "snowflake") || strings.Contains(comp, "amazon") || strings.Contains(comp, "shopify") {
