@@ -422,14 +422,16 @@ func (h *HandlerContext) generateBuiltinTailoredResume(ctx context.Context, uid 
 	}
 
 	// Fetch candidate profile from DB
-	candidateName := "Your Name"
-	candidateEmail := "you@example.com"
-	candidatePhone := "+1 (604) 555-0199"
-	candidateLocation := "Vancouver, BC"
-	linkedin := "linkedin.com/in/your-handle"
-	github := "github.com/your-handle"
+	candidateName := "John Doe"
+	candidateEmail := "john.doe@uwaterloo.ca"
+	candidatePhone := "+1 (555) 234-5678"
+	candidateLocation := "Waterloo, ON"
+	linkedin := "linkedin.com/in/johndoe"
+	github := "github.com/johndoe"
 
-	if prof, err := h.DB.GetUserProfile(ctx, uid); err == nil && prof != nil {
+	var prof *models.UserProfile
+	if p, err := h.DB.GetUserProfile(ctx, uid); err == nil && p != nil {
+		prof = p
 		if prof.FullName != "" {
 			candidateName = prof.FullName
 		}
@@ -491,21 +493,71 @@ func (h *HandlerContext) generateBuiltinTailoredResume(ctx context.Context, uid 
 	knownTools := prioritize([]string{"Docker", "Git", "GitHub Actions", "AWS", "Linux", "Kubernetes", "PostgreSQL", "Redis"})
 	knownLibs := prioritize([]string{"pgvector", "PyTorch", "HNSW", "REST APIs", "Pandas", "WebSocket"})
 
+	if prof != nil && len(prof.Skills) > 0 {
+		var profSkills []string
+		if err := json.Unmarshal(prof.Skills, &profSkills); err == nil && len(profSkills) > 0 {
+			knownLangs = prioritize(profSkills)
+		}
+	}
+
 	// Experience items
 	expBullets := []string{
-		fmt.Sprintf("Engineered distributed microservices in %s and %s, serving 12M+ monthly active requests with sub-45ms p95 latency.", knownLangs[0], knownLangs[1]),
-		fmt.Sprintf("Implemented %s schema migrations and %s caching strategies, reducing database I/O bottlenecks by 38%%.", knownTools[0], knownTools[1]),
-		"Spearheaded automated CI/CD deployment pipelines using Docker and GitHub Actions, cutting release deployment cycle time by 60%.",
+		fmt.Sprintf("Engineered distributed microservices in %s and %s, serving 10M+ monthly requests with sub-50ms p95 latency.", knownLangs[0], knownLangs[1]),
+		fmt.Sprintf("Implemented %s schema migrations and %s caching strategies, reducing database I/O bottlenecks by 35%%.", knownTools[0], knownTools[1]),
+		"Spearheaded automated CI/CD deployment pipelines using Docker and GitHub Actions, cutting release deployment cycle time by 40%.",
 	}
 
 	experienceList := []gin.H{
 		{
 			"role":     "Software Engineering Intern",
-			"company":  "Tech Internship Inc",
-			"location": "Vancouver, BC",
+			"company":  "Canadian Tech Co",
+			"location": candidateLocation,
 			"dates":    "May 2025 – Aug. 2025",
 			"bullets":  expBullets,
 		},
+	}
+
+	if prof != nil && len(prof.Experiences) > 0 {
+		var expArr []map[string]interface{}
+		if err := json.Unmarshal(prof.Experiences, &expArr); err == nil && len(expArr) > 0 {
+			var parsedExps []gin.H
+			for _, item := range expArr {
+				role, _ := item["role"].(string)
+				company, _ := item["company"].(string)
+				loc, _ := item["location"].(string)
+				if loc == "" {
+					loc = candidateLocation
+				}
+				sDate, _ := item["start_date"].(string)
+				eDate, _ := item["end_date"].(string)
+				dates := fmt.Sprintf("%s – %s", sDate, eDate)
+				if sDate == "" && eDate == "" {
+					dates = "May 2025 – Aug. 2025"
+				}
+
+				var bullets []string
+				if rawB, ok := item["bullets"].([]interface{}); ok {
+					for _, b := range rawB {
+						if bStr, ok := b.(string); ok && strings.TrimSpace(bStr) != "" {
+							bullets = append(bullets, strings.TrimSpace(bStr))
+						}
+					}
+				}
+				if len(bullets) == 0 {
+					bullets = expBullets
+				}
+				parsedExps = append(parsedExps, gin.H{
+					"role":     role,
+					"company":  company,
+					"location": loc,
+					"dates":    dates,
+					"bullets":  bullets,
+				})
+			}
+			if len(parsedExps) > 0 {
+				experienceList = parsedExps
+			}
+		}
 	}
 
 	// Project items
@@ -515,32 +567,114 @@ func (h *HandlerContext) generateBuiltinTailoredResume(ctx context.Context, uid 
 	}
 	projectList := []gin.H{
 		{
-			"name":         "Trackr Career Hub & Vector Matching Engine",
+			"name":         "Distributed Task Queue & Matching Engine",
 			"technologies": proj1Tech,
 			"dates":        "Jan. 2026 – Present",
 			"bullets": []string{
-				"Built high-dimensional vector search engine using pgvector and HNSW indexing, querying 100K+ document embeddings in <60ms.",
+				"Built high-dimensional vector search engine using pgvector and HNSW indexing, querying 50K+ document embeddings in <50ms.",
 				"Architected event-driven asynchronous task queues with Redis streams and background workers to isolate heavy AI inference.",
 			},
 		},
 		{
-			"name":         "Sample Project",
+			"name":         "High-Throughput Web Crawler & Analytics Platform",
 			"technologies": "Python, FastAPI, Docker, SQLite, BeautifulSoup",
 			"dates":        "Oct. 2025 – Dec. 2025",
 			"bullets": []string{
-				"Sample bullet describing a project.",
-				"Implemented combinatorial branch-and-bound solver to optimize multi-store basket expenditures, reducing trip cost by 24%.",
+				"Engineered automated crawler parsing 120+ weekly data feeds across web endpoints with regex normalization.",
+				"Implemented combinatorial branch-and-bound solver to optimize multi-source expenditures, reducing compute cost by 24%.",
 			},
 		},
 	}
 
+	if prof != nil && len(prof.Projects) > 0 {
+		var projArr []map[string]interface{}
+		if err := json.Unmarshal(prof.Projects, &projArr); err == nil && len(projArr) > 0 {
+			var parsedProjs []gin.H
+			for _, item := range projArr {
+				name, _ := item["name"].(string)
+				tech, _ := item["technologies"].(string)
+				if tech == "" {
+					tech = proj1Tech
+				}
+				dates, _ := item["dates"].(string)
+				if dates == "" {
+					dates = "Jan. 2026 – Present"
+				}
+				var bullets []string
+				if rawB, ok := item["bullets"].([]interface{}); ok {
+					for _, b := range rawB {
+						if bStr, ok := b.(string); ok && strings.TrimSpace(bStr) != "" {
+							bullets = append(bullets, strings.TrimSpace(bStr))
+						}
+					}
+				}
+				if len(bullets) == 0 {
+					bullets = []string{
+						"Built high-dimensional vector search engine querying 50K+ document embeddings with low latency.",
+					}
+				}
+				parsedProjs = append(parsedProjs, gin.H{
+					"name":         name,
+					"technologies": tech,
+					"dates":        dates,
+					"bullets":      bullets,
+				})
+			}
+			if len(parsedProjs) > 0 {
+				projectList = parsedProjs
+			}
+		}
+	}
+
 	educationList := []gin.H{
 		{
-			"school":   "University of British Columbia (UBC)",
-			"degree":   "Bachelor of Science in Computer Science (GPA: 3.85 / 4.00)",
-			"location": "Vancouver, BC",
+			"school":   "University of Waterloo",
+			"degree":   "Bachelor of Computer Science (BCS) (GPA: 3.90 / 4.00)",
+			"location": candidateLocation,
 			"dates":    "Sept. 2023 – May 2027",
 		},
+	}
+
+	if prof != nil && len(prof.Education) > 0 {
+		var eduMap map[string]interface{}
+		if err := json.Unmarshal(prof.Education, &eduMap); err == nil && len(eduMap) > 0 {
+			school, _ := eduMap["school"].(string)
+			degree, _ := eduMap["degree"].(string)
+			major, _ := eduMap["major"].(string)
+			gpa, _ := eduMap["gpa"].(string)
+			startYear, _ := eduMap["start_year"].(string)
+			gradTerm, _ := eduMap["grad_term"].(string)
+
+			if school == "" {
+				school = "University of Waterloo"
+			}
+			degreeStr := degree
+			if major != "" && !strings.Contains(degree, major) {
+				if degreeStr != "" {
+					degreeStr += " in " + major
+				} else {
+					degreeStr = major
+				}
+			}
+			if gpa != "" {
+				degreeStr += fmt.Sprintf(" (GPA: %s)", gpa)
+			}
+			datesStr := "Sept. 2023 – May 2027"
+			if startYear != "" && gradTerm != "" {
+				datesStr = fmt.Sprintf("Sept. %s – %s", startYear, gradTerm)
+			} else if gradTerm != "" {
+				datesStr = fmt.Sprintf("Class of %s", gradTerm)
+			}
+
+			educationList = []gin.H{
+				{
+					"school":   school,
+					"degree":   degreeStr,
+					"location": candidateLocation,
+					"dates":    datesStr,
+				},
+			}
+		}
 	}
 
 	matchScore := 82 + len(matchedKeywords)*3
@@ -595,9 +729,9 @@ func (h *HandlerContext) generateBuiltinCoverLetter(ctx context.Context, uid uui
 		roleTitle = "Software Engineer"
 	}
 
-	candidateName := "Your Name"
-	candidateEmail := "you@example.com"
-	candidatePhone := "+1 (604) 555-0199"
+	candidateName := "John Doe"
+	candidateEmail := "john.doe@uwaterloo.ca"
+	candidatePhone := "+1 (555) 234-5678"
 	candidateTitle := "Software Engineer"
 	if prof, err := h.DB.GetUserProfile(ctx, uid); err == nil && prof != nil {
 		if prof.FullName != "" {
@@ -669,7 +803,7 @@ func generateJakesLatexCode(name, phone, email, linkedin, github string, educati
 
 	sb.WriteString(`%-------------------------
 % Resume in Latex (Jake's Template)
-% Author : Jake Ryan
+% Author : Jake Ryan / John Doe
 % License : MIT
 %------------------------
 

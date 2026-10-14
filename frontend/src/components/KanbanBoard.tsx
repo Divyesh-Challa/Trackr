@@ -93,12 +93,12 @@ export default function KanbanBoard() {
   const { data: rawApps = [], isLoading } = useQuery({
     queryKey: ["applications"],
     queryFn: fetchApplications,
-    initialData: INITIAL_APPLICATIONS,
+    initialData: [],
     refetchInterval: 6000,
   });
 
   const applications = useMemo(() => {
-    return rawApps && rawApps.length > 0 ? rawApps : INITIAL_APPLICATIONS;
+    return rawApps || [];
   }, [rawApps]);
 
   const { data: milestones = [] } = useQuery({

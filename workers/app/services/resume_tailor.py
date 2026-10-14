@@ -2,8 +2,7 @@
 Resume Tailor Service for Trackr.
 Custom tailors a candidate's resume specifically to an exact job posting,
 aligning experience bullets, technical skills, and projects with the job's core challenges.
-Outputs structured JSON and complete LaTeX in Jake's Resume Template format:
-(Based on Jake Gutierrez's public resume template).
+Outputs structured JSON and complete LaTeX in Jake's Resume Template format.
 """
 
 import json
@@ -111,17 +110,17 @@ class ResumeTailor:
         # Default fallback candidate if profile not found in DB
         if not profile.get("full_name"):
             profile = {
-                "full_name": "Your Name",
-                "phone": "+1 (604) 555-0199",
-                "email": "you@example.com",
-                "city": "Vancouver, BC",
-                "linkedin_url": "linkedin.com/in/your-handle",
-                "github_url": "github.com/your-handle",
-                "portfolio_url": "example.dev",
+                "full_name": "John Doe",
+                "phone": "+1 (555) 234-5678",
+                "email": "john.doe@uwaterloo.ca",
+                "city": "Waterloo, ON",
+                "linkedin_url": "linkedin.com/in/johndoe",
+                "github_url": "github.com/johndoe",
+                "portfolio_url": "johndoe.dev",
                 "education": {
-                    "school": "University of British Columbia (UBC)",
-                    "degree": "Bachelor of Science in Computer Science",
-                    "location": "Vancouver, BC",
+                    "school": "University of Waterloo",
+                    "degree": "Bachelor of Computer Science (BCS)",
+                    "location": "Waterloo, ON",
                     "grad_term": "May 2027",
                     "gpa": "3.85 / 4.00"
                 },
@@ -129,8 +128,8 @@ class ResumeTailor:
                 "experiences": [
                     {
                         "role": "Software Engineering Intern",
-                        "company": "Tech Internship Inc",
-                        "location": "Vancouver, BC",
+                        "company": "Canadian Tech Co",
+                        "location": "Waterloo, ON",
                         "start_date": "May 2025",
                         "end_date": "Aug 2025",
                         "bullets": [
@@ -309,8 +308,8 @@ Return ONLY a valid JSON object with the following schema:
         to the target role and generates structured Jake's resume data.
         """
         # Clean URLs
-        linkedin = (profile.get("linkedin_url") or "linkedin.com/in/your-handle").replace("https://", "")
-        github = (profile.get("github_url") or "github.com/your-handle").replace("https://", "")
+        linkedin = (profile.get("linkedin_url") or "linkedin.com/in/johndoe").replace("https://", "")
+        github = (profile.get("github_url") or "github.com/johndoe").replace("https://", "")
 
         # Categorize Skills
         all_skills = profile.get("skills", ["Python", "Go", "TypeScript", "React", "PostgreSQL", "Docker", "AWS", "Redis"])
@@ -328,9 +327,9 @@ Return ONLY a valid JSON object with the following schema:
         exp_list = profile.get("experiences", [])
         tailored_experiences = []
         for exp in exp_list:
-            comp = exp.get("company", "Tech Internship Inc")
+            comp = exp.get("company", "Canadian Tech Co")
             title = exp.get("role", "Software Engineering Intern")
-            loc = exp.get("location", "Vancouver, BC")
+            loc = exp.get("location", "Waterloo, ON")
             dates = f"{exp.get('start_date', 'May 2025')} – {exp.get('end_date', 'Present')}"
             orig_bullets = exp.get("bullets", [
                 "Engineered distributed microservices in Go and Python, serving 12M+ monthly active requests with sub-45ms p95 latency.",
@@ -380,9 +379,9 @@ Return ONLY a valid JSON object with the following schema:
 
         edu = profile.get("education", {})
         tailored_edu = [{
-            "school": edu.get("school", "University of British Columbia (UBC)"),
-            "degree": edu.get("degree", "Bachelor of Science in Computer Science"),
-            "location": edu.get("location", "Vancouver, BC"),
+            "school": edu.get("school", "University of Waterloo"),
+            "degree": edu.get("degree", "Bachelor of Computer Science (BCS)"),
+            "location": edu.get("location", "Waterloo, ON"),
             "dates": f"Sept. 2023 – {edu.get('grad_term', 'May 2027')}",
             "gpa": edu.get("gpa", "3.85 / 4.00")
         }]
@@ -394,12 +393,12 @@ Return ONLY a valid JSON object with the following schema:
             "matched_keywords": matched_keywords,
             "tailoring_summary": f"Tailored for {company_name}'s {role_title} role, emphasizing relevant system architecture, {', '.join(matched_keywords[:4])}, and high-throughput execution.",
             "header": {
-                "name": profile.get("full_name", "Your Name"),
-                "phone": profile.get("phone", "+1 (604) 555-0199"),
-                "email": profile.get("email", "you@example.com"),
+                "name": profile.get("full_name", "John Doe"),
+                "phone": profile.get("phone", "+1 (555) 234-5678"),
+                "email": profile.get("email", "john.doe@uwaterloo.ca"),
                 "linkedin": linkedin,
                 "github": github,
-                "location": profile.get("city", "Vancouver, BC")
+                "location": profile.get("city", "Waterloo, ON")
             },
             "education": tailored_edu,
             "experience": tailored_experiences,
@@ -414,15 +413,14 @@ Return ONLY a valid JSON object with the following schema:
 
     def _generate_jakes_latex(self, data: Dict[str, Any]) -> str:
         """
-        Generates clean, compilable LaTeX source code replicating Jake's Resume template:
-        (Based on Jake Gutierrez's public resume template).
+        Generates clean, compilable LaTeX source code replicating Jake's Resume template.
         """
         h = data.get("header", {})
-        name = escape_latex(h.get("name", "Your Name"))
-        phone = escape_latex(h.get("phone", "+1 (604) 555-0199"))
-        email_raw = (h.get("email") or "you@example.com").replace("mailto:", "").strip()
-        linkedin_raw = (h.get("linkedin") or "linkedin.com/in/your-handle").replace("https://", "").replace("http://", "").strip()
-        github_raw = (h.get("github") or "github.com/your-handle").replace("https://", "").replace("http://", "").strip()
+        name = escape_latex(h.get("name", "John Doe"))
+        phone = escape_latex(h.get("phone", "+1 (555) 234-5678"))
+        email_raw = (h.get("email") or "john.doe@uwaterloo.ca").replace("mailto:", "").strip()
+        linkedin_raw = (h.get("linkedin") or "linkedin.com/in/johndoe").replace("https://", "").replace("http://", "").strip()
+        github_raw = (h.get("github") or "github.com/johndoe").replace("https://", "").replace("http://", "").strip()
 
         email_display = escape_latex(email_raw)
         linkedin_display = escape_latex(linkedin_raw)
@@ -440,7 +438,7 @@ Return ONLY a valid JSON object with the following schema:
 
         latex = r"""%-------------------------
 % Resume in Latex (Jake's Template)
-% Author : Jake Ryan
+% Author : Jake Ryan / John Doe
 % License : MIT
 %------------------------
 

@@ -320,9 +320,9 @@ func (h *HandlerContext) GenerateOutreach(c *gin.Context) {
 		}
 	}
 
-	candidateName := "Your Name"
-	candidateEmail := "you@example.com"
-	candidatePhone := "+1 (604) 555-0199"
+	candidateName := "John Doe"
+	candidateEmail := "john.doe@uwaterloo.ca"
+	candidatePhone := "+1 (555) 234-5678"
 	if prof, err := h.DB.GetUserProfile(c.Request.Context(), uid); err == nil && prof != nil {
 		if prof.FullName != "" {
 			candidateName = prof.FullName
