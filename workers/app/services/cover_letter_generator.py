@@ -91,9 +91,9 @@ class CoverLetterGenerator:
                 logger.warning(f"Error fetching profile/bullets for cover letter: {e}")
 
         # Fallback candidate defaults if none in DB
-        candidate_name = profile.get("full_name", "Divyesh Challa")
-        candidate_email = profile.get("email", "divyesh.challa@alumni.ubc.ca")
-        candidate_phone = profile.get("phone", "+1 (604) 555-0199")
+        candidate_name = profile.get("full_name", "John Doe")
+        candidate_email = profile.get("email", "john.doe@uwaterloo.ca")
+        candidate_phone = profile.get("phone", "+1 (555) 234-5678")
         candidate_title = "Software Engineer" if "software" in role_title.lower() or "engineer" in role_title.lower() else "Computer Science Student & Developer"
 
         # Safe salutation (NEVER fabricate a manager's name)

@@ -1,6 +1,6 @@
 # Trackr — Internship Job Board
 
-> Built by **Divyesh Challa** (Computer Science, University of Alberta)  
+> An open-source Canadian Tech Co-op & Internship Application Hub  
 > **Live Demo:** [trackr-vercel-app.vercel.app](https://trackr-vercel-app.vercel.app) • **API Gateway:** [trackr-gateway.onrender.com](https://trackr-gateway.onrender.com/health)
 
 [![Next.js 15](https://img.shields.io/badge/Next.js-15%20App%20Router-black?style=flat&logo=next.js)](https://nextjs.org/)
@@ -185,9 +185,8 @@ trackr/
 
 ---
 
-## Contact & Credits
+## Contact & License
 
-Created by **Divyesh Challa**  
-- **LinkedIn:** [linkedin.com/in/divyesh-challa](https://linkedin.com/in/divyesh-challa)  
-- **GitHub:** [github.com/Divyesh-Challa](https://github.com/Divyesh-Challa)  
-- **Email:** divyeshchallavgr@gmail.com
+Open source under the [MIT License](LICENSE).  
+- **Documentation & Issues:** [GitHub Issues](https://github.com/johndoe/trackr/issues)
+- **Demo Persona:** John Doe (`john.doe@uwaterloo.ca`)

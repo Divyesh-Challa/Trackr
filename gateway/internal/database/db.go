@@ -43,6 +43,29 @@ func ConnectDB(ctx context.Context, databaseURL string) (*DB, error) {
 	}
 
 	log.Println("Connected to PostgreSQL successfully.")
+
+	// Sanitize historical default salaries to realistic role-aware Canadian market rates
+	sanitizeQuery := `
+		UPDATE discovered_jobs
+		SET salary_range_cad = CASE
+			WHEN role_title ILIKE ANY(ARRAY['%people%', '%operation%', '%talent%', '%hr%', '%recruiting%', '%office%', '%admin%', '%coordinator%']) THEN '$22 - $28 / hr CAD'
+			WHEN role_title ILIKE ANY(ARRAY['%marketing%', '%growth%', '%content%', '%social%']) THEN '$22 - $27 / hr CAD'
+			WHEN role_title ILIKE ANY(ARRAY['%sales%', '%business dev%', '%sdr%', '%bdr%']) THEN '$24 - $30 / hr CAD'
+			WHEN role_title ILIKE ANY(ARRAY['%finance%', '%accounting%', '%audit%', '%tax%', '%counsel%', '%legal%']) THEN '$25 - $32 / hr CAD'
+			WHEN role_title ILIKE ANY(ARRAY['%design%', '%ui%', '%ux%']) THEN '$28 - $36 / hr CAD'
+			WHEN role_title ILIKE ANY(ARRAY['%analyst%', '%qa%', '%test%', '%quality%']) THEN '$26 - $34 / hr CAD'
+			WHEN role_title ILIKE ANY(ARRAY['%datacenter%', '%centre de donn%', '%support%', '%technicien%']) THEN '$26 - $34 / hr CAD'
+			WHEN role_title ILIKE ANY(ARRAY['%hardware%', '%mechanical%', '%thermal%', '%electrical%', '%firmware%', '%robotics%']) THEN '$28 - $38 / hr CAD'
+			WHEN role_title ILIKE ANY(ARRAY['%machine learning%', '%research%', '%ai%']) AND company_name ILIKE ANY(ARRAY['%cohere%', '%snowflake%', '%amazon%', '%shopify%']) THEN '$52 - $70 / hr CAD'
+			WHEN role_title ILIKE ANY(ARRAY['%machine learning%', '%research%', '%ai%']) THEN '$38 - $50 / hr CAD'
+			WHEN company_name ILIKE ANY(ARRAY['%cohere%', '%snowflake%', '%amazon%', '%shopify%', '%stripe%', '%palantir%', '%microsoft%', '%apple%', '%google%']) THEN '$48 - $65 / hr CAD'
+			ELSE '$30 - $42 / hr CAD'
+		END
+		WHERE salary_range_cad IN ('$42 - $58 / hr CAD', '$38 - $55 CAD/hr', '$40 - $56 / hr CAD', '$40 - $55 / hr CAD', '$45 - $62 / hr CAD', '$48 - $65 / hr CAD')
+		   OR salary_range_cad IS NULL;
+	`
+	_, _ = pool.Exec(ctx, sanitizeQuery)
+
 	return &DB{Pool: pool}, nil
 }
 
@@ -611,6 +634,49 @@ func (db *DB) DeleteNote(ctx context.Context, noteID uuid.UUID) error {
 // Simplify Platform: Discovered Jobs (BC & Alberta Scope)
 // -----------------------------------------------------------------------------
 
+func EstimateRealisticSalary(roleTitle, companyName string, existingSal *string) string {
+	if existingSal != nil {
+		s := strings.TrimSpace(*existingSal)
+		if s != "" && s != "$42 - $58 / hr CAD" && s != "$38 - $55 CAD/hr" && s != "$40 - $56 / hr CAD" && s != "$40 - $55 / hr CAD" && s != "$45 - $62 / hr CAD" && s != "$48 - $65 / hr CAD" {
+			return s
+		}
+	}
+	title := strings.ToLower(roleTitle)
+	comp := strings.ToLower(companyName)
+
+	if strings.Contains(title, "people") || strings.Contains(title, "operation") || strings.Contains(title, "talent") || strings.Contains(title, "hr") || strings.Contains(title, "recruiting") || strings.Contains(title, "office") || strings.Contains(title, "admin") || strings.Contains(title, "coordinator") {
+		return "$22 - $28 / hr CAD"
+	}
+	if strings.Contains(title, "marketing") || strings.Contains(title, "growth") || strings.Contains(title, "content") || strings.Contains(title, "social") {
+		return "$22 - $27 / hr CAD"
+	}
+	if strings.Contains(title, "sales") || strings.Contains(title, "business dev") || strings.Contains(title, "sdr") || strings.Contains(title, "bdr") {
+		return "$24 - $30 / hr CAD"
+	}
+	if strings.Contains(title, "finance") || strings.Contains(title, "accounting") || strings.Contains(title, "audit") || strings.Contains(title, "tax") || strings.Contains(title, "counsel") || strings.Contains(title, "legal") {
+		return "$25 - $32 / hr CAD"
+	}
+	if strings.Contains(title, "design") || strings.Contains(title, "ui") || strings.Contains(title, "ux") {
+		return "$28 - $36 / hr CAD"
+	}
+	if strings.Contains(title, "analyst") || strings.Contains(title, "qa") || strings.Contains(title, "test") || strings.Contains(title, "quality") || strings.Contains(title, "datacenter") || strings.Contains(title, "support") || strings.Contains(title, "technicien") || strings.Contains(title, "centre de donn") {
+		return "$26 - $34 / hr CAD"
+	}
+	if strings.Contains(title, "hardware") || strings.Contains(title, "mechanical") || strings.Contains(title, "thermal") || strings.Contains(title, "electrical") || strings.Contains(title, "firmware") || strings.Contains(title, "robotics") {
+		return "$28 - $38 / hr CAD"
+	}
+	if strings.Contains(title, "machine learning") || strings.Contains(title, "research") || strings.Contains(title, "ai") {
+		if strings.Contains(comp, "cohere") || strings.Contains(comp, "snowflake") || strings.Contains(comp, "amazon") || strings.Contains(comp, "shopify") {
+			return "$52 - $70 / hr CAD"
+		}
+		return "$38 - $50 / hr CAD"
+	}
+	if strings.Contains(comp, "cohere") || strings.Contains(comp, "snowflake") || strings.Contains(comp, "amazon") || strings.Contains(comp, "shopify") || strings.Contains(comp, "stripe") || strings.Contains(comp, "palantir") || strings.Contains(comp, "microsoft") || strings.Contains(comp, "apple") || strings.Contains(comp, "google") {
+		return "$48 - $65 / hr CAD"
+	}
+	return "$30 - $42 / hr CAD"
+}
+
 func (db *DB) ListDiscoveredJobs(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -700,6 +766,8 @@ func (db *DB) ListDiscoveredJobs(
 		if err != nil {
 			return nil, err
 		}
+		sal := EstimateRealisticSalary(j.RoleTitle, j.CompanyName, j.SalaryRangeCAD)
+		j.SalaryRangeCAD = &sal
 		jobs = append(jobs, j)
 	}
 	return jobs, nil
@@ -728,6 +796,8 @@ func (db *DB) GetDiscoveredJob(ctx context.Context, id uuid.UUID, userID uuid.UU
 	if err != nil {
 		return nil, err
 	}
+	sal := EstimateRealisticSalary(j.RoleTitle, j.CompanyName, j.SalaryRangeCAD)
+	j.SalaryRangeCAD = &sal
 	return &j, nil
 }
 
@@ -807,17 +877,21 @@ func (db *DB) GetUserProfile(ctx context.Context, userID uuid.UUID) (*models.Use
 		&p.CreatedAt, &p.UpdatedAt,
 	)
 	if err == pgx.ErrNoRows {
-		// Return default seeded profile for user
+		// Return default seeded profile for user (John Doe)
 		return &models.UserProfile{
 			ID:                uuid.New(),
 			UserID:            userID,
-			FullName:          "Candidate",
-			Email:             "student@ubc.ca",
-			City:              "Vancouver",
-			Province:          "British Columbia",
-			Education:         json.RawMessage(`{"school":"University of British Columbia (UBC)","degree":"B.Sc.","major":"Computer Science"}`),
-			WorkAuthorization: json.RawMessage(`{"canadian_work_eligible":true,"coop_work_permit":true}`),
-			Skills:            json.RawMessage(`["Go","Python","TypeScript","PostgreSQL"]`),
+			FullName:          "John Doe",
+			Email:             "john.doe@uwaterloo.ca",
+			Phone:             "+1 (555) 234-5678",
+			City:              "Waterloo",
+			Province:          "Ontario",
+			LinkedinURL:       "https://linkedin.com/in/johndoe",
+			GithubURL:         "https://github.com/johndoe",
+			PortfolioURL:      "https://johndoe.dev",
+			Education:         json.RawMessage(`{"school":"University of Waterloo","degree":"Bachelor of Computer Science (BCS)","major":"Computer Science","gpa":"3.90 / 4.00","start_year":"2023","grad_term":"Spring 2027","is_coop_enrolled":true}`),
+			WorkAuthorization: json.RawMessage(`{"canadian_work_eligible":true,"coop_work_permit":true,"work_auth_status":"CITIZEN_OR_PR"}`),
+			Skills:            json.RawMessage(`["Go","Python","TypeScript","React","Next.js","PostgreSQL","Docker","AWS"]`),
 			Experiences:       json.RawMessage(`[]`),
 			Projects:          json.RawMessage(`[]`),
 			CreatedAt:         time.Now(),
@@ -916,7 +990,7 @@ func (db *DB) SyncProfileFromBullets(ctx context.Context, userID uuid.UUID) (*mo
 	projectsJSON, _ := json.Marshal([]map[string]interface{}{
 		{
 			"name":    "Trackr Career Engine & Vector Store",
-			"link":    "https://github.com/divyeshchalla/trackr",
+			"link":    "https://github.com/johndoe/trackr",
 			"bullets": projBullets,
 		},
 	})

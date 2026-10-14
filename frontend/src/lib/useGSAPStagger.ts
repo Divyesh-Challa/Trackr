@@ -33,12 +33,19 @@ export function useGSAPStagger({
 
     if (!containerRef.current) return;
 
-    const elements = containerRef.current.querySelectorAll(selector);
-    if (!elements || elements.length === 0) return;
+    const allElements = Array.from(containerRef.current.querySelectorAll(selector));
+    if (!allElements || allElements.length === 0) return;
+
+    // Only stagger the first 10 elements to prevent lagging and 14-second hidden elements
+    const staggerBatch = allElements.slice(0, 10);
+    const rest = allElements.slice(10);
 
     const ctx = gsap.context(() => {
+      if (rest.length > 0) {
+        gsap.set(rest, { opacity: 1, y: 0 });
+      }
       gsap.fromTo(
-        elements,
+        staggerBatch,
         {
           y,
           opacity,

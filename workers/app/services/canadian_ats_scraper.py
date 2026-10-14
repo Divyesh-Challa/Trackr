@@ -88,8 +88,57 @@ class CanadianATSScraper:
             return "REMOTE"
         return "ONSITE"
 
-    def _estimate_salary(self, job_type: str = "INTERNSHIP") -> str:
-        return "$38 - $55 CAD/hr"
+    def _estimate_salary(self, role_title: str = "", company_name: str = "", desc: str = "", job_type: str = "INTERNSHIP") -> str:
+        text = f"{role_title} {desc}".lower()
+        title = role_title.lower()
+        comp = company_name.lower()
+
+        # 1. Try to extract explicit salary from description
+        hr_match = re.search(r"\$(\d{2}(?:\.\d{2})?)\s*(?:-|to)\s*\$(\d{2}(?:\.\d{2})?)\s*(?:cad\s*)?(?:\/|\s*per\s*)(?:hr|hour)", text)
+        if hr_match:
+            return f"${int(float(hr_match.group(1)))} - ${int(float(hr_match.group(2)))} CAD/hr"
+
+        yr_match = re.search(r"\$(\d{2,3}),?000\s*(?:-|to)\s*\$(\d{2,3}),?000", text)
+        if yr_match:
+            return f"${yr_match.group(1)},000 - ${yr_match.group(2)},000 CAD/yr"
+
+        # 2. Check for Top Tier tech companies
+        is_top_tier = any(k in comp for k in ["cohere", "snowflake", "shopify", "amazon", "stripe", "uber", "palantir", "meta", "google", "microsoft", "apple", "datadog", "jane street", "citadel"])
+
+        if job_type == "NEW_GRAD":
+            if is_top_tier:
+                return "$125,000 - $165,000 CAD/yr"
+            if any(k in title for k in ["hr", "people", "talent", "recruiting", "marketing", "content", "operations", "office", "admin"]):
+                return "$60,000 - $72,000 CAD/yr"
+            if any(k in title for k in ["finance", "accounting", "analyst", "business", "design", "ui", "ux"]):
+                return "$68,000 - $85,000 CAD/yr"
+            return "$85,000 - $115,000 CAD/yr"
+
+        # 3. For INTERNSHIP / CO-OP: Determine realistic Canadian student pay brackets
+        if any(k in title for k in ["people", "operations", "talent", "recruiting", "hr", "office", "coordinator", "admin", "workplace"]):
+            return "$22 - $28 / hr CAD"
+        if any(k in title for k in ["marketing", "social media", "growth", "content", "community"]):
+            return "$22 - $27 / hr CAD"
+        if any(k in title for k in ["sales", "business development", "sdr", "bdr", "account"]):
+            return "$24 - $30 / hr CAD"
+        if any(k in title for k in ["finance", "accounting", "audit", "tax", "actuarial", "counsel", "legal"]):
+            return "$25 - $32 / hr CAD"
+        if any(k in title for k in ["design", "ui", "ux", "product designer", "graphic"]):
+            return "$28 - $36 / hr CAD"
+        if any(k in title for k in ["data analyst", "business analyst", "qa", "quality assurance", "test intern", "support", "datacenter", "technicien"]):
+            return "$26 - $34 / hr CAD"
+        if any(k in title for k in ["product manager", "product management", "apm"]):
+            return "$35 - $48 / hr CAD"
+        if any(k in title for k in ["hardware", "electrical", "mechanical", "firmware", "robotics", "thermal"]):
+            return "$28 - $38 / hr CAD"
+        if any(k in title for k in ["machine learning", "ml", "ai", "research", "deep learning", "nlp", "computer vision"]):
+            if is_top_tier:
+                return "$52 - $70 / hr CAD"
+            return "$38 - $50 / hr CAD"
+
+        if is_top_tier:
+            return "$48 - $65 / hr CAD"
+        return "$30 - $42 / hr CAD"
 
     def _match_canadian_location(self, loc_str: str, country: str = "") -> Optional[Tuple[str, str]]:
         if not loc_str:
@@ -167,7 +216,7 @@ class CanadianATSScraper:
                         "province": prov,
                         "work_model": work_model,
                         "job_type": job_type,
-                        "salary_range_cad": self._estimate_salary(job_type),
+                        "salary_range_cad": self._estimate_salary(title, company_name, desc, job_type),
                         "job_url": job_url,
                         "description": desc,
                         "requirements": json.dumps([f"Experience with {s}" for s in skills[:4]]),
@@ -225,7 +274,7 @@ class CanadianATSScraper:
                         "province": prov,
                         "work_model": work_model,
                         "job_type": job_type,
-                        "salary_range_cad": self._estimate_salary(job_type),
+                        "salary_range_cad": self._estimate_salary(title, company_name, desc, job_type),
                         "job_url": job_url,
                         "description": desc,
                         "requirements": json.dumps([f"Experience with {s}" for s in skills[:4]]),
@@ -282,7 +331,7 @@ class CanadianATSScraper:
                         "province": prov,
                         "work_model": work_model,
                         "job_type": job_type,
-                        "salary_range_cad": self._estimate_salary(job_type),
+                        "salary_range_cad": self._estimate_salary(title, company_name, desc, job_type),
                         "job_url": job_url,
                         "description": desc,
                         "requirements": json.dumps([f"Experience with {s}" for s in skills[:4]]),

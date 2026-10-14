@@ -45,3 +45,7 @@ artifacts/
 *.tsbuildinfo
 .agents/
 
+# Unrelated local directories
+academic-research-skills/
+ecograsp-3d/
+truth-steering/

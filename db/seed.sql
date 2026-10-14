@@ -9,70 +9,9 @@ TRUNCATE TABLE applications CASCADE;
 TRUNCATE TABLE discovered_jobs CASCADE;
 TRUNCATE TABLE user_profiles CASCADE;
 
--- 1. Applications
-INSERT INTO applications (
-    id, user_id, company_name, role_title, job_location, work_model,
-    status, applied_date, salary_range, match_score, match_details, created_at, updated_at
-) VALUES
-('11111111-1111-1111-1111-111111111101', '00000000-0000-0000-0000-000000000001',
- 'Amazon', 'Software Development Engineer Intern', 'Seattle, WA', 'HYBRID',
- 'OA_SCHEDULED', CURRENT_DATE - INTERVAL '3 days', '$62 - $75 / hr', 92.50,
- '{"coverage_score": 92.5, "matched_skills": [{"requirement": "Proficiency in Go or Python", "similarity": 95.0}, {"requirement": "Distributed Systems", "similarity": 90.0}], "deficiencies": []}',
- NOW() - INTERVAL '3 days', NOW()),
-
-('11111111-1111-1111-1111-111111111102', '00000000-0000-0000-0000-000000000001',
- 'Rivian', 'Embedded Software Engineer Co-op', 'Palo Alto, CA', 'ONSITE',
- 'INTERVIEWING', CURRENT_DATE - INTERVAL '10 days', '$58 - $68 / hr', 78.00,
- '{"coverage_score": 78.0, "matched_skills": [{"requirement": "C/C++ Systems Programming", "similarity": 88.0}], "deficiencies": [{"requirement": "CAN bus and RTOS", "similarity": 42.0, "actionable_feedback": "Resume lacks embedded RTOS or CAN automotive protocol experience."}]}',
- NOW() - INTERVAL '10 days', NOW()),
-
-('11111111-1111-1111-1111-111111111103', '00000000-0000-0000-0000-000000000001',
- 'Databricks', 'Systems Software Engineer Intern', 'San Francisco, CA', 'HYBRID',
- 'OFFER', CURRENT_DATE - INTERVAL '25 days', '$80 - $95 / hr', 96.00,
- '{"coverage_score": 96.0, "matched_skills": [{"requirement": "Distributed storage & query engines", "similarity": 96.0}], "deficiencies": []}',
- NOW() - INTERVAL '25 days', NOW()),
-
-('11111111-1111-1111-1111-111111111104', '00000000-0000-0000-0000-000000000001',
- 'Stripe', 'Backend Infrastructure Engineer Intern', 'Seattle, WA', 'REMOTE',
- 'APPLIED', CURRENT_DATE - INTERVAL '1 day', '$65 - $82 / hr', 89.00,
- '{"coverage_score": 89.0, "matched_skills": [{"requirement": "PostgreSQL & Redis performance", "similarity": 92.0}], "deficiencies": []}',
- NOW() - INTERVAL '1 day', NOW()),
-
-('11111111-1111-1111-1111-111111111105', '00000000-0000-0000-0000-000000000001',
- 'Palantir', 'Forward Deployed Software Engineer', 'New York, NY', 'ONSITE',
- 'WISHLIST', CURRENT_DATE, '$135,000 - $160,000', 84.00,
- '{"coverage_score": 84.0, "matched_skills": [{"requirement": "TypeScript & React", "similarity": 86.0}], "deficiencies": []}',
- NOW(), NOW()),
-
-('11111111-1111-1111-1111-111111111106', '00000000-0000-0000-0000-000000000001',
- 'Tesla', 'Autopilot Software Intern', 'Austin, TX', 'ONSITE',
- 'REJECTED', CURRENT_DATE - INTERVAL '14 days', '$50 - $65 / hr', 65.00,
- '{"coverage_score": 65.0, "matched_skills": [{"requirement": "Python & PyTorch", "similarity": 80.0}], "deficiencies": [{"requirement": "CUDA & C++ optimization", "similarity": 48.0}]}',
- NOW() - INTERVAL '14 days', NOW()),
-
-('11111111-1111-1111-1111-111111111107', '00000000-0000-0000-0000-000000000001',
- 'Cloudflare', 'Systems Engineering Intern', 'Austin, TX', 'HYBRID',
- 'WITHDRAWN', CURRENT_DATE - INTERVAL '8 days', '$60 - $70 / hr', 88.00,
- '{"coverage_score": 88.0, "matched_skills": [{"requirement": "Rust & Go networking", "similarity": 90.0}], "deficiencies": []}',
- NOW() - INTERVAL '8 days', NOW());
-
--- 2. State Transition Audit Log (for cycle velocity metrics)
-INSERT INTO application_state_transitions (
-    application_id, from_status, to_status, transitioned_at, metadata
-) VALUES
-('11111111-1111-1111-1111-111111111101', 'APPLIED', 'OA_SCHEDULED', NOW() - INTERVAL '2 days', '{"source": "inbound_email_parser"}'),
-('11111111-1111-1111-1111-111111111102', 'APPLIED', 'OA_SCHEDULED', NOW() - INTERVAL '8 days', '{"source": "recruiter_portal"}'),
-('11111111-1111-1111-1111-111111111102', 'OA_SCHEDULED', 'INTERVIEWING', NOW() - INTERVAL '4 days', '{"source": "recruiter_screen"}'),
-('11111111-1111-1111-1111-111111111103', 'APPLIED', 'INTERVIEWING', NOW() - INTERVAL '18 days', '{}'),
-('11111111-1111-1111-1111-111111111103', 'INTERVIEWING', 'OFFER', NOW() - INTERVAL '2 days', '{"offer_deadline": "2026-11-01"}');
-
+-- 1. Applications (Starts clean and empty - user can add via Discover or Job Ingest)
+-- 2. State Transition Audit Log
 -- 3. Milestones & Deadlines
-INSERT INTO application_milestones (
-    id, application_id, milestone_type, scheduled_at, deadline_at, is_completed, action_url
-) VALUES
-(gen_random_uuid(), '11111111-1111-1111-1111-111111111101', 'OA', NOW(), NOW() + INTERVAL '48 hours', FALSE, 'https://hackerrank.com/amazon-sde-oa'),
-(gen_random_uuid(), '11111111-1111-1111-1111-111111111102', 'TECHNICAL_FINAL', NOW() + INTERVAL '3 days', NULL, FALSE, 'https://rivian.zoom.us/j/987654321'),
-(gen_random_uuid(), '11111111-1111-1111-1111-111111111103', 'OFFER_DEADLINE', NULL, NOW() + INTERVAL '14 days', FALSE, 'https://databricks.applicant.portal');
 
 -- 4. Candidate Resume Bullets
 INSERT INTO resume_bullets (user_id, category, content) VALUES
@@ -183,26 +122,26 @@ INSERT INTO discovered_jobs (
  '["React", "Next.js", "TypeScript", "Tailwind CSS", "REST APIs", "Jest"]',
  NOW() + INTERVAL '11 days');
 
--- 6. Simplify Canonical User Profile (Default Student User)
+-- 6. Simplify Canonical User Profile (Default Student User - Generic John Doe)
 INSERT INTO user_profiles (
     user_id, full_name, email, phone, city, province,
     linkedin_url, github_url, portfolio_url,
     education, work_authorization, skills, experiences, projects
 ) VALUES (
     '00000000-0000-0000-0000-000000000001',
-    'Divyesh Challa',
-    'divyesh.challa@alumni.ubc.ca',
-    '+1 (604) 555-0184',
-    'Vancouver',
-    'British Columbia',
-    'https://linkedin.com/in/divyeshchalla',
-    'https://github.com/divyeshchalla',
-    'https://divyesh.dev',
+    'John Doe',
+    'john.doe@uwaterloo.ca',
+    '+1 (555) 234-5678',
+    'Waterloo',
+    'Ontario',
+    'https://linkedin.com/in/johndoe',
+    'https://github.com/johndoe',
+    'https://johndoe.dev',
     '{
-        "school": "University of British Columbia (UBC)",
-        "degree": "Bachelor of Science",
+        "school": "University of Waterloo",
+        "degree": "Bachelor of Computer Science (BCS)",
         "major": "Computer Science",
-        "gpa": "3.85 / 4.00",
+        "gpa": "3.90 / 4.00",
         "start_year": "2023",
         "grad_term": "Spring 2027",
         "is_coop_enrolled": true
@@ -213,28 +152,28 @@ INSERT INTO user_profiles (
         "coop_work_permit": true,
         "requires_sponsorship": false,
         "target_term_length": "4 or 8 Months (Fall 2026 / Winter 2027)",
-        "preferred_locations": ["Vancouver, BC", "Burnaby, BC", "Calgary, AB", "Edmonton, AB", "Canada Remote"]
+        "preferred_locations": ["Toronto, ON", "Waterloo, ON", "Vancouver, BC", "Canada Remote"]
     }'::jsonb,
     '["Go", "Python", "TypeScript", "React", "Next.js", "PostgreSQL", "pgvector", "Redis", "Docker", "AWS", "Tailwind CSS", "FastAPI", "C++"]'::jsonb,
     '[
         {
-            "company": "Tech Internship Inc",
+            "company": "Canadian Tech Co",
             "role": "Software Engineering Intern",
-            "location": "Vancouver, BC",
+            "location": "Toronto, ON",
             "start_date": "May 2025",
             "end_date": "Aug 2025",
             "bullets": [
-                "Engineered distributed microservices in Go and Python, serving 12M+ monthly active requests with sub-45ms p95 latency.",
-                "Implemented PostgreSQL schema migrations and Redis caching strategies, reducing database I/O bottlenecks by 38%."
+                "Engineered distributed microservices in Go and Python, serving 10M+ monthly requests with sub-50ms p95 latency.",
+                "Implemented PostgreSQL schema migrations and Redis caching strategies, reducing database I/O bottlenecks by 35%."
             ]
         }
     ]'::jsonb,
     '[
         {
-            "name": "Trackr Career Hub",
-            "link": "https://github.com/divyeshchalla/trackr",
+            "name": "Distributed Task Queue & Matching Engine",
+            "link": "https://github.com/johndoe/task-engine",
             "bullets": [
-                "Built high-dimensional vector search engine using pgvector and HNSW indexing, querying 100K+ document embeddings in <60ms.",
+                "Built high-dimensional vector search engine using pgvector and HNSW indexing, querying 50K+ document embeddings in <50ms.",
                 "Architected event-driven asynchronous task queues with Redis streams and background workers to isolate heavy AI inference."
             ]
         }

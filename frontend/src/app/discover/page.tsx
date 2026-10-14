@@ -12,6 +12,7 @@ import {
 import { DiscoveredJob } from "../../types";
 import { springs } from "../../lib/motion-tokens";
 import { INITIAL_DISCOVERED_JOBS } from "../../lib/initial-data";
+import { formatRealisticSalary } from "../../lib/salary";
 import {
   Search,
   MapPin,
@@ -202,7 +203,7 @@ export default function DiscoverPage() {
         company_name: job.company_name,
         role_title: job.role_title,
         status,
-        salary_range: job.salary_range_cad || undefined,
+        salary_range: formatRealisticSalary(job),
         job_location: `${job.city}, ${job.province}`,
         work_model: job.work_model,
       });
@@ -344,7 +345,11 @@ export default function DiscoverPage() {
       {/* Dual-Pane Discover Feed Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-[700px] items-start pb-6">
         {/* Left Pane: Dense Scrollable Job List (5 cols) with Gliding Active Selection */}
-        <div ref={jobsListRef} className="lg:col-span-5 space-y-3 max-h-[820px] overflow-y-auto pr-1.5 no-scrollbar momentum-scroll">
+        <div
+          ref={jobsListRef}
+          data-lenis-prevent
+          className="lg:col-span-5 space-y-3 h-[calc(100vh-210px)] min-h-[600px] overflow-y-auto pr-2 momentum-scroll overscroll-contain"
+        >
           {isLoading ? (
             <div className="p-12 text-center text-xs text-slate-500 rounded-2xl bg-white border border-slate-200/90 shadow-simplify-card">
               Loading verified tech roles...
@@ -434,14 +439,10 @@ export default function DiscoverPage() {
                       <span>{job.city}, {job.province}</span>
                       <span>•</span>
                       <span>{job.work_model}</span>
-                      {job.salary_range_cad && (
-                        <>
-                          <span>•</span>
-                          <span className="text-emerald-700 font-medium">
-                            {job.salary_range_cad}
-                          </span>
-                        </>
-                      )}
+                      <span>•</span>
+                      <span className="text-emerald-700 font-medium">
+                        {formatRealisticSalary(job)}
+                      </span>
                     </div>
 
                     {/* Footer Pill Row */}
@@ -467,7 +468,10 @@ export default function DiscoverPage() {
         {/* Right Pane: Rich Job Details View (7 cols, sticky) */}
         <div className="lg:col-span-7 sticky top-20">
           {activeJob ? (
-            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-simplify-card p-6 space-y-6 max-h-[820px] overflow-y-auto no-scrollbar momentum-scroll">
+            <div
+              data-lenis-prevent
+              className="rounded-2xl bg-white border border-slate-200/90 shadow-simplify-card p-6 space-y-6 h-[calc(100vh-210px)] min-h-[600px] overflow-y-auto pr-2 momentum-scroll overscroll-contain"
+            >
               {/* Header: Company, Role & Action Bar */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-5 border-b border-slate-100">
                 <div className="space-y-1.5">
@@ -535,7 +539,7 @@ export default function DiscoverPage() {
                 <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80">
                   <span className="text-[10px] text-slate-500 block uppercase font-medium">Compensation</span>
                   <span className="text-xs font-semibold text-emerald-700 mt-0.5 block">
-                    {activeJob.salary_range_cad || "Competitive"}
+                    {formatRealisticSalary(activeJob)}
                   </span>
                 </div>
 

@@ -60,12 +60,175 @@ import Magnet from "../../components/ui/Magnet";
 import DecryptedText from "../../components/ui/DecryptedText";
 import VantaBackground from "../../components/ui/VantaBackground";
 
+function escapeLatex(text: string): string {
+  return text
+    .replace(/\\/g, "\\textbackslash{}")
+    .replace(/&/g, "\\&")
+    .replace(/%/g, "\\%")
+    .replace(/\$/g, "\\$")
+    .replace(/#/g, "\\#")
+    .replace(/_/g, "\\_")
+    .replace(/\{/g, "\\{")
+    .replace(/\}/g, "\\}")
+    .replace(/~/g, "\\textasciitilde{}")
+    .replace(/\^/g, "\\textasciicircum{}");
+}
+
+function generateJakesLatexSource(data: TailoredResumeData): string {
+  const h = data.header;
+  const edu = data.education[0] || {
+    school: "University of Waterloo",
+    location: "Waterloo, ON",
+    degree: "Bachelor of Computer Science (BCS)",
+    dates: "Sept. 2023 – May 2027",
+    gpa: "3.85 / 4.00",
+  };
+  const expItems = data.experience
+    .map(
+      (e) => `    \\resumeSubheading
+      {${escapeLatex(e.role)}}{${escapeLatex(e.dates)}}
+      {${escapeLatex(e.company)}}{${escapeLatex(e.location)}}
+      \\resumeItemListStart
+${e.bullets.map((b) => `        \\resumeItem{${escapeLatex(b)}}`).join("\n")}
+      \\resumeItemListEnd`
+    )
+    .join("\n");
+
+  const projItems = data.projects
+    .map(
+      (p) => `    \\resumeProjectHeading
+      {\\textbf{${escapeLatex(p.title)}} $|$ \\emph{${escapeLatex(p.technologies)}}}{${escapeLatex(p.date)}}
+      \\resumeItemListStart
+${p.bullets.map((b) => `        \\resumeItem{${escapeLatex(b)}}`).join("\n")}
+      \\resumeItemListEnd`
+    )
+    .join("\n");
+
+  const phone = escapeLatex(h.phone || "");
+  const emailRaw = (h.email || "").replace("mailto:", "").trim();
+  const linkedinRaw = (h.linkedin || "").replace(/^https?:\/\//, "").trim();
+  const githubRaw = (h.github || "").replace(/^https?:\/\//, "").trim();
+
+  return `%-------------------------
+% Resume in Latex (Jake's Template)
+% Author : Jake Ryan / ${escapeLatex(h.name || "John Doe")}
+% License : MIT
+%------------------------
+
+\\documentclass[letterpaper,11pt]{article}
+\\usepackage{latexsym}
+\\usepackage[empty]{fullpage}
+\\usepackage{titlesec}
+\\usepackage{marvosym}
+\\usepackage[usenames,dvipsnames]{color}
+\\usepackage{verbatim}
+\\usepackage{enumitem}
+\\usepackage[hidelinks]{hyperref}
+\\usepackage{fancyhdr}
+\\usepackage[english]{babel}
+\\usepackage{tabularx}
+\\input{glyphtounicode}
+
+\\pagestyle{fancy}
+\\fancyhf{}
+\\renewcommand{\\headrulewidth}{0pt}
+\\renewcommand{\\footrulewidth}{0pt}
+
+\\addtolength{\\oddsidemargin}{-0.5in}
+\\addtolength{\\evensidemargin}{-0.5in}
+\\addtolength{\\textwidth}{1in}
+\\addtolength{\\topmargin}{-.5in}
+\\addtolength{\\textheight}{1.0in}
+
+\\urlstyle{same}
+\\raggedbottom
+\\raggedright
+\\setlength{\\tabcolsep}{0in}
+
+\\titleformat{\\section}{
+  \\vspace{-4pt}\\scshape\\raggedright\\large
+}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
+
+\\pdfgentounicode=1
+
+\\newcommand{\\resumeItem}[1]{
+  \\item\\small{
+    {#1 \\vspace{-2pt}}
+  }
+}
+
+\\newcommand{\\resumeSubheading}[4]{
+  \\vspace{-2pt}\\item
+    \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
+      \\textbf{#1} & #2 \\\\
+      \\textit{\\small#3} & \\textit{\\small #4} \\\\
+    \\end{tabular*}\\vspace{-7pt}
+}
+
+\\newcommand{\\resumeProjectHeading}[2]{
+    \\item
+    \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
+      \\small#1 & #2 \\\\
+    \\end{tabular*}\\vspace{-7pt}
+}
+
+\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
+\\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
+\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
+\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
+
+\\begin{document}
+
+\\begin{center}
+    \\textbf{\\Huge \\scshape ${escapeLatex(h.name || "John Doe")}} \\\\ \\vspace{1pt}
+    \\small ${phone} $|$ \\href{mailto:${emailRaw}}{\\underline{${escapeLatex(emailRaw)}}} $|$ 
+    \\href{https://${linkedinRaw}}{\\underline{${escapeLatex(linkedinRaw)}}} $|$
+    \\href{https://${githubRaw}}{\\underline{${escapeLatex(githubRaw)}}}
+\\end{center}
+
+\\section{Education}
+  \\resumeSubHeadingListStart
+    \\resumeSubheading
+      {${escapeLatex(edu.school)}}{${escapeLatex(edu.location)}}
+      {${escapeLatex(edu.degree)}${edu.gpa ? ` (GPA: ${escapeLatex(edu.gpa)})` : ""}}{${escapeLatex(edu.dates)}}
+  \\resumeSubHeadingListEnd
+
+\\section{Experience}
+  \\resumeSubHeadingListStart
+${expItems}
+  \\resumeSubHeadingListEnd
+
+\\section{Projects}
+  \\resumeSubHeadingListStart
+${projItems}
+  \\resumeSubHeadingListEnd
+
+\\section{Technical Skills}
+ \\begin{itemize}[leftmargin=0.15in, label={}]
+    \\small{\\item{
+     \\textbf{Languages}{: ${escapeLatex(data.technical_skills.languages)}} \\\\
+     \\textbf{Frameworks}{: ${escapeLatex(data.technical_skills.frameworks)}} \\\\
+     \\textbf{Developer Tools}{: ${escapeLatex(data.technical_skills.developer_tools)}} \\\\
+     \\textbf{Libraries}{: ${escapeLatex(data.technical_skills.libraries)}}
+    }}
+ \\end{itemize}
+
+\\end{document}
+`;
+}
+
 export default function ResumePage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Tab switcher
   const [activeTab, setActiveTab] = useState<"TAILOR" | "COVER_LETTER" | "BULLETS">("TAILOR");
+
+  // Fetch candidate profile from DB
+  const { data: userProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: fetchUserProfile,
+  });
 
   // Fetch jobs for target job selector
   const { data: discoveredJobs = [] } = useQuery({
@@ -81,6 +244,169 @@ export default function ResumePage() {
   const [customRole, setCustomRole] = useState("");
   const [customJD, setCustomJD] = useState("");
   const [tailorResult, setTailorResult] = useState<TailoredResumeData | null>(null);
+
+  // Reactively build active resume from user profile if not tailored yet
+  const activeResume: TailoredResumeData = useMemo(() => {
+    if (tailorResult) return tailorResult;
+
+    const name = userProfile?.full_name || "John Doe";
+    const phone = userProfile?.phone || "+1 (555) 234-5678";
+    const email = userProfile?.email || "john.doe@uwaterloo.ca";
+    const loc = [userProfile?.city, userProfile?.province].filter(Boolean).join(", ") || "Waterloo, ON";
+    const linkedin = (userProfile?.linkedin_url || "linkedin.com/in/johndoe").replace(/^https?:\/\//, "");
+    const github = (userProfile?.github_url || "github.com/johndoe").replace(/^https?:\/\//, "");
+
+    const eduSchool = userProfile?.education?.school || "University of Waterloo";
+    const eduDegree = userProfile?.education?.degree
+      ? `${userProfile.education.degree}${userProfile.education.major ? ` in ${userProfile.education.major}` : ""}`
+      : "Bachelor of Computer Science (BCS)";
+    const eduDates = userProfile?.education?.start_year
+      ? `Sept. ${userProfile.education.start_year} – ${userProfile.education.grad_term || "May 2027"}`
+      : `Sept. 2023 – ${userProfile?.education?.grad_term || "May 2027"}`;
+    const eduGpa = userProfile?.education?.gpa || "3.85 / 4.00";
+
+    const education = [
+      {
+        school: eduSchool,
+        degree: eduDegree,
+        location: loc,
+        dates: eduDates,
+        gpa: eduGpa,
+      },
+    ];
+
+    const experience =
+      userProfile?.experiences && userProfile.experiences.length > 0
+        ? userProfile.experiences.map((exp) => ({
+            role: exp.role || "Software Engineering Intern",
+            company: exp.company || "Canadian Tech Co",
+            location: exp.location || loc,
+            dates: `${exp.start_date || "May 2025"} – ${exp.is_current ? "Present" : exp.end_date || "Aug. 2025"}`,
+            bullets:
+              exp.bullets && exp.bullets.length > 0
+                ? exp.bullets
+                : [
+                    "Engineered distributed microservices in Go and Python, serving 12M+ monthly active requests with sub-45ms p95 latency.",
+                    "Implemented PostgreSQL schema migrations and Redis caching strategies, reducing database I/O bottlenecks by 38%.",
+                  ],
+          }))
+        : [
+            {
+              role: "Software Engineering Intern",
+              company: "Canadian Tech Co",
+              location: loc,
+              dates: "May 2025 – Aug. 2025",
+              bullets: [
+                "Engineered distributed microservices in Go and Python, serving 12M+ monthly active requests with sub-45ms p95 latency.",
+                "Implemented PostgreSQL schema migrations and Redis caching strategies, reducing database I/O bottlenecks by 38%.",
+                "Spearheaded automated CI/CD deployment pipelines using Docker and GitHub Actions, cutting release deployment cycle time by 40%.",
+              ],
+            },
+          ];
+
+    const projects =
+      userProfile?.projects && userProfile.projects.length > 0
+        ? userProfile.projects.map((p) => ({
+            title: p.name || "Trackr Career Hub",
+            technologies: "Go, Next.js, PostgreSQL, pgvector, Redis, Docker",
+            date: "Jan. 2026 – Present",
+            bullets:
+              p.bullets && p.bullets.length > 0
+                ? p.bullets
+                : [
+                    "Built high-dimensional vector search engine using pgvector and HNSW indexing, querying 100K+ document embeddings in <60ms.",
+                    "Architected event-driven asynchronous task queues with Redis streams and background workers to isolate heavy AI inference.",
+                  ],
+          }))
+        : [
+            {
+              title: "Trackr Career Hub",
+              technologies: "Go, Next.js, PostgreSQL, pgvector, Redis, Docker",
+              date: "Jan. 2026 – Present",
+              bullets: [
+                "Built high-dimensional vector search engine using pgvector and HNSW indexing, querying 100K+ document embeddings in <60ms.",
+                "Architected event-driven asynchronous task queues with Redis streams and background workers to isolate heavy AI inference.",
+              ],
+            },
+            {
+              title: "Distributed Grocery Price Intelligence Engine",
+              technologies: "Python, FastAPI, Docker, SQLite, BeautifulSoup",
+              date: "Oct. 2025 – Dec. 2025",
+              bullets: [
+                "Engineered automated crawler parsing 120+ weekly flyer deals across 6 Canadian supermarket chains with regex price normalization.",
+                "Implemented combinatorial branch-and-bound solver to optimize grocery basket expenditures, reducing candidate trip cost by 24%.",
+              ],
+            },
+          ];
+
+    const skillsList =
+      userProfile?.skills && userProfile.skills.length > 0
+        ? userProfile.skills
+        : ["Go", "Python", "TypeScript", "React", "Next.js", "PostgreSQL", "Docker", "AWS", "Redis", "C++", "Linux", "Git"];
+
+    const languages =
+      skillsList
+        .filter((s) =>
+          ["Go", "Python", "TypeScript", "JavaScript", "C++", "Java", "SQL", "HTML/CSS"].some(
+            (k) => k.toLowerCase() === s.toLowerCase()
+          )
+        )
+        .join(", ") || "Go, Python, TypeScript, C++, SQL";
+
+    const frameworks =
+      skillsList
+        .filter((s) =>
+          ["React", "Next.js", "FastAPI", "Node.js", "Express", "Tailwind CSS", "Gin"].some(
+            (k) => k.toLowerCase() === s.toLowerCase()
+          )
+        )
+        .join(", ") || "React, Next.js, FastAPI, Node.js, Tailwind CSS";
+
+    const tools =
+      skillsList
+        .filter((s) =>
+          ["Docker", "Git", "GitHub Actions", "AWS", "Linux", "Kubernetes", "PostgreSQL", "Redis"].some(
+            (k) => k.toLowerCase() === s.toLowerCase()
+          )
+        )
+        .join(", ") || "Docker, Git, AWS, PostgreSQL, Redis, Linux";
+
+    const libs =
+      skillsList
+        .filter((s) =>
+          ["pgvector", "PyTorch", "HNSW", "REST APIs", "Pandas", "WebSocket"].some(
+            (k) => k.toLowerCase() === s.toLowerCase()
+          )
+        )
+        .join(", ") || "pgvector, HNSW, PyTorch, Pandas, REST APIs";
+
+    const resumeDraft: TailoredResumeData = {
+      match_score: 92,
+      matched_keywords: ["Go", "Python", "PostgreSQL", "Docker", "Git"],
+      tailoring_summary:
+        "Generated directly from your active profile. Select a target job above and click 'Tailor Resume' to align keywords and bullets for specific ATS systems.",
+      header: {
+        name,
+        phone,
+        email,
+        linkedin,
+        github,
+      },
+      education,
+      experience,
+      projects,
+      technical_skills: {
+        languages,
+        frameworks,
+        developer_tools: tools,
+        libraries: libs,
+      },
+      latex_source: "",
+    };
+
+    resumeDraft.latex_source = generateJakesLatexSource(resumeDraft);
+    return resumeDraft;
+  }, [tailorResult, userProfile]);
 
   // When a job is picked from dropdown, fill in defaults
   const handleJobSelect = (jobId: string) => {
@@ -105,6 +431,7 @@ export default function ResumePage() {
         company_name: customCompany || "Target Company",
         role_title: customRole || "Software Engineer Intern",
         job_description: customJD || "Software development internship",
+        user_id: userProfile?.user_id || userProfile?.id,
       }),
     onSuccess: (data) => {
       setTailorResult(data);
@@ -147,6 +474,7 @@ export default function ResumePage() {
         job_description: clJD,
         hiring_manager_name: clHiringManager.trim() || undefined,
         company_initiative: clInitiative.trim() || undefined,
+        user_id: userProfile?.user_id || userProfile?.id,
       }),
     onSuccess: (data) => {
       setClResult(data);
@@ -197,11 +525,6 @@ export default function ResumePage() {
   const [showRawBulletLibrary, setShowRawBulletLibrary] = useState(false);
 
   // Queries
-  const { data: userProfile, isLoading: profileLoading } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: fetchUserProfile,
-  });
-
   const { data: bullets = [], isLoading: bulletsLoading } = useQuery({
     queryKey: ["resumeBullets"],
     queryFn: fetchResumeBullets,
@@ -591,9 +914,9 @@ export default function ResumePage() {
           )}
 
           {/* Results Display */}
-          {tailorResult && (
-            <div className="space-y-5">
-              {/* ATS Score & Match Overview Bar */}
+          <div className="space-y-5">
+            {tailorResult ? (
+              /* ATS Score & Match Overview Bar when tailored */
               <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full bg-blue-50 border-2 border-blue-600 flex flex-col items-center justify-center">
@@ -624,15 +947,44 @@ export default function ResumePage() {
                   ))}
                 </div>
               </div>
+            ) : (
+              /* Active Profile Resume Preview Banner */
+              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                      Active Profile Resume Preview
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">
+                        Active Profile
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Live preview synced to your candidate profile. Select a target job above and click &quot;Tailor Resume&quot; to optimize bullets and keywords for ATS systems.
+                    </p>
+                  </div>
+                </div>
 
-              {/* Jake's Resume Rendered Preview Component */}
-              <JakesResumePreview
-                resume={tailorResult}
-                companyName={customCompany || "Company"}
-                roleTitle={customRole || "Role"}
-              />
-            </div>
-          )}
+                <button
+                  onClick={() => tailorMutation.mutate()}
+                  disabled={tailorMutation.isPending}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-[#0066FF] hover:bg-blue-700 rounded-lg transition-colors cursor-pointer disabled:opacity-60"
+                >
+                  <Wand2 className="w-3.5 h-3.5" />
+                  Tailor This Resume
+                </button>
+              </div>
+            )}
+
+            {/* Jake's Resume Rendered Preview Component */}
+            <JakesResumePreview
+              resume={activeResume}
+              companyName={customCompany || "Company"}
+              roleTitle={customRole || "Role"}
+            />
+          </div>
         </div>
       )}
 
