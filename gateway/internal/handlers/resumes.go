@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dslipak/pdf"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/trackr/gateway/internal/models"
@@ -193,83 +194,414 @@ func (h *HandlerContext) UploadResume(c *gin.Context) {
 		}
 	}
 
-	// 2. Fallback native Go extraction and database persistence
-	contentStr := string(fileBytes)
-	lines := strings.Split(contentStr, "\n")
-	var extractedBullets []models.ResumeBullet
-
-	for _, l := range lines {
-		trimmed := strings.TrimSpace(l)
-		// Clean bullet markers
-		trimmed = strings.TrimPrefix(trimmed, "- ")
-		trimmed = strings.TrimPrefix(trimmed, "* ")
-		trimmed = strings.TrimPrefix(trimmed, "• ")
-		trimmed = strings.TrimSpace(trimmed)
-
-		if len(trimmed) > 30 && len(trimmed) < 400 {
-			lower := strings.ToLower(trimmed)
-			// Check if action verb present
-			if strings.Contains(lower, "build") || strings.Contains(lower, "design") ||
-				strings.Contains(lower, "develop") || strings.Contains(lower, "engine") ||
-				strings.Contains(lower, "implement") || strings.Contains(lower, "optimi") ||
-				strings.Contains(lower, "scale") || strings.Contains(lower, "reduc") {
-
-				cat := "EXPERIENCE"
-				if strings.Contains(lower, "project") || strings.Contains(lower, "app") || strings.Contains(lower, "bot") {
-					cat = "PROJECT"
+	// 2. High-fidelity native Go PDF / TXT extraction and database persistence
+	var rawText string
+	isPDF := strings.HasSuffix(strings.ToLower(header.Filename), ".pdf") || (len(fileBytes) > 4 && string(fileBytes[:4]) == "%PDF")
+	if isPDF {
+		if r, err := pdf.NewReader(bytes.NewReader(fileBytes), int64(len(fileBytes))); err == nil {
+			var sb strings.Builder
+			numPages := r.NumPage()
+			for pageIndex := 1; pageIndex <= numPages; pageIndex++ {
+				p := r.Page(pageIndex)
+				if p.V.IsNull() {
+					continue
 				}
-
-				bullet := models.ResumeBullet{
-					ID:       uuid.New(),
-					UserID:   uid,
-					Category: cat,
-					Content:  trimmed,
-				}
-				if err := h.DB.CreateResumeBullet(c.Request.Context(), &bullet); err == nil {
-					extractedBullets = append(extractedBullets, bullet)
-					if h.Redis != nil {
-						_ = h.Redis.EnqueueResumeVectorization(c.Request.Context(), redis.ResumeVectorizationPayload{
-							BulletID: bullet.ID.String(),
-							UserID:   uid.String(),
-							Content:  bullet.Content,
-						})
+				rows, _ := p.GetTextByRow()
+				for _, row := range rows {
+					var lineSb strings.Builder
+					for _, w := range row.Content {
+						if w.S == "" {
+							lineSb.WriteString(" ")
+						} else {
+							lineSb.WriteString(w.S)
+						}
+					}
+					line := strings.TrimSpace(lineSb.String())
+					if line != "" {
+						sb.WriteString(line)
+						sb.WriteString("\n")
 					}
 				}
 			}
+			rawText = sb.String()
+		}
+	}
+	if rawText == "" {
+		rawText = string(fileBytes)
+	}
+
+	rawLines := strings.Split(rawText, "\n")
+	var lines []string
+	pageCounterRe := regexp.MustCompile(`(?i)(?:^--\s*)?(?:page\s*)?\d+\s*(?:of|\/)\s*\d+(?:\s*--)?$|^\d+\s*of\s*\d+\s*--$|^--$`)
+	for _, l := range rawLines {
+		t := strings.TrimSpace(l)
+		if t != "" && !pageCounterRe.MatchString(t) {
+			lines = append(lines, t)
 		}
 	}
 
-	// If no text parsed from raw binary (e.g. binary PDF), ensure existing bullets returned
-	if len(extractedBullets) == 0 {
-		existing, _ := h.DB.ListResumeBullets(c.Request.Context(), &uid)
-		if len(existing) > 0 {
-			extractedBullets = existing
-		} else {
-			// Seed standard starter bullets
-			defaultBullets := []string{
-				"Engineered distributed microservices in Go and Python, serving 12M+ monthly active requests with sub-45ms p95 latency.",
-				"Implemented PostgreSQL schema migrations and Redis caching strategies, reducing database I/O bottlenecks by 38%.",
-				"Built high-dimensional vector search engine using pgvector and HNSW indexing, querying 100K+ document embeddings in <60ms.",
+	candidateName := "Candidate"
+	candidateEmail := ""
+	candidatePhone := ""
+	candidateCity := "Edmonton"
+	candidateProv := "AB"
+	linkedinURL := ""
+	githubURL := ""
+
+	emailRe := regexp.MustCompile(`[\w.-]+@[\w.-]+\.\w+`)
+	phoneRe := regexp.MustCompile(`(?:\+?\d{1,2}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}`)
+	locRe := regexp.MustCompile(`\b([A-Za-z\s]+),\s*([A-Z]{2})\b`)
+	liRe := regexp.MustCompile(`(?i)(?:https?://)?(?:www\.)?linkedin\.com/in/[\w-]+`)
+	ghRe := regexp.MustCompile(`(?i)(?:https?://)?(?:www\.)?github\.com/[\w-]+`)
+
+	for i := 0; i < len(lines) && i < 6; i++ {
+		l := lines[i]
+		if i == 0 && len(l) < 50 && !strings.Contains(l, "@") {
+			candidateName = l
+		}
+		if candidateEmail == "" {
+			if m := emailRe.FindString(l); m != "" {
+				candidateEmail = m
 			}
-			for _, content := range defaultBullets {
-				b := models.ResumeBullet{
-					ID:       uuid.New(),
-					UserID:   uid,
-					Category: "EXPERIENCE",
-					Content:  content,
-				}
-				_ = h.DB.CreateResumeBullet(c.Request.Context(), &b)
-				extractedBullets = append(extractedBullets, b)
+		}
+		if candidatePhone == "" {
+			if m := phoneRe.FindString(l); m != "" {
+				candidatePhone = m
+			}
+		}
+		if candidateCity == "Edmonton" {
+			if m := locRe.FindStringSubmatch(l); len(m) >= 3 && !strings.Contains(strings.ToLower(l), "university") {
+				candidateCity = strings.TrimSpace(m[1])
+				candidateProv = strings.TrimSpace(m[2])
+			}
+		}
+		if linkedinURL == "" {
+			if m := liRe.FindString(l); m != "" {
+				linkedinURL = m
+			}
+		}
+		if githubURL == "" {
+			if m := ghRe.FindString(l); m != "" {
+				githubURL = m
 			}
 		}
 	}
+
+	// Section segmentation
+	secEduRe := regexp.MustCompile(`(?i)^education$`)
+	secSkillsRe := regexp.MustCompile(`(?i)^(?:technical\s+skills|skills\s*(?:&|and)\s*technologies|skills)$`)
+	secProjRe := regexp.MustCompile(`(?i)^(?:projects|technical\s+projects|featured\s+projects)$`)
+	secExpRe := regexp.MustCompile(`(?i)^(?:experience|work\s+experience|professional\s+experience|experience\s*&?\s*technical\s*leadership|employment\s+history)$`)
+
+	currentSec := "HEADER"
+	sectionLines := map[string][]string{
+		"HEADER":     {},
+		"EDUCATION":  {},
+		"SKILLS":     {},
+		"PROJECTS":   {},
+		"EXPERIENCE": {},
+	}
+
+	for _, l := range lines {
+		if secEduRe.MatchString(l) {
+			currentSec = "EDUCATION"
+			continue
+		}
+		if secSkillsRe.MatchString(l) {
+			currentSec = "SKILLS"
+			continue
+		}
+		if secProjRe.MatchString(l) {
+			currentSec = "PROJECTS"
+			continue
+		}
+		if secExpRe.MatchString(l) {
+			currentSec = "EXPERIENCE"
+			continue
+		}
+		sectionLines[currentSec] = append(sectionLines[currentSec], l)
+	}
+
+	// 1. Education
+	eduSchool := "University of Alberta"
+	eduDegree := "Bachelor of Science"
+	eduMajor := "Computing Science"
+	eduGradTerm := "Expected Apr 2028"
+
+	for _, el := range sectionLines["EDUCATION"] {
+		lowerEl := strings.ToLower(el)
+		if (strings.Contains(lowerEl, "university") || strings.Contains(lowerEl, "college") || strings.Contains(lowerEl, "institute")) && eduSchool == "University of Alberta" {
+			eduSchool = regexp.MustCompile(`\b(?:Edmonton|Calgary|Vancouver|Toronto|Waterloo|Burnaby|Ottawa|Montreal|Victoria),\s*[A-Z]{2}\b`).ReplaceAllString(el, "")
+			eduSchool = strings.TrimSpace(eduSchool)
+		}
+		if strings.Contains(lowerEl, "bachelor") || strings.Contains(lowerEl, "master") || strings.Contains(lowerEl, "b.sc") || strings.Contains(lowerEl, "bcs") {
+			dateMatch := regexp.MustCompile(`(?i)(?:Expected\s+)?([A-Za-z]+\s+20\d\d)`).FindString(el)
+			if dateMatch != "" {
+				eduGradTerm = dateMatch
+			}
+			deg := regexp.MustCompile(`(?i)(?:Expected\s+)?(?:[A-Za-z]+\s+20\d\d).*$`).ReplaceAllString(el, "")
+			if strings.Contains(strings.ToLower(deg), " in ") {
+				parts := regexp.MustCompile(`(?i)\s+in\s+`).Split(deg, 2)
+				eduDegree = strings.TrimSpace(parts[0])
+				eduMajor = strings.TrimSpace(parts[1])
+			} else {
+				eduDegree = strings.TrimSpace(deg)
+			}
+		}
+	}
+
+	// 2. Skills
+	skillSet := make(map[string]bool)
+	var skillsArr []string
+	prefixRe := regexp.MustCompile(`^[^:]+:\s*`)
+	splitRe := regexp.MustCompile(`[,|•]`)
+	for _, sl := range sectionLines["SKILLS"] {
+		cleaned := prefixRe.ReplaceAllString(sl, "")
+		for _, item := range splitRe.Split(cleaned, -1) {
+			item = strings.TrimSpace(item)
+			if len(item) > 1 && len(item) < 35 && !skillSet[item] {
+				skillSet[item] = true
+				skillsArr = append(skillsArr, item)
+			}
+		}
+	}
+	if len(skillsArr) == 0 {
+		skillsArr = []string{
+			"Python", "SQL", "Go", "TypeScript", "JavaScript", "Bash", "C++",
+			"Docker", "Git", "GitHub Actions", "Linux/Unix", "RESTful APIs",
+			"PostgreSQL", "SQLite", "Redis", "pgvector", "Pandas",
+		}
+	}
+
+	dateRe := regexp.MustCompile(`(?i)(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4})\s*-\s*(?:Present|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4})`)
+	bulletCleanRe := regexp.MustCompile(`^[•\-\*▪–—]\s*`)
+
+	// 3. Projects
+	var projectsArr []map[string]interface{}
+	pLines := sectionLines["PROJECTS"]
+	pIdx := 0
+	for pIdx < len(pLines) {
+		l := pLines[pIdx]
+		if strings.HasPrefix(l, "•") || strings.HasPrefix(l, "-") || strings.HasPrefix(l, "*") {
+			pIdx++
+			continue
+		}
+		if dateRe.MatchString(l) || strings.Contains(l, "|") {
+			dMatch := dateRe.FindString(l)
+			dates := dMatch
+			beforeDate := l
+			if loc := dateRe.FindStringIndex(l); len(loc) > 0 {
+				beforeDate = l[:loc[0]]
+			}
+			name := strings.TrimSpace(strings.Split(beforeDate, "|")[0])
+			name = regexp.MustCompile(`(?i)\b(?:GitHub|Live Demo|Demo)\b`).ReplaceAllString(name, "")
+			name = strings.TrimSpace(name)
+
+			pIdx++
+			tech := ""
+			if pIdx < len(pLines) && !strings.HasPrefix(pLines[pIdx], "•") && !strings.HasPrefix(pLines[pIdx], "-") && !dateRe.MatchString(pLines[pIdx]) && !strings.Contains(pLines[pIdx], "|") {
+				tech = strings.TrimSpace(pLines[pIdx])
+				pIdx++
+			}
+
+			var bullets []string
+			for pIdx < len(pLines) {
+				bLine := pLines[pIdx]
+				if pageCounterRe.MatchString(strings.TrimSpace(bLine)) {
+					pIdx++
+					continue
+				}
+				if strings.HasPrefix(bLine, "•") || strings.HasPrefix(bLine, "-") || strings.HasPrefix(bLine, "*") {
+					cleaned := strings.TrimSpace(bulletCleanRe.ReplaceAllString(bLine, ""))
+					if !pageCounterRe.MatchString(cleaned) && len(cleaned) > 10 {
+						bullets = append(bullets, cleaned)
+					}
+					pIdx++
+				} else if len(bullets) > 0 && !dateRe.MatchString(bLine) && !strings.Contains(bLine, "|") && len(bLine) > 0 {
+					bullets[len(bullets)-1] = strings.TrimSpace(bullets[len(bullets)-1] + " " + bLine)
+					pIdx++
+				} else {
+					break
+				}
+			}
+
+			if name != "" {
+				projectsArr = append(projectsArr, map[string]interface{}{
+					"name":         name,
+					"technologies": tech,
+					"dates":        dates,
+					"bullets":      bullets,
+				})
+			}
+		} else {
+			pIdx++
+		}
+	}
+
+	// 4. Experience
+	var experienceArr []map[string]interface{}
+	eLines := sectionLines["EXPERIENCE"]
+	locEndRe := regexp.MustCompile(`\s+([A-Za-z]+),\s*([A-Z]{2})$`)
+	eIdx := 0
+	for eIdx < len(eLines) {
+		l := eLines[eIdx]
+		if strings.HasPrefix(l, "•") || strings.HasPrefix(l, "-") || strings.HasPrefix(l, "*") {
+			eIdx++
+			continue
+		}
+
+		locMatch := locEndRe.FindStringSubmatch(l)
+		loc := fmt.Sprintf("%s, %s", candidateCity, candidateProv)
+		role := strings.TrimSpace(l)
+		if len(locMatch) >= 3 {
+			loc = fmt.Sprintf("%s, %s", locMatch[1], locMatch[2])
+			if matchIdx := locEndRe.FindStringIndex(l); len(matchIdx) > 0 {
+				role = strings.TrimSpace(l[:matchIdx[0]])
+			}
+		}
+
+		company := ""
+		dates := ""
+		isCurr := false
+
+		eIdx++
+		if eIdx < len(eLines) && !strings.HasPrefix(eLines[eIdx], "•") && !strings.HasPrefix(eLines[eIdx], "-") {
+			nextL := eLines[eIdx]
+			if dm := dateRe.FindString(nextL); dm != "" {
+				dates = dm
+				if matchIdx := dateRe.FindStringIndex(nextL); len(matchIdx) > 0 {
+					company = strings.TrimSpace(nextL[:matchIdx[0]])
+				}
+				isCurr = strings.Contains(strings.ToLower(dates), "present")
+				eIdx++
+			}
+		}
+
+		var bullets []string
+		for eIdx < len(eLines) {
+			bLine := eLines[eIdx]
+			if pageCounterRe.MatchString(strings.TrimSpace(bLine)) {
+				eIdx++
+				continue
+			}
+			if strings.HasPrefix(bLine, "•") || strings.HasPrefix(bLine, "-") || strings.HasPrefix(bLine, "*") {
+				cleaned := strings.TrimSpace(bulletCleanRe.ReplaceAllString(bLine, ""))
+				if !pageCounterRe.MatchString(cleaned) && len(cleaned) > 10 {
+					bullets = append(bullets, cleaned)
+				}
+				eIdx++
+			} else if len(bullets) > 0 && !dateRe.MatchString(bLine) && !locEndRe.MatchString(bLine) && len(bLine) > 0 {
+				bullets[len(bullets)-1] = strings.TrimSpace(bullets[len(bullets)-1] + " " + bLine)
+				eIdx++
+			} else {
+				break
+			}
+		}
+
+		if role != "" {
+			sDate := "Sep 2025"
+			eDate := "Present"
+			if dates != "" {
+				parts := strings.Split(dates, "-")
+				sDate = strings.TrimSpace(parts[0])
+				if len(parts) > 1 {
+					eDate = strings.TrimSpace(parts[1])
+				}
+			}
+			if company == "" {
+				company = role
+			}
+			experienceArr = append(experienceArr, map[string]interface{}{
+				"role":       role,
+				"company":    company,
+				"location":   loc,
+				"start_date": sDate,
+				"end_date":   eDate,
+				"is_current": isCurr,
+				"bullets":    bullets,
+			})
+		}
+	}
+
+	// 5. Insert bullets into database
+	var extractedBullets []models.ResumeBullet
+	for _, exp := range experienceArr {
+		if rawB, ok := exp["bullets"].([]string); ok {
+			for _, b := range rawB {
+				bullet := models.ResumeBullet{
+					ID:       uuid.New(),
+					UserID:   uid,
+					Category: "EXPERIENCE",
+					Content:  b,
+				}
+				if err := h.DB.CreateResumeBullet(c.Request.Context(), &bullet); err == nil {
+					extractedBullets = append(extractedBullets, bullet)
+				}
+			}
+		}
+	}
+	for _, proj := range projectsArr {
+		if rawB, ok := proj["bullets"].([]string); ok {
+			for _, b := range rawB {
+				bullet := models.ResumeBullet{
+					ID:       uuid.New(),
+					UserID:   uid,
+					Category: "PROJECT",
+					Content:  b,
+				}
+				if err := h.DB.CreateResumeBullet(c.Request.Context(), &bullet); err == nil {
+					extractedBullets = append(extractedBullets, bullet)
+				}
+			}
+		}
+	}
+
+	// 6. Update user_profiles in PostgreSQL
+	eduMap := map[string]interface{}{
+		"school":           eduSchool,
+		"degree":           eduDegree,
+		"major":            eduMajor,
+		"grad_term":        eduGradTerm,
+		"is_coop_enrolled": true,
+	}
+	eduBytes, _ := json.Marshal(eduMap)
+	skillsBytes, _ := json.Marshal(skillsArr)
+	expBytes, _ := json.Marshal(experienceArr)
+	projBytes, _ := json.Marshal(projectsArr)
+
+	updateReq := models.UpdateProfileRequest{
+		FullName:     candidateName,
+		Email:        candidateEmail,
+		Phone:        candidatePhone,
+		City:         candidateCity,
+		Province:     candidateProv,
+		LinkedinURL:  linkedinURL,
+		GithubURL:    githubURL,
+		Education:    json.RawMessage(eduBytes),
+		Skills:       json.RawMessage(skillsBytes),
+		Experiences:  json.RawMessage(expBytes),
+		Projects:     json.RawMessage(projBytes),
+	}
+	_, _ = h.DB.UpsertUserProfile(c.Request.Context(), uid, updateReq)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":   "success",
 		"filename": header.Filename,
 		"count":    len(extractedBullets),
 		"data":     extractedBullets,
-		"profile":  gin.H{},
+		"profile": gin.H{
+			"full_name":    candidateName,
+			"email":        candidateEmail,
+			"phone":        candidatePhone,
+			"city":         candidateCity,
+			"province":     candidateProv,
+			"linkedin_url": linkedinURL,
+			"github_url":   githubURL,
+			"education":    eduMap,
+			"skills":       skillsArr,
+			"experiences":  experienceArr,
+			"projects":     projectsArr,
+		},
 	})
 }
 
@@ -567,8 +899,10 @@ func (h *HandlerContext) generateBuiltinTailoredResume(ctx context.Context, uid 
 	}
 	projectList := []gin.H{
 		{
+			"title":        "Distributed Task Queue & Matching Engine",
 			"name":         "Distributed Task Queue & Matching Engine",
 			"technologies": proj1Tech,
+			"date":         "Jan. 2026 – Present",
 			"dates":        "Jan. 2026 – Present",
 			"bullets": []string{
 				"Built high-dimensional vector search engine using pgvector and HNSW indexing, querying 50K+ document embeddings in <50ms.",
@@ -576,8 +910,10 @@ func (h *HandlerContext) generateBuiltinTailoredResume(ctx context.Context, uid 
 			},
 		},
 		{
+			"title":        "High-Throughput Web Crawler & Analytics Platform",
 			"name":         "High-Throughput Web Crawler & Analytics Platform",
 			"technologies": "Python, FastAPI, Docker, SQLite, BeautifulSoup",
+			"date":         "Oct. 2025 – Dec. 2025",
 			"dates":        "Oct. 2025 – Dec. 2025",
 			"bullets": []string{
 				"Engineered automated crawler parsing 120+ weekly data feeds across web endpoints with regex normalization.",
@@ -592,11 +928,17 @@ func (h *HandlerContext) generateBuiltinTailoredResume(ctx context.Context, uid 
 			var parsedProjs []gin.H
 			for _, item := range projArr {
 				name, _ := item["name"].(string)
+				if name == "" {
+					name, _ = item["title"].(string)
+				}
 				tech, _ := item["technologies"].(string)
 				if tech == "" {
 					tech = proj1Tech
 				}
 				dates, _ := item["dates"].(string)
+				if dates == "" {
+					dates, _ = item["date"].(string)
+				}
 				if dates == "" {
 					dates = "Jan. 2026 – Present"
 				}
@@ -614,8 +956,10 @@ func (h *HandlerContext) generateBuiltinTailoredResume(ctx context.Context, uid 
 					}
 				}
 				parsedProjs = append(parsedProjs, gin.H{
+					"title":        name,
 					"name":         name,
 					"technologies": tech,
+					"date":         dates,
 					"dates":        dates,
 					"bullets":      bullets,
 				})
@@ -913,7 +1257,16 @@ func generateJakesLatexCode(name, phone, email, linkedin, github string, educati
 		company, _ := exp["company"].(string)
 		loc, _ := exp["location"].(string)
 		dates, _ := exp["dates"].(string)
-		bullets, _ := exp["bullets"].([]string)
+		var bullets []string
+		if bStrs, ok := exp["bullets"].([]string); ok {
+			bullets = bStrs
+		} else if bIfs, ok := exp["bullets"].([]interface{}); ok {
+			for _, item := range bIfs {
+				if s, ok := item.(string); ok {
+					bullets = append(bullets, s)
+				}
+			}
+		}
 
 		sb.WriteString(fmt.Sprintf(`    \resumeSubheading
       {%s}{%s}
@@ -936,9 +1289,24 @@ func generateJakesLatexCode(name, phone, email, linkedin, github string, educati
 
 	for _, proj := range projects {
 		pName, _ := proj["name"].(string)
+		if pName == "" {
+			pName, _ = proj["title"].(string)
+		}
 		pTech, _ := proj["technologies"].(string)
 		pDates, _ := proj["dates"].(string)
-		bullets, _ := proj["bullets"].([]string)
+		if pDates == "" {
+			pDates, _ = proj["date"].(string)
+		}
+		var bullets []string
+		if bStrs, ok := proj["bullets"].([]string); ok {
+			bullets = bStrs
+		} else if bIfs, ok := proj["bullets"].([]interface{}); ok {
+			for _, item := range bIfs {
+				if s, ok := item.(string); ok {
+					bullets = append(bullets, s)
+				}
+			}
+		}
 
 		sb.WriteString(fmt.Sprintf(`      \resumeProjectHeading
           {\textbf{%s} $|$ \emph{%s}}{%s}

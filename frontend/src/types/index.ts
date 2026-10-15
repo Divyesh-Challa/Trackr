@@ -170,6 +170,8 @@ export interface ExperienceItem {
 
 export interface ProjectItem {
   name: string;
+  technologies?: string;
+  dates?: string;
   link?: string;
   bullets: string[];
 }
