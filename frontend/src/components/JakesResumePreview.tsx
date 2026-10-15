@@ -48,7 +48,10 @@ export default function JakesResumePreview({
     lines.push("");
     lines.push("PROJECTS");
     resume.projects.forEach((p) => {
-      lines.push(`${p.title} | ${p.technologies} | ${p.date}`);
+      const pTitle = p.title || (p as any).name || "";
+      const pTech = p.technologies || "";
+      const pDate = p.date || (p as any).dates || "";
+      lines.push(`${pTitle} | ${pTech} | ${pDate}`);
       p.bullets.forEach((b) => lines.push(`• ${b}`));
     });
     lines.push("");
@@ -200,14 +203,14 @@ export default function JakesResumePreview({
               <div key={idx} className="mb-3 print:mb-1.5 text-[9.5pt]">
                 <div className="flex justify-between items-baseline leading-tight mb-1 print:mb-0.5">
                   <div>
-                    <span className="font-bold text-black">{proj.title}</span>
+                    <span className="font-bold text-black">{proj.title || (proj as any).name}</span>
                     {proj.technologies && (
                       <span className="text-neutral-700 ml-1.5 italic text-[9pt]">
                         | {proj.technologies}
                       </span>
                     )}
                   </div>
-                  <span className="text-neutral-800">{proj.date}</span>
+                  <span className="text-neutral-800">{proj.date || (proj as any).dates}</span>
                 </div>
                 <ul className="list-disc ml-5 print:ml-4 space-y-0.5 print:space-y-0 text-neutral-900 text-[9pt] leading-relaxed print:leading-snug">
                   {proj.bullets.map((bullet, bIdx) => (

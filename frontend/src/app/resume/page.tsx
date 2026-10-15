@@ -97,7 +97,7 @@ ${e.bullets.map((b) => `        \\resumeItem{${escapeLatex(b)}}`).join("\n")}
   const projItems = data.projects
     .map(
       (p) => `    \\resumeProjectHeading
-      {\\textbf{${escapeLatex(p.title)}} $|$ \\emph{${escapeLatex(p.technologies)}}}{${escapeLatex(p.date)}}
+      {\\textbf{${escapeLatex(p.title || (p as any).name || "")}} $|$ \\emph{${escapeLatex(p.technologies || "")}}}{${escapeLatex(p.date || (p as any).dates || "")}}
       \\resumeItemListStart
 ${p.bullets.map((b) => `        \\resumeItem{${escapeLatex(b)}}`).join("\n")}
       \\resumeItemListEnd`
@@ -307,15 +307,15 @@ export default function ResumePage() {
     const projects =
       userProfile?.projects && userProfile.projects.length > 0
         ? userProfile.projects.map((p) => ({
-            title: p.name || "Trackr Career Hub",
-            technologies: "Go, Next.js, PostgreSQL, pgvector, Redis, Docker",
-            date: "Jan. 2026 – Present",
+            title: p.name || "Featured Project",
+            technologies: p.technologies || "Python, SQL, PostgreSQL, Docker",
+            date: p.dates || "Jan. 2026 – Present",
             bullets:
               p.bullets && p.bullets.length > 0
                 ? p.bullets
                 : [
-                    "Built high-dimensional vector search engine using pgvector and HNSW indexing, querying 100K+ document embeddings in <60ms.",
-                    "Architected event-driven asynchronous task queues with Redis streams and background workers to isolate heavy AI inference.",
+                    "Engineered performant backend architecture and relational database schemas with high reliability.",
+                    "Optimized data querying and indexing to ensure sub-second response times across distributed workflows.",
                   ],
           }))
         : [
@@ -344,41 +344,35 @@ export default function ResumePage() {
         ? userProfile.skills
         : ["Go", "Python", "TypeScript", "React", "Next.js", "PostgreSQL", "Docker", "AWS", "Redis", "C++", "Linux", "Git"];
 
-    const languages =
-      skillsList
-        .filter((s) =>
-          ["Go", "Python", "TypeScript", "JavaScript", "C++", "Java", "SQL", "HTML/CSS"].some(
-            (k) => k.toLowerCase() === s.toLowerCase()
-          )
-        )
-        .join(", ") || "Go, Python, TypeScript, C++, SQL";
+    const langKeywords = ["python", "sql", "r", "go", "typescript", "javascript", "bash", "c++", "c", "html5", "css3", "html/css", "java", "rust", "ruby", "php", "swift", "kotlin"];
+    const fwKeywords = ["react", "next.js", "fastapi", "node.js", "express", "tailwind css", "gin", "django", "flask", "vue", "angular", "svelte"];
+    const toolKeywords = ["docker", "git", "github actions", "linux/unix", "linux", "restful apis", "rest apis", "rest", "power bi", "looker", "ci/cd", "aws", "kubernetes", "azure", "gcp"];
+    const dbLibKeywords = ["postgresql", "sqlite", "mysql", "redis", "pgvector", "pandas", "matplotlib", "relational schema", "query optimization", "product analytics", "telemetry", "data quality", "a/b testing", "pytorch", "tensorflow", "hnsw", "numpy"];
 
-    const frameworks =
-      skillsList
-        .filter((s) =>
-          ["React", "Next.js", "FastAPI", "Node.js", "Express", "Tailwind CSS", "Gin"].some(
-            (k) => k.toLowerCase() === s.toLowerCase()
-          )
-        )
-        .join(", ") || "React, Next.js, FastAPI, Node.js, Tailwind CSS";
+    const matchedLangs: string[] = [];
+    const matchedFws: string[] = [];
+    const matchedTools: string[] = [];
+    const matchedLibs: string[] = [];
 
-    const tools =
-      skillsList
-        .filter((s) =>
-          ["Docker", "Git", "GitHub Actions", "AWS", "Linux", "Kubernetes", "PostgreSQL", "Redis"].some(
-            (k) => k.toLowerCase() === s.toLowerCase()
-          )
-        )
-        .join(", ") || "Docker, Git, AWS, PostgreSQL, Redis, Linux";
+    skillsList.forEach((s) => {
+      const lower = s.toLowerCase();
+      if (langKeywords.some((k) => lower === k || lower.startsWith(k + " "))) {
+        matchedLangs.push(s);
+      } else if (fwKeywords.some((k) => lower === k || lower.includes(k))) {
+        matchedFws.push(s);
+      } else if (toolKeywords.some((k) => lower === k || lower.includes(k))) {
+        matchedTools.push(s);
+      } else if (dbLibKeywords.some((k) => lower === k || lower.includes(k))) {
+        matchedLibs.push(s);
+      } else {
+        matchedTools.push(s);
+      }
+    });
 
-    const libs =
-      skillsList
-        .filter((s) =>
-          ["pgvector", "PyTorch", "HNSW", "REST APIs", "Pandas", "WebSocket"].some(
-            (k) => k.toLowerCase() === s.toLowerCase()
-          )
-        )
-        .join(", ") || "pgvector, HNSW, PyTorch, Pandas, REST APIs";
+    const languages = matchedLangs.length > 0 ? matchedLangs.join(", ") : "Python, SQL, Go, TypeScript, C++, Bash";
+    const frameworks = matchedFws.length > 0 ? matchedFws.join(", ") : "FastAPI, React, Next.js, Tailwind CSS";
+    const tools = matchedTools.length > 0 ? matchedTools.join(", ") : "Docker, Git, GitHub Actions, Linux/Unix, RESTful APIs, CI/CD";
+    const libs = matchedLibs.length > 0 ? matchedLibs.join(", ") : "PostgreSQL, SQLite, Redis, pgvector, Pandas, Matplotlib";
 
     const resumeDraft: TailoredResumeData = {
       match_score: 92,
@@ -587,8 +581,15 @@ export default function ResumePage() {
       return res;
     },
     onSuccess: (data) => {
+      if (data.profile) {
+        queryClient.setQueryData(["userProfile"], (prev: any) => ({
+          ...prev,
+          ...data.profile,
+        }));
+      }
       queryClient.invalidateQueries({ queryKey: ["resumeBullets"] });
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      setTailorResult(null);
       setSelectedFile(null);
       setUploadProgress(0);
       setParsingStage("");
