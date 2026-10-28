@@ -8,7 +8,7 @@ insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000d1
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000d1","role":"authenticated"}', true);
 
-select ok(not public.is_pro(), 'new users are on the free plan');
+select ok(not public.am_i_pro(), 'new users are on the free plan');
 
 insert into public.applications (company_name, role_title, status)
 select 'Co ' || g, 'Intern', 'applied' from generate_series(1, 50) g;

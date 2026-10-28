@@ -231,12 +231,15 @@ isOneToOne: false
 { Args: { "p_daily_budget_usd": number,"p_feature": string,"p_monthly_limit": number }; Returns: string
                            },
 "ai_record":
-{ Args: { "p_cost_usd": number,"p_feature": string,"p_input_tokens": number,"p_model": string,"p_output_tokens": number }; Returns: undefined
+{ Args: { "p_cost_usd": number,"p_feature": string,"p_input_tokens": number,"p_model": string,"p_output_tokens": number,"p_user": string }; Returns: undefined
                            },
 "ai_usage_this_month":
 { Args: Record<PropertyKey, never>; Returns: {
               "feature": string,"used": number
             }[]
+                           },
+"am_i_pro":
+{ Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "consume_rate_limit":
 { Args: { "p_bucket": string,"p_limit": number,"p_window_seconds": number }; Returns: boolean

@@ -10,16 +10,16 @@ insert into auth.users (id, email) values
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
 
-select ok(public.consume_rate_limit('test', 2, 3600), 'first use allowed');
-select ok(public.consume_rate_limit('test', 2, 3600), 'second use allowed');
-select ok(not public.consume_rate_limit('test', 2, 3600), 'third use blocked');
-select ok(public.consume_rate_limit('other', 2, 3600), 'buckets are independent');
+select ok(public.consume_rate_limit('job_url_lookup', 2, 3600), 'first use allowed');
+select ok(public.consume_rate_limit('job_url_lookup', 2, 3600), 'second use allowed');
+select ok(not public.consume_rate_limit('job_url_lookup', 2, 3600), 'third use blocked');
+select ok(not public.consume_rate_limit('made_up_bucket', 2, 3600), 'unknown buckets are refused');
 
 insert into public.applications (company_name, role_title) values ('Acme', 'Intern');
 
 -- User 2 has their own budget and can't see user 1's counters.
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated"}', true);
-select ok(public.consume_rate_limit('test', 2, 3600), 'limits are per user');
+select ok(public.consume_rate_limit('job_url_lookup', 2, 3600), 'limits are per user');
 select is((select count(*)::int from public.rate_limits), 0, 'counters are not readable');
 
 -- User 1 deletes their account; their data goes with it.

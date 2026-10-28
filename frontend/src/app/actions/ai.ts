@@ -27,7 +27,7 @@ export type AiStatus = {
 export async function getAiStatus(): Promise<AiStatus> {
   const supabase = await createClient();
   const [{ data: pro }, { data: usage }, { count }] = await Promise.all([
-    supabase.rpc("is_pro"),
+    supabase.rpc("am_i_pro"),
     supabase.rpc("ai_usage_this_month"),
     supabase.from("resume_bullets").select("id", { count: "exact", head: true }),
   ]);

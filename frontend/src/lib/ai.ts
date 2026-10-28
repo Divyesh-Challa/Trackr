@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type { z } from "zod";
 import { createClient } from "./supabase/server";
+import { createAdminClient } from "./supabase/admin";
 
 export const AI_MODEL = "claude-sonnet-5-5";
 // USD per million tokens (input, output) for cost logging and the daily budget breaker.
@@ -20,8 +21,9 @@ export const MONTHLY_LIMITS: Record<AiFeature, number> = {
 
 const DAILY_BUDGET_USD = Number(process.env.AI_DAILY_BUDGET_USD ?? 5);
 
+// Usage is logged with the service role (users can't write their own usage rows).
 export function aiConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY);
+  return Boolean(process.env.ANTHROPIC_API_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 export type AiResult<T> = { ok: true; data: T } | { ok: false; error: string; code?: "not_pro" | "quota" | "budget" | "off" };
@@ -43,6 +45,9 @@ export async function runStructured<S extends z.ZodType>(opts: {
   if (!aiConfigured()) return { ok: false, code: "off", error: "AI tools aren't switched on yet." };
 
   const supabase = await createClient();
+  const admin = createAdminClient()!;
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { ok: false, code: "not_pro", error: "Sign in first." };
   const { data: status, error: checkError } = await supabase.rpc("ai_check", {
     p_feature: opts.feature,
     p_monthly_limit: MONTHLY_LIMITS[opts.feature],
@@ -67,7 +72,8 @@ export async function runStructured<S extends z.ZodType>(opts: {
 
     const usage = response.usage;
     const cost = (usage.input_tokens * PRICE.input + usage.output_tokens * PRICE.output) / 1_000_000;
-    await supabase.rpc("ai_record", {
+    await admin.rpc("ai_record", {
+      p_user: auth.user.id,
       p_feature: opts.feature,
       p_model: response.model,
       p_input_tokens: usage.input_tokens,
