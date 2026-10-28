@@ -167,3 +167,46 @@ describe("insights", () => {
     expect(r.medianDaysToResponse).toBeNull();
   });
 });
+
+import { checkParagraphs, checkRewrites, inventedNumbers } from "../ai-guard";
+
+describe("ai guard", () => {
+  const bullets = [
+    { id: "b1", heading: "Intern, Acme (2026)", content: "Cut API latency by 40% by adding a Redis cache" },
+    { id: "b2", heading: "Project", content: "Built a React dashboard used by 12 teammates" },
+  ];
+
+  it("spots numbers the source never had", () => {
+    expect(inventedNumbers("Cut latency 40% for 3,000 users", ["Cut API latency by 40%"])).toEqual(["3000"]);
+    expect(inventedNumbers("Reduced latency by 40 percent", ["by 40%"])).toEqual([]);
+  });
+
+  it("keeps faithful rewrites, reverts invented metrics, drops unknown citations", () => {
+    const out = checkRewrites(
+      [
+        { bullet_id: "b1", text: "Reduced API latency 40% with a Redis caching layer", why: "Matches 'performance'" },
+        { bullet_id: "b2", text: "Built a React dashboard used by 50 engineers", why: "React" },
+        { bullet_id: "zzz", text: "Led a team of 10", why: "made up" },
+        { bullet_id: "b1", text: "duplicate", why: "dup" },
+      ],
+      bullets
+    );
+    expect(out.map((r) => [r.bullet_id, r.reverted])).toEqual([["b1", false], ["b2", true]]);
+    expect(out[1].text).toBe(bullets[1].content);
+  });
+
+  it("flags unsupported numbers in cover letters but allows ones from the job post", () => {
+    const [p1, p2] = checkParagraphs(
+      [
+        { text: "Your team of 25 engineers ships weekly; I cut latency 40%.", bullet_ids: ["b1"] },
+        { text: "I mentored 8 interns.", bullet_ids: ["nope"] },
+      ],
+      bullets,
+      "Join our team of 25 engineers"
+    );
+    expect(p1.flagged).toEqual([]);
+    expect(p1.sources.map((s) => s.id)).toEqual(["b1"]);
+    expect(p2.flagged).toEqual(["8"]);
+    expect(p2.sources).toEqual([]);
+  });
+});

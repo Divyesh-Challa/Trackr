@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ExternalLink, Loader2, Trash2 } from "lucide-react";
 import Dialog from "../ui/Dialog";
 import { Field, inputClass } from "./AddApplicationDialog";
+import AiTab from "./AiTab";
 import { COLUMNS, STATUS_LABEL } from "@/lib/board";
 import {
   useApplication,
@@ -20,7 +21,7 @@ import {
 } from "@/lib/tracker-hooks";
 import type { Application, ApplicationStatus } from "@/types";
 
-type Tab = "details" | "tasks" | "contacts" | "notes" | "history";
+type Tab = "details" | "tasks" | "contacts" | "notes" | "ai" | "history";
 
 function formatDate(iso: string) {
   return new Date(iso.length === 10 ? `${iso}T00:00:00` : iso).toLocaleDateString(undefined, {
@@ -356,6 +357,7 @@ export default function ApplicationDrawer({ id, onClose }: { id: string | null; 
     { id: "tasks", label: "Tasks", count: app?.task_count },
     { id: "contacts", label: "Contacts", count: app?.contact_count },
     { id: "notes", label: "Notes", count: app?.note_count },
+    { id: "ai", label: "AI" },
     { id: "history", label: "History" },
   ];
 
@@ -391,6 +393,7 @@ export default function ApplicationDrawer({ id, onClose }: { id: string | null; 
             {tab === "tasks" && <TasksTab appId={app.id} />}
             {tab === "contacts" && <ContactsTab appId={app.id} />}
             {tab === "notes" && <NotesTab appId={app.id} />}
+            {tab === "ai" && <AiTab appId={app.id} />}
             {tab === "history" && <HistoryTab appId={app.id} />}
           </div>
         </div>

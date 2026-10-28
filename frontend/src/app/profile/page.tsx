@@ -6,6 +6,7 @@ import { Loader2, Save } from "lucide-react";
 import { fetchProfile, updateProfile } from "../../lib/api";
 import { Profile } from "../../types";
 import AccountSection from "../../components/AccountSection";
+import ExperienceSection from "../../components/ExperienceSection";
 
 const CANADIAN_UNIVERSITIES = [
   "University of British Columbia (UBC)",
@@ -269,6 +270,7 @@ export default function ProfilePage() {
         </span>
       </div>
     </form>
+    <ExperienceSection />
     <AccountSection />
     </div>
   );

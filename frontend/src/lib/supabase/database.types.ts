@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "application_contacts": {
+            "ai_usage": {
+                  Row: {
+                    "cost_usd": number,"created_at": string,"feature": string,"id": string,"input_tokens": number,"model": string,"output_tokens": number,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cost_usd"?: number,"created_at"?: string,"feature": string,"id"?: string,"input_tokens"?: number,"model": string,"output_tokens"?: number,"user_id": string
+                  }
+                  Update: {
+                    "cost_usd"?: number,"created_at"?: string,"feature"?: string,"id"?: string,"input_tokens"?: number,"model"?: string,"output_tokens"?: number,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"application_contacts": {
                   Row: {
                     "application_id": string,"created_at": string,"email": string | null,"id": string,"linkedin_url": string | null,"name": string,"notes": string | null,"phone": string | null,"role_title": string | null,"user_id": string
                   }
@@ -179,6 +193,20 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"resume_bullets": {
+                  Row: {
+                    "content": string,"created_at": string,"heading": string,"id": string,"position": number,"section": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content": string,"created_at"?: string,"heading"?: string,"id"?: string,"position"?: number,"section"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "content"?: string,"created_at"?: string,"heading"?: string,"id"?: string,"position"?: number,"section"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"subscriptions": {
                   Row: {
                     "cancel_at_period_end": boolean,"current_period_end": string | null,"price_lookup_key": string | null,"status": string,"stripe_customer_id": string | null,"stripe_subscription_id": string | null,"updated_at": string,"user_id": string
@@ -199,7 +227,18 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "consume_rate_limit":
+            "ai_check":
+{ Args: { "p_daily_budget_usd": number,"p_feature": string,"p_monthly_limit": number }; Returns: string
+                           },
+"ai_record":
+{ Args: { "p_cost_usd": number,"p_feature": string,"p_input_tokens": number,"p_model": string,"p_output_tokens": number }; Returns: undefined
+                           },
+"ai_usage_this_month":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "feature": string,"used": number
+            }[]
+                           },
+"consume_rate_limit":
 { Args: { "p_bucket": string,"p_limit": number,"p_window_seconds": number }; Returns: boolean
                            },
 "delete_my_account":

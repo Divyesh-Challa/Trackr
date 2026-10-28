@@ -4,10 +4,9 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Compass, FileText, Layers, LogIn, LogOut, Menu, Sparkles, User, X } from "lucide-react";
+import { Compass, Layers, LogIn, LogOut, Menu, Sparkles, User, X } from "lucide-react";
 import type { User as AuthUser } from "@supabase/supabase-js";
 import { createClient } from "../lib/supabase/client";
-import { AI_FEATURES_ENABLED } from "../lib/ai-legacy";
 import { springs } from "../lib/motion-tokens";
 import DecryptedText from "./ui/DecryptedText";
 import Magnet from "./ui/Magnet";
@@ -41,12 +40,6 @@ export default function Navbar() {
   const navItems = [
     ...(user ? [{ href: "/board", label: "Applications", icon: Layers }] : []),
     { href: "/discover", label: "Discover", icon: Compass },
-    ...(user && AI_FEATURES_ENABLED
-      ? [
-          { href: "/resume", label: "Resume Studio", icon: FileText },
-          { href: "/simulator", label: "Interview Practice", icon: Sparkles },
-        ]
-      : []),
     { href: "/pricing", label: "Pricing", icon: Sparkles },
     ...(user ? [{ href: "/profile", label: "Profile", icon: User }] : []),
   ];
