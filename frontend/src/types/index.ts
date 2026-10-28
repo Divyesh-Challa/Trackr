@@ -48,6 +48,10 @@ export interface Application {
   match_details?: MatchDetails;
   deadline_at?: string | null;
   follow_up_at?: string | null;
+  /** Order within its board column. */
+  position?: number;
+  /** Earliest due date among incomplete tasks. */
+  next_task_due?: string | null;
   created_at: string;
   updated_at: string;
   task_count?: number;

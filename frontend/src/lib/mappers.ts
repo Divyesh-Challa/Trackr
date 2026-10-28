@@ -51,13 +51,18 @@ export function workModelToDb(model: string | null | undefined): DbWorkModel | n
 }
 
 export type DbApplicationWithCounts = DbApplication & {
-  application_tasks?: { is_completed: boolean }[];
+  application_tasks?: { is_completed: boolean; due_date?: string | null }[];
   application_contacts?: { count: number }[];
   application_notes?: { count: number }[];
 };
 
 export function toApplication(row: DbApplicationWithCounts): Application {
   const tasks = row.application_tasks ?? [];
+  const nextTaskDue =
+    tasks
+      .filter((t) => !t.is_completed && t.due_date)
+      .map((t) => t.due_date!)
+      .sort()[0] ?? null;
   return {
     id: row.id,
     user_id: row.user_id,
@@ -73,6 +78,8 @@ export function toApplication(row: DbApplicationWithCounts): Application {
     raw_description: row.description ?? undefined,
     deadline_at: row.deadline_at,
     follow_up_at: row.follow_up_at,
+    position: row.position,
+    next_task_due: nextTaskDue,
     created_at: row.created_at,
     updated_at: row.updated_at,
     task_count: tasks.length,

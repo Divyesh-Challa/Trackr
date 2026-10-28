@@ -18,6 +18,7 @@ import {
   DiscoveredJob,
   Profile,
 } from "../types";
+import type { ImportRow } from "./csv";
 
 const supabase = () => createClient();
 
@@ -28,7 +29,7 @@ function unwrap<T>(result: { data: T; error: { message: string } | null }, what:
 }
 
 const APPLICATION_SELECT =
-  "*, application_tasks(is_completed), application_contacts(count), application_notes(count)";
+  "*, application_tasks(is_completed, due_date), application_contacts(count), application_notes(count)";
 
 // -----------------------------------------------------------------------------
 // Applications
@@ -63,6 +64,10 @@ export async function createApplication(payload: {
   work_model?: "REMOTE" | "HYBRID" | "ONSITE";
   job_id?: string;
   job_url?: string;
+  deadline_at?: string | null;
+  follow_up_at?: string | null;
+  description?: string;
+  position?: number;
 }): Promise<Application> {
   const status = statusToDb(payload.status ?? "WISHLIST");
   const row = unwrap(
@@ -78,6 +83,10 @@ export async function createApplication(payload: {
         job_id: payload.job_id ?? null,
         job_url: payload.job_url ?? null,
         applied_at: status === "wishlist" ? null : new Date().toISOString().slice(0, 10),
+        deadline_at: payload.deadline_at || null,
+        follow_up_at: payload.follow_up_at || null,
+        description: payload.description || null,
+        ...(payload.position !== undefined ? { position: payload.position } : {}),
       })
       .select(APPLICATION_SELECT)
       .single(),
@@ -91,26 +100,94 @@ export async function deleteApplication(id: string): Promise<void> {
   if (error) throw new Error(`Failed to delete application: ${error.message}`);
 }
 
-/** Status history rows are written by a database trigger, not here. */
-export async function updateApplicationStatus(
+/**
+ * Move a card to a column and position. Status history rows are written by a database
+ * trigger, so this is the only call a move makes.
+ */
+export async function moveApplication(
   id: string,
-  toStatus: ApplicationStatus | string
+  toStatus: ApplicationStatus | string,
+  position?: number
 ): Promise<Application> {
   const status = statusToDb(toStatus);
-  const client = supabase();
-  const patch: { status: typeof status; applied_at?: string } = { status };
-  if (status === "applied") {
-    const current = unwrap(
-      await client.from("applications").select("applied_at").eq("id", id).single(),
-      "Failed to load application"
-    );
-    if (!current.applied_at) patch.applied_at = new Date().toISOString().slice(0, 10);
-  }
+  const patch: { status: typeof status; position?: number } = { status };
+  if (position !== undefined) patch.position = position;
   const row = unwrap(
-    await client.from("applications").update(patch).eq("id", id).select(APPLICATION_SELECT).single(),
-    "Failed to update status"
+    await supabase().from("applications").update(patch).eq("id", id).select(APPLICATION_SELECT).single(),
+    "Failed to move application"
+  );
+  // First move out of the wishlist records when you applied, unless you set it yourself.
+  if (status !== "wishlist" && !row.applied_at) {
+    return updateApplication(id, { applied_at: new Date().toISOString().slice(0, 10) });
+  }
+  return toApplication(row);
+}
+
+export const updateApplicationStatus = (id: string, toStatus: ApplicationStatus | string) =>
+  moveApplication(id, toStatus);
+
+export type ApplicationPatch = Partial<{
+  company_name: string;
+  role_title: string;
+  location: string | null;
+  work_model: "REMOTE" | "HYBRID" | "ONSITE" | null;
+  salary_text: string | null;
+  job_url: string | null;
+  description: string | null;
+  applied_at: string | null;
+  deadline_at: string | null;
+  follow_up_at: string | null;
+}>;
+
+export async function updateApplication(id: string, patch: ApplicationPatch): Promise<Application> {
+  const { work_model, ...rest } = patch;
+  const row = unwrap(
+    await supabase()
+      .from("applications")
+      .update({ ...rest, ...(work_model !== undefined ? { work_model: workModelToDb(work_model) } : {}) })
+      .eq("id", id)
+      .select(APPLICATION_SELECT)
+      .single(),
+    "Failed to save application"
   );
   return toApplication(row);
+}
+
+export async function importApplications(rows: ImportRow[]): Promise<number> {
+  const client = supabase();
+  let inserted = 0;
+  for (let i = 0; i < rows.length; i += 200) {
+    const chunk = rows.slice(i, i + 200).map((r, j) => ({
+      company_name: r.company_name,
+      role_title: r.role_title,
+      status: statusToDb(r.status),
+      location: r.job_location ?? null,
+      work_model: workModelToDb(r.work_model),
+      applied_at: r.applied_at ?? (r.status === "WISHLIST" ? null : new Date().toISOString().slice(0, 10)),
+      deadline_at: r.deadline_at ?? null,
+      follow_up_at: r.follow_up_at ?? null,
+      salary_text: r.salary_range ?? null,
+      job_url: r.job_url ?? null,
+      position: -(i + j + 1),
+    }));
+    const { error, count } = await client.from("applications").insert(chunk, { count: "exact" });
+    if (error) throw new Error(`Import stopped after ${inserted} rows: ${error.message}`);
+    inserted += count ?? chunk.length;
+  }
+  return inserted;
+}
+
+/** Every status change across the user's applications, oldest first (for insights). */
+export async function fetchAllTransitions(): Promise<ApplicationStateTransition[]> {
+  const rows = unwrap(
+    await supabase()
+      .from("application_state_transitions")
+      .select("*")
+      .order("transitioned_at")
+      .limit(10_000),
+    "Failed to load status history"
+  );
+  return rows.map(toTransition);
 }
 
 export async function fetchTransitions(applicationId: string): Promise<ApplicationStateTransition[]> {
