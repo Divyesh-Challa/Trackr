@@ -17,6 +17,10 @@ import yaml
 from .models import Board, RawPosting
 
 BOARDS_FILE = Path(__file__).with_name("boards.yaml")
+SEEDS_FILE = Path(__file__).with_name("seeds.yaml")
+
+# Separate boards for interns or one country list few roles even at big companies.
+SUB_BOARD = re.compile(r"(universit|intern|campus|student|early|grad|canada|careers?$|jobs$)", re.I)
 
 # Path segments that are part of the ATS's own routes, never a company slug.
 RESERVED = {"embed", "job_app", "api", "jobs", "v1", "o", "j", "careers", "en", "en-us"}
@@ -65,6 +69,28 @@ def merge_boards(*groups: list[Board]) -> list[Board]:
         for b in group:
             seen.setdefault((b.ats, b.slug.lower()), b)
     return list(seen.values())
+
+
+def company_key(name: str) -> str:
+    return re.sub(r"\b(inc|ltd|llc|corp|corporation|co|group|sa)\b|[^a-z0-9]", "", name.lower())
+
+
+def known_sizes() -> dict[str, str]:
+    """Company size by normalized name, from seeds.yaml and boards.yaml."""
+    seeds = yaml.safe_load(SEEDS_FILE.read_text()) if SEEDS_FILE.exists() else {}
+    sizes = {company_key(c["name"]): c["size"] for c in seeds.get("companies", []) if c.get("size")}
+    sizes.update({company_key(b.company): b.size for b in load_boards() if b.size})
+    sizes.update({company_key(n): "large" for n in seeds.get("large_companies", [])})
+    return sizes
+
+
+def size_from_openings(board: Board, count: int) -> str | None:
+    """Rough size from how many roles a company's full ATS board lists, used only for the
+    feed's combined "startups & mid-size" filter. None when the board isn't the whole
+    company (intern-only boards, or SmartRecruiters, which we query for Canada only)."""
+    if board.ats == "smartrecruiters" or SUB_BOARD.search(board.slug):
+        return None
+    return "startup" if count <= 30 else "mid" if count <= 300 else "large"
 
 
 def boards_from_postings(postings: list[RawPosting]) -> list[Board]:

@@ -79,7 +79,7 @@ begin
       source_id = excluded.source_id,
       company_name = excluded.company_name,
       company_domain = coalesce(excluded.company_domain, t.company_domain),
-      company_size = coalesce(excluded.company_size, t.company_size),
+      company_size = excluded.company_size,  -- recomputed every run; a stale estimate must clear
       title = excluded.title,
       locations = excluded.locations,
       city = excluded.city,

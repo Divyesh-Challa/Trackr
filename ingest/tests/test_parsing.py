@@ -216,3 +216,20 @@ def test_reposted_requisitions_collapse():
 def test_pay_is_never_invented():
     [row] = normalize([_p()], TODAY).records
     assert row["salary_min"] is None and row["salary_source"] is None
+
+
+def test_size_from_openings():
+    from ingest.boards import size_from_openings
+    from ingest.models import Board
+    full = Board("Acme", "greenhouse", "acme")
+    assert [size_from_openings(full, n) for n in (3, 30, 31, 300, 301)] == ["startup", "startup", "mid", "mid", "large"]
+    assert size_from_openings(Board("T", "greenhouse", "tenstorrentuniversity"), 4) is None
+    assert size_from_openings(Board("D", "greenhouse", "doordashcanada"), 4) is None
+    assert size_from_openings(Board("B", "smartrecruiters", "BoschGroup"), 4) is None
+
+
+def test_known_sizes_override_by_company_name():
+    from ingest.boards import company_key, known_sizes
+    sizes = known_sizes()
+    assert sizes[company_key("Tenstorrent")] == "mid"
+    assert sizes[company_key("Bosch Group")] == "large"

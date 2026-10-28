@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 from .classify import is_student_role
 from .locations import parse_locations
-from .boards import boards_from_postings, load_boards, merge_boards
+from .boards import boards_from_postings, company_key, known_sizes, load_boards, merge_boards, size_from_openings
 from .http import NotFound, PoliteClient
 from .models import Board, RawPosting
 from .pipeline import normalize, to_record
@@ -74,6 +74,10 @@ async def collect(known_postings: list[dict], max_boards: int | None) -> tuple[l
                 failed_companies.add(board.company)
                 stats["errors"].append(f"{board.ats}/{board.slug}: {exc!r}"[:300])
             else:
+                if board.size is None:
+                    size = size_from_openings(board, len(found))
+                    for p in found:
+                        p.company_size = size
                 stats["boards"]["ok"] += 1
                 ok_sources.add(board.ats)
                 by_ats[board.ats] += len(found)
@@ -83,6 +87,12 @@ async def collect(known_postings: list[dict], max_boards: int | None) -> tuple[l
         # SmartRecruiters lists omit descriptions; fetch them only for postings we'd keep.
         needs_detail = [p for p in postings if p.detail_ref and to_record(p, date.today())]
         await asyncio.gather(*(smartrecruiters_detail(client, p) for p in needs_detail), return_exceptions=True)
+
+    # A known size (curated, YC headcount, or the large-employer list) beats any estimate,
+    # and applies to list-sourced postings for that company too.
+    sizes = known_sizes()
+    for p in postings:
+        p.company_size = sizes.get(company_key(p.company_name), p.company_size)
 
     stats["ok_sources"] = sorted(ok_sources)
     stats["failed_companies"] = sorted(failed_companies)

@@ -91,3 +91,27 @@ companies:
   - {name: Vena Solutions, domain: venasolutions.com, size: mid}
   - {name: Shopify, domain: shopify.com, size: large}
   - {name: Electronic Arts, domain: ea.com, size: large}
+
+# Large employers that show up on small, intern-only or Canada-only boards, so their
+# board size would make them look like startups. Matched by company name.
+large_companies:
+  - DoorDash
+  - Bosch Group
+  - Red Bull
+  - KRAFTON
+  - Syngenta Group
+  - Veolia Environnement SA
+  - AECOM
+  - SGS
+  - TELUS Digital
+  - Videotron
+  - Rivian and Volkswagen Group Technologies
+  - General Dynamics Missions System International
+  - University Health Network
+  - Turner & Townsend
+  - Extreme Networks
+  - Eataly North America
+  - AltaLink
+  - EQ Bank
+  - Behaviour Interactive
+  - Geotab

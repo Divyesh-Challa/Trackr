@@ -115,7 +115,15 @@ export function formatPostedSalary(
   return `${range}${suffix}`;
 }
 
-export function toDiscoveredJob(row: DbJob): DiscoveredJob {
+export type FeedJobRow = Pick<
+  DbJob,
+  | "id" | "source" | "company_name" | "company_domain" | "company_size" | "title" | "locations"
+  | "city" | "province" | "work_model" | "job_type" | "term" | "terms" | "disciplines" | "job_url"
+  | "salary_min" | "salary_max" | "salary_currency" | "salary_period" | "salary_source"
+  | "posted_at" | "deadline_at" | "first_seen_at" | "created_at"
+> & { description_md?: string | null };
+
+export function toDiscoveredJob(row: FeedJobRow): DiscoveredJob {
   return {
     id: row.id,
     source: row.source,
@@ -127,10 +135,14 @@ export function toDiscoveredJob(row: DbJob): DiscoveredJob {
     work_model: workModelToUi(row.work_model),
     job_type: row.job_type ?? undefined,
     term: row.term ?? undefined,
+    terms: row.terms,
+    disciplines: row.disciplines,
+    company_size: (row.company_size as DiscoveredJob["company_size"]) ?? null,
+    locations: row.locations,
     salary: formatPostedSalary(row),
     job_url: row.job_url,
     description: row.description_md ?? "",
-    posted_at: row.posted_at,
+    posted_at: row.posted_at ?? row.first_seen_at,
     deadline_at: row.deadline_at ?? undefined,
     created_at: row.created_at,
   };

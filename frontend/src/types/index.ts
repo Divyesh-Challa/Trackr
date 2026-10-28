@@ -134,6 +134,10 @@ export interface DiscoveredJob {
   work_model?: "REMOTE" | "HYBRID" | "ONSITE";
   job_type?: "internship" | "coop" | "new_grad" | "full_time";
   term?: string;
+  terms: string[];
+  disciplines: string[];
+  company_size: "startup" | "mid" | "large" | null;
+  locations: string[];
   /** Pay as stated in the posting; null when the posting doesn't say. */
   salary: string | null;
   job_url: string;
