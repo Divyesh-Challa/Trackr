@@ -54,6 +54,11 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
             Pro checkout isn&apos;t open yet. Everything in Free works today.
           </p>
         )}
+        {params.billing === "error" && enabled && (
+          <p role="alert" className="mx-auto mt-4 max-w-md rounded-xl bg-rose-50 px-4 py-2 text-sm text-rose-800">
+            We couldn&apos;t reach our payment provider. Nothing was charged. Please try again in a few minutes.
+          </p>
+        )}
       </header>
 
       <div className="grid gap-4 md:grid-cols-2">
