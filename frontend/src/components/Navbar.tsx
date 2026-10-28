@@ -11,6 +11,7 @@ import { AI_FEATURES_ENABLED } from "../lib/ai-legacy";
 import { springs } from "../lib/motion-tokens";
 import DecryptedText from "./ui/DecryptedText";
 import Magnet from "./ui/Magnet";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -114,7 +115,10 @@ export default function Navbar() {
           </nav>
         </div>
 
-        <div className="hidden md:block">{authControl}</div>
+        <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
+          {authControl}
+        </div>
 
         <button
           type="button"
@@ -155,7 +159,10 @@ export default function Navbar() {
                 </li>
               ))}
             </ul>
-            <div className="mt-3 border-t border-slate-100 pt-3">{authControl}</div>
+            <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3">
+              <ThemeToggle />
+              {authControl}
+            </div>
           </motion.nav>
         )}
       </AnimatePresence>

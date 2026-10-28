@@ -23,6 +23,8 @@ const inter = Inter({
   display: "swap",
 });
 
+const THEME_SCRIPT = `try{var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`;
+
 export const metadata: Metadata = {
   title: "Trackr | Canadian internships & co-ops, tracked",
   description:
@@ -35,7 +37,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${inter.variable}`}>
+    <html lang="en" className={`${newsreader.variable} ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Applies the saved or system theme before first paint, so dark mode never flashes white. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-screen bg-background text-slate-900 antialiased flex flex-col selection:bg-blue-500/20 selection:text-blue-600 font-sans overflow-x-hidden">
         <SmoothScroll>
           <Providers>
