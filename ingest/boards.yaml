@@ -32,6 +32,11 @@ boards:
   slug: blackbirdinteractive
   size: startup
   domain: blackbirdinteractive.com
+- company: Borrowell
+  ats: workable
+  slug: borrowell
+  size: startup
+  domain: borrowell.com
 - company: Boson AI
   ats: lever
   slug: bosonai
@@ -202,6 +207,11 @@ boards:
   slug: sanctuary
   size: startup
   domain: sanctuary.ai
+- company: Semios
+  ats: workable
+  slug: semios
+  size: startup
+  domain: semios.com
 - company: Shakepay
   ats: greenhouse
   slug: shakepay
