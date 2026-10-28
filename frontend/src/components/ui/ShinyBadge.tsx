@@ -26,7 +26,8 @@ export default function ShinyBadge({
       className={`relative inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border overflow-hidden transition-all shadow-sm ${VARIANTS[variant]} ${className}`}
     >
       <span
-        className="pointer-events-none absolute inset-0 -translate-x-full animate-[shimmer_3s_infinite] bg-gradient-to-r from-transparent via-white/50 to-transparent"
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -translate-x-full animate-[shimmer_3s_infinite] motion-reduce:hidden bg-gradient-to-r from-transparent via-white/50 to-transparent"
         style={{
           maskImage: "linear-gradient(to right, transparent, black, transparent)",
           WebkitMaskImage: "linear-gradient(to right, transparent, black, transparent)",

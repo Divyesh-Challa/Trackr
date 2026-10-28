@@ -46,6 +46,4 @@ artifacts/
 .agents/
 
 # Unrelated local directories
-academic-research-skills/
-ecograsp-3d/
-truth-steering/
+.pytest_cache/

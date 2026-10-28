@@ -1,116 +1,220 @@
+// Typed data access for the tracker and jobs feed. Every call goes straight to
+// Supabase with the signed-in user's session; row-level security does the scoping.
+import { createClient } from "./supabase/client";
+import {
+  toApplication,
+  toDiscoveredJob,
+  toTransition,
+  statusToDb,
+  workModelToDb,
+} from "./mappers";
 import {
   Application,
-  ApplicationMilestone,
+  ApplicationStatus,
   ApplicationStateTransition,
-  ResumeBullet,
   ApplicationTask,
   ApplicationContact,
   ApplicationNote,
   DiscoveredJob,
-  UserProfile,
-  ATSAutofillExport,
+  Profile,
 } from "../types";
+import type { ImportRow } from "./csv";
 
-const DIRECT_API_BASE = "https://trackr-gateway.onrender.com/api/v1";
-const PROXY_API_BASE = "/api/v1";
+const supabase = () => createClient();
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== "undefined" ? PROXY_API_BASE : DIRECT_API_BASE);
-
-const nativeFetch = typeof window !== "undefined" ? window.fetch.bind(window) : globalThis.fetch;
-
-async function resilientFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const urlStr = typeof input === "string" ? input : input.toString();
-
-  try {
-    const res = await nativeFetch(input, init);
-    // If Render cold-starts (502/503/504) or 404, fallback to proxy or direct
-    if (!res.ok && (res.status === 502 || res.status === 503 || res.status === 504)) {
-      if (urlStr.includes(DIRECT_API_BASE)) {
-        const altUrl = urlStr.replace(DIRECT_API_BASE, PROXY_API_BASE);
-        return await nativeFetch(altUrl, init);
-      } else if (urlStr.includes(PROXY_API_BASE)) {
-        const altUrl = urlStr.replace(PROXY_API_BASE, DIRECT_API_BASE);
-        return await nativeFetch(altUrl, init);
-      }
-    }
-    return res;
-  } catch (err) {
-    if (urlStr.includes(DIRECT_API_BASE)) {
-      const altUrl = urlStr.replace(DIRECT_API_BASE, PROXY_API_BASE);
-      return await nativeFetch(altUrl, init);
-    } else if (urlStr.includes(PROXY_API_BASE)) {
-      const altUrl = urlStr.replace(PROXY_API_BASE, DIRECT_API_BASE);
-      return await nativeFetch(altUrl, init);
-    }
-    throw err;
-  }
+function unwrap<T>(result: { data: T; error: { message: string } | null }, what: string): NonNullable<T> {
+  if (result.error) throw new Error(`${what}: ${result.error.message}`);
+  if (result.data == null) throw new Error(`${what}: no data returned`);
+  return result.data;
 }
 
-// Shadow fetch for all functions in this module
-const fetch = resilientFetch;
+const APPLICATION_SELECT =
+  "*, application_tasks(is_completed, due_date), application_contacts(count), application_notes(count)";
+
+// -----------------------------------------------------------------------------
+// Applications
+// -----------------------------------------------------------------------------
 
 export async function fetchApplications(): Promise<Application[]> {
-  const res = await fetch(`${API_BASE}/applications`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch applications");
-  const json = await res.json();
-  return json.data || [];
+  const rows = unwrap(
+    await supabase()
+      .from("applications")
+      .select(APPLICATION_SELECT)
+      .order("position")
+      .order("updated_at", { ascending: false }),
+    "Failed to load applications"
+  );
+  return rows.map(toApplication);
 }
 
 export async function fetchApplication(id: string): Promise<Application> {
-  const res = await fetch(`${API_BASE}/applications/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch application");
-  const json = await res.json();
-  return json.data;
+  const row = unwrap(
+    await supabase().from("applications").select(APPLICATION_SELECT).eq("id", id).single(),
+    "Failed to load application"
+  );
+  return toApplication(row);
 }
 
 export async function createApplication(payload: {
   company_name: string;
   role_title: string;
   status?: string;
-  salary_range?: string;
+  salary_range?: string | null;
   job_location?: string;
   work_model?: "REMOTE" | "HYBRID" | "ONSITE";
+  job_id?: string;
+  job_url?: string;
+  deadline_at?: string | null;
+  follow_up_at?: string | null;
+  description?: string;
+  position?: number;
 }): Promise<Application> {
-  const res = await fetch(`${API_BASE}/applications`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error("Failed to create application");
-  const json = await res.json();
-  return json.data;
+  const status = statusToDb(payload.status ?? "WISHLIST");
+  const row = unwrap(
+    await supabase()
+      .from("applications")
+      .insert({
+        company_name: payload.company_name,
+        role_title: payload.role_title,
+        status,
+        salary_text: payload.salary_range || null,
+        location: payload.job_location || null,
+        work_model: workModelToDb(payload.work_model),
+        job_id: payload.job_id ?? null,
+        job_url: payload.job_url ?? null,
+        applied_at: status === "wishlist" ? null : new Date().toISOString().slice(0, 10),
+        deadline_at: payload.deadline_at || null,
+        follow_up_at: payload.follow_up_at || null,
+        description: payload.description || null,
+        ...(payload.position !== undefined ? { position: payload.position } : {}),
+      })
+      .select(APPLICATION_SELECT)
+      .single(),
+    "Failed to create application"
+  );
+  return toApplication(row);
 }
 
 export async function deleteApplication(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/applications/${id}`, {
-    method: "DELETE",
-  });
-  if (!res.ok) throw new Error("Failed to delete application");
+  const { error } = await supabase().from("applications").delete().eq("id", id);
+  if (error) throw new Error(`Failed to delete application: ${error.message}`);
 }
 
-export async function updateApplicationStatus(
+/**
+ * Move a card to a column and position. Status history rows are written by a database
+ * trigger, so this is the only call a move makes.
+ */
+export async function moveApplication(
   id: string,
-  toStatus: string,
-  metadata?: Record<string, any>
+  toStatus: ApplicationStatus | string,
+  position?: number
 ): Promise<Application> {
-  const res = await fetch(`${API_BASE}/applications/${id}/status`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ to_status: toStatus, metadata: metadata || {} }),
-  });
-  if (!res.ok) throw new Error(`Status update failed: ${res.statusText}`);
-  const json = await res.json();
-  return json.data;
+  const status = statusToDb(toStatus);
+  const patch: { status: typeof status; position?: number } = { status };
+  if (position !== undefined) patch.position = position;
+  const row = unwrap(
+    await supabase().from("applications").update(patch).eq("id", id).select(APPLICATION_SELECT).single(),
+    "Failed to move application"
+  );
+  // First move out of the wishlist records when you applied, unless you set it yourself.
+  if (status !== "wishlist" && !row.applied_at) {
+    return updateApplication(id, { applied_at: new Date().toISOString().slice(0, 10) });
+  }
+  return toApplication(row);
 }
 
-// Tasks API
+export const updateApplicationStatus = (id: string, toStatus: ApplicationStatus | string) =>
+  moveApplication(id, toStatus);
+
+export type ApplicationPatch = Partial<{
+  company_name: string;
+  role_title: string;
+  location: string | null;
+  work_model: "REMOTE" | "HYBRID" | "ONSITE" | null;
+  salary_text: string | null;
+  job_url: string | null;
+  description: string | null;
+  applied_at: string | null;
+  deadline_at: string | null;
+  follow_up_at: string | null;
+}>;
+
+export async function updateApplication(id: string, patch: ApplicationPatch): Promise<Application> {
+  const { work_model, ...rest } = patch;
+  const row = unwrap(
+    await supabase()
+      .from("applications")
+      .update({ ...rest, ...(work_model !== undefined ? { work_model: workModelToDb(work_model) } : {}) })
+      .eq("id", id)
+      .select(APPLICATION_SELECT)
+      .single(),
+    "Failed to save application"
+  );
+  return toApplication(row);
+}
+
+export async function importApplications(rows: ImportRow[]): Promise<number> {
+  const client = supabase();
+  let inserted = 0;
+  for (let i = 0; i < rows.length; i += 200) {
+    const chunk = rows.slice(i, i + 200).map((r, j) => ({
+      company_name: r.company_name,
+      role_title: r.role_title,
+      status: statusToDb(r.status),
+      location: r.job_location ?? null,
+      work_model: workModelToDb(r.work_model),
+      applied_at: r.applied_at ?? (r.status === "WISHLIST" ? null : new Date().toISOString().slice(0, 10)),
+      deadline_at: r.deadline_at ?? null,
+      follow_up_at: r.follow_up_at ?? null,
+      salary_text: r.salary_range ?? null,
+      job_url: r.job_url ?? null,
+      position: -(i + j + 1),
+    }));
+    const { error, count } = await client.from("applications").insert(chunk, { count: "exact" });
+    if (error) throw new Error(`Import stopped after ${inserted} rows: ${error.message}`);
+    inserted += count ?? chunk.length;
+  }
+  return inserted;
+}
+
+/** Every status change across the user's applications, oldest first (for insights). */
+export async function fetchAllTransitions(): Promise<ApplicationStateTransition[]> {
+  const rows = unwrap(
+    await supabase()
+      .from("application_state_transitions")
+      .select("*")
+      .order("transitioned_at")
+      .limit(10_000),
+    "Failed to load status history"
+  );
+  return rows.map(toTransition);
+}
+
+export async function fetchTransitions(applicationId: string): Promise<ApplicationStateTransition[]> {
+  const rows = unwrap(
+    await supabase()
+      .from("application_state_transitions")
+      .select("*")
+      .eq("application_id", applicationId)
+      .order("transitioned_at"),
+    "Failed to load status history"
+  );
+  return rows.map(toTransition);
+}
+
+// -----------------------------------------------------------------------------
+// Tasks, contacts, notes
+// -----------------------------------------------------------------------------
+
 export async function fetchTasks(applicationId: string): Promise<ApplicationTask[]> {
-  const res = await fetch(`${API_BASE}/applications/${applicationId}/tasks`);
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json.data || [];
+  return unwrap(
+    await supabase()
+      .from("application_tasks")
+      .select("*")
+      .eq("application_id", applicationId)
+      .order("created_at"),
+    "Failed to load tasks"
+  );
 }
 
 export async function createTask(
@@ -118,38 +222,38 @@ export async function createTask(
   title: string,
   dueDate?: string
 ): Promise<ApplicationTask> {
-  const res = await fetch(`${API_BASE}/applications/${applicationId}/tasks`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, due_date: dueDate || null }),
-  });
-  if (!res.ok) throw new Error("Failed to create task");
-  const json = await res.json();
-  return json.data;
+  return unwrap(
+    await supabase()
+      .from("application_tasks")
+      .insert({ application_id: applicationId, title, due_date: dueDate || null })
+      .select()
+      .single(),
+    "Failed to create task"
+  );
 }
 
 export async function toggleTask(taskId: string, isCompleted: boolean): Promise<void> {
-  const res = await fetch(`${API_BASE}/tasks/${taskId}/toggle`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ is_completed: isCompleted }),
-  });
-  if (!res.ok) throw new Error("Failed to toggle task");
+  const { error } = await supabase()
+    .from("application_tasks")
+    .update({ is_completed: isCompleted })
+    .eq("id", taskId);
+  if (error) throw new Error(`Failed to update task: ${error.message}`);
 }
 
 export async function deleteTask(taskId: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
-    method: "DELETE",
-  });
-  if (!res.ok) throw new Error("Failed to delete task");
+  const { error } = await supabase().from("application_tasks").delete().eq("id", taskId);
+  if (error) throw new Error(`Failed to delete task: ${error.message}`);
 }
 
-// Contacts API
 export async function fetchContacts(applicationId: string): Promise<ApplicationContact[]> {
-  const res = await fetch(`${API_BASE}/applications/${applicationId}/contacts`);
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json.data || [];
+  return unwrap(
+    await supabase()
+      .from("application_contacts")
+      .select("*")
+      .eq("application_id", applicationId)
+      .order("created_at"),
+    "Failed to load contacts"
+  );
 }
 
 export async function createContact(
@@ -163,477 +267,130 @@ export async function createContact(
     notes?: string;
   }
 ): Promise<ApplicationContact> {
-  const res = await fetch(`${API_BASE}/applications/${applicationId}/contacts`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(contact),
-  });
-  if (!res.ok) throw new Error("Failed to create contact");
-  const json = await res.json();
-  return json.data;
+  return unwrap(
+    await supabase()
+      .from("application_contacts")
+      .insert({ application_id: applicationId, ...contact })
+      .select()
+      .single(),
+    "Failed to create contact"
+  );
 }
 
 export async function deleteContact(contactId: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/contacts/${contactId}`, {
-    method: "DELETE",
-  });
-  if (!res.ok) throw new Error("Failed to delete contact");
+  const { error } = await supabase().from("application_contacts").delete().eq("id", contactId);
+  if (error) throw new Error(`Failed to delete contact: ${error.message}`);
 }
 
-// Notes API
 export async function fetchNotes(applicationId: string): Promise<ApplicationNote[]> {
-  const res = await fetch(`${API_BASE}/applications/${applicationId}/notes`);
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json.data || [];
+  const rows = unwrap(
+    await supabase()
+      .from("application_notes")
+      .select("*")
+      .eq("application_id", applicationId)
+      .order("created_at", { ascending: false }),
+    "Failed to load notes"
+  );
+  return rows.map((n) => ({ ...n, title: n.title ?? "" }));
 }
 
 export async function createNote(
   applicationId: string,
   note: { title: string; content: string }
 ): Promise<ApplicationNote> {
-  const res = await fetch(`${API_BASE}/applications/${applicationId}/notes`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(note),
-  });
-  if (!res.ok) throw new Error("Failed to create note");
-  const json = await res.json();
-  return json.data;
+  const row = unwrap(
+    await supabase()
+      .from("application_notes")
+      .insert({ application_id: applicationId, title: note.title || null, content: note.content })
+      .select()
+      .single(),
+    "Failed to create note"
+  );
+  return { ...row, title: row.title ?? "" };
 }
 
 export async function deleteNote(noteId: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/notes/${noteId}`, {
-    method: "DELETE",
-  });
-  if (!res.ok) throw new Error("Failed to delete note");
-}
-
-export async function ingestJobDescription(payload: {
-  url?: string;
-  text?: string;
-}): Promise<{ status: string; application_id: string; message: string }> {
-  const res = await fetch(`${API_BASE}/applications/ingest-jd`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error("Failed to ingest job description");
-  return res.json();
-}
-
-export async function fetchTransitions(
-  applicationId: string
-): Promise<ApplicationStateTransition[]> {
-  const res = await fetch(`${API_BASE}/applications/${applicationId}/transitions`);
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json.data || [];
-}
-
-export async function fetchMilestones(): Promise<ApplicationMilestone[]> {
-  const res = await fetch(`${API_BASE}/milestones`, { cache: "no-store" });
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json.data || [];
-}
-
-export async function toggleMilestone(
-  id: string,
-  isCompleted: boolean
-): Promise<void> {
-  await fetch(`${API_BASE}/milestones/${id}/toggle`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ is_completed: isCompleted }),
-  });
-}
-
-export async function fetchResumeBullets(): Promise<ResumeBullet[]> {
-  const res = await fetch(`${API_BASE}/resumes/bullets`, { cache: "no-store" });
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json.data || [];
-}
-
-export async function createResumeBullet(
-  category: string,
-  content: string
-): Promise<ResumeBullet> {
-  const res = await fetch(`${API_BASE}/resumes/bullets`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ category, content }),
-  });
-  if (!res.ok) throw new Error("Failed to create resume bullet");
-  const json = await res.json();
-  return json.data;
-}
-
-export async function uploadResumeFile(
-  file: File
-): Promise<{
-  data: ResumeBullet[];
-  count: number;
-  filename: string;
-  profile?: Partial<UserProfile>;
-}> {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const res = await fetch(`${API_BASE}/resumes/upload`, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.error || "Failed to upload and parse resume");
-  }
-
-  return res.json();
-}
-
-export async function updateResumeBullet(
-  id: string,
-  content: string,
-  category: string = "EXPERIENCE"
-): Promise<ResumeBullet> {
-  const res = await fetch(`${API_BASE}/resumes/bullets/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content, category }),
-  });
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.error || "Failed to update resume bullet");
-  }
-  const json = await res.json();
-  return json.data;
-}
-
-export async function deleteResumeBullet(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/resumes/bullets/${id}`, {
-    method: "DELETE",
-  });
-  if (!res.ok) throw new Error("Failed to delete resume bullet");
-}
-
-export interface OutreachResponse {
-  application_id: string;
-  company_name: string;
-  role_title: string;
-  outreach_type: string;
-  tone: string;
-  subject: string;
-  content: string;
-  matched_bullets: Array<{
-    id: string;
-    category: string;
-    content: string;
-    similarity: number;
-  }>;
-}
-
-export async function generateOutreach(
-  applicationId: string,
-  outreachType: "COVER_LETTER" | "LINKEDIN_NOTE" | "EMAIL_RECRUITER" = "COVER_LETTER",
-  tone: "IMPACT_DRIVEN" | "CONCISE" | "TECHNICAL" = "IMPACT_DRIVEN"
-): Promise<OutreachResponse> {
-  const res = await fetch(`${API_BASE}/applications/${applicationId}/generate-outreach`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ outreach_type: outreachType, tone }),
-  });
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.error || "Failed to generate outreach");
-  }
-  return res.json();
-}
-
-export async function scrapeJobURL(url: string): Promise<{
-  url: string;
-  title: string;
-  content: string;
-  method: string;
-  char_count: number;
-}> {
-  const res = await fetch(`${API_BASE}/scraper/scrape`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url }),
-  });
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.error || "Failed to scrape job URL with headless browser");
-  }
-  return res.json();
+  const { error } = await supabase().from("application_notes").delete().eq("id", noteId);
+  if (error) throw new Error(`Failed to delete note: ${error.message}`);
 }
 
 // -----------------------------------------------------------------------------
-// Simplify Platform: Discovered Jobs & Canadian Feed API
+// Jobs feed (public)
 // -----------------------------------------------------------------------------
 
-export async function fetchDiscoveredJobs(filters?: {
-  province?: string;
-  work_model?: string;
-  type?: string;
-  search?: string;
-}): Promise<DiscoveredJob[]> {
-  const params = new URLSearchParams();
-  if (filters?.province && filters.province !== "ALL") params.append("province", filters.province);
-  if (filters?.work_model && filters.work_model !== "ALL") params.append("work_model", filters.work_model);
-  if (filters?.type && filters.type !== "ALL") params.append("type", filters.type);
-  if (filters?.search) params.append("search", filters.search);
-
-  const url = `${API_BASE}/jobs/feed${params.toString() ? `?${params.toString()}` : ""}`;
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch discovered jobs");
-  const json = await res.json();
-  return json.data || [];
-}
-
-export async function fetchDiscoveredJob(id: string): Promise<DiscoveredJob> {
-  const res = await fetch(`${API_BASE}/jobs/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch job details");
-  const json = await res.json();
-  return json.data;
+export async function fetchDiscoveredJobs(): Promise<DiscoveredJob[]> {
+  const rows = unwrap(
+    await supabase()
+      .from("jobs")
+      .select("*")
+      .eq("is_active", true)
+      .order("posted_at", { ascending: false, nullsFirst: false })
+      .limit(500),
+    "Failed to load jobs"
+  );
+  return rows.map(toDiscoveredJob);
 }
 
 // -----------------------------------------------------------------------------
-// Simplify Platform: Canonical Profile & ATS Bridge API
+// Your data (PIPEDA: access and deletion)
 // -----------------------------------------------------------------------------
 
-export async function fetchUserProfile(): Promise<UserProfile> {
-  const res = await fetch(`${API_BASE}/profile`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch canonical profile");
-  const json = await res.json();
-  return json.data;
-}
-
-export async function updateUserProfile(profile: Partial<UserProfile>): Promise<UserProfile> {
-  const res = await fetch(`${API_BASE}/profile`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(profile),
-  });
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.error || "Failed to update profile");
+/** Everything Trackr stores about the signed-in user, as one JSON document. */
+export async function exportMyData() {
+  const client = supabase();
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+  if (!user) throw new Error("Not signed in");
+  const [profile, applications, tasks, contacts, notes, history] = await Promise.all([
+    client.from("profiles").select("*").maybeSingle(),
+    client.from("applications").select("*").order("created_at"),
+    client.from("application_tasks").select("*").order("created_at"),
+    client.from("application_contacts").select("*").order("created_at"),
+    client.from("application_notes").select("*").order("created_at"),
+    client.from("application_state_transitions").select("*").order("transitioned_at"),
+  ]);
+  for (const r of [profile, applications, tasks, contacts, notes, history]) {
+    if (r.error) throw new Error(`Export failed: ${r.error.message}`);
   }
-  const json = await res.json();
-  return json.data;
-}
-
-export async function syncProfileFromResume(): Promise<UserProfile> {
-  const res = await fetch(`${API_BASE}/profile/sync-resume`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-  });
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.error || "Failed to sync profile from resume");
-  }
-  const json = await res.json();
-  return json.data;
-}
-
-export async function exportProfileForATS(): Promise<ATSAutofillExport> {
-  const res = await fetch(`${API_BASE}/profile/export`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to export profile for ATS");
-  const json = await res.json();
-  return json.data;
-}
-
-// -----------------------------------------------------------------------------
-// Resume Studio & Jake's Template Tailoring API
-// -----------------------------------------------------------------------------
-
-export interface TailoredResumeData {
-  match_score: number;
-  matched_keywords: string[];
-  tailoring_summary: string;
-  header: {
-    name: string;
-    phone: string;
-    email: string;
-    linkedin: string;
-    github: string;
+  return {
+    exported_at: new Date().toISOString(),
+    account: { id: user.id, email: user.email, created_at: user.created_at },
+    profile: profile.data,
+    applications: applications.data,
+    tasks: tasks.data,
+    contacts: contacts.data,
+    notes: notes.data,
+    status_history: history.data,
   };
-  education: Array<{
-    school: string;
-    degree: string;
-    location: string;
-    dates: string;
-    gpa?: string;
-  }>;
-  experience: Array<{
-    role: string;
-    company: string;
-    location: string;
-    dates: string;
-    bullets: string[];
-  }>;
-  projects: Array<{
-    title: string;
-    technologies: string;
-    date: string;
-    bullets: string[];
-  }>;
-  technical_skills: {
-    languages: string;
-    frameworks: string;
-    developer_tools: string;
-    libraries: string;
-  };
-  latex_source: string;
 }
 
-export async function tailorResume(payload: {
-  company_name: string;
-  role_title: string;
-  job_description: string;
-  user_id?: string;
-}): Promise<TailoredResumeData> {
-  const res = await fetch(`${API_BASE}/resumes/tailor`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Failed to tailor resume");
-  }
-  const json = await res.json();
-  return json.data;
+/** Permanently deletes the account and everything attached to it. */
+export async function deleteMyAccount(): Promise<void> {
+  const client = supabase();
+  const { error } = await client.rpc("delete_my_account");
+  if (error) throw new Error(`Couldn't delete your account: ${error.message}`);
+  await client.auth.signOut();
 }
 
 // -----------------------------------------------------------------------------
-// Cover Letter Generator API (High-Converting Template)
+// Profile
 // -----------------------------------------------------------------------------
 
-export interface CoverLetterData {
-  company_name: string;
-  role_title: string;
-  subject: string;
-  content: string;
-  salutation: string;
-  pain_points_addressed: string[];
-  candidate_matches: Array<{
-    employer_need: string;
-    candidate_proof: string;
-  }>;
-  generation_mode: string;
+export async function fetchProfile(): Promise<Profile> {
+  return unwrap(await supabase().from("profiles").select("*").single(), "Failed to load profile");
 }
 
-export async function generateCoverLetter(payload: {
-  company_name: string;
-  role_title: string;
-  job_description: string;
-  user_id?: string;
-  hiring_manager_name?: string;
-  company_initiative?: string;
-}): Promise<CoverLetterData> {
-  const res = await fetch(`${API_BASE}/cover-letter/generate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Failed to generate cover letter");
-  }
-  const json = await res.json();
-  return json.data;
+export async function updateProfile(
+  patch: Partial<Pick<Profile, "full_name" | "school" | "grad_term" | "target_roles" | "target_provinces">>
+): Promise<Profile> {
+  const client = supabase();
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+  if (!user) throw new Error("Not signed in");
+  return unwrap(
+    await client.from("profiles").update(patch).eq("id", user.id).select().single(),
+    "Failed to save profile"
+  );
 }
-
-// -----------------------------------------------------------------------------
-// AI Interview Simulator API (Multi-turn STAR Interactive)
-// -----------------------------------------------------------------------------
-
-export interface InterviewSessionData {
-  company_name: string;
-  role_title: string;
-  interview_type: string;
-  difficulty: string;
-  current_round: number;
-  total_rounds: number;
-  interviewer_name: string;
-  interviewer_persona: string;
-  opening_statement: string;
-  question: string;
-  expected_dimensions: string[];
-  tip: string;
-}
-
-export interface STARRubric {
-  situation: { score: number; feedback: string };
-  task: { score: number; feedback: string };
-  action: { score: number; feedback: string };
-  result: { score: number; feedback: string };
-}
-
-export interface InterviewTurnData {
-  current_round: number;
-  total_rounds: number;
-  is_final: boolean;
-  overall_score: number;
-  star_rubric: STARRubric;
-  interviewer_response: string;
-  coaching_tip: string;
-  follow_up_question?: string | null;
-  final_decision?: "STRONG_HIRE" | "HIRE" | "LEANING_HIRE" | "NEEDS_PRACTICE" | null;
-  final_debrief?: {
-    overall_score: number;
-    decision: string;
-    summary: string;
-    key_strengths: string[];
-    growth_areas: string[];
-    model_answer_snippet: string;
-  } | null;
-}
-
-export async function startInterviewSession(payload: {
-  company_name: string;
-  role_title: string;
-  interview_type?: string;
-  difficulty?: string;
-  total_rounds?: number;
-}): Promise<InterviewSessionData> {
-  const res = await fetch(`${API_BASE}/interview/start`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Failed to start interview session");
-  }
-  const json = await res.json();
-  return json.data;
-}
-
-export async function respondInterviewTurn(payload: {
-  company_name: string;
-  role_title: string;
-  interview_type?: string;
-  current_round: number;
-  total_rounds: number;
-  question: string;
-  answer: string;
-  history?: any[];
-}): Promise<InterviewTurnData> {
-  const res = await fetch(`${API_BASE}/interview/respond`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Failed to submit interview answer");
-  }
-  const json = await res.json();
-  return json.data;
-}
-

@@ -26,6 +26,8 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
       wheelMultiplier: 1.0,
       touchMultiplier: 1.8,
       infinite: false,
+      // Let dialogs, drawers and inner scroll areas scroll natively.
+      prevent: (node: HTMLElement) => Boolean(node.closest("dialog, [data-lenis-prevent]")),
     });
 
     lenisRef.current = lenis;

@@ -1,0 +1,133 @@
+"""Find the ATS job boards of Canadian startups and mid-size companies.
+
+    python -m ingest.discover
+
+Inputs: seeds.yaml (curated) and Y Combinator companies located in Canada (from the
+yc-oss public dataset). For each company it tries likely board slugs on Greenhouse,
+Lever, Ashby, Workable and Recruitee, and records the ones that exist in boards.yaml.
+Existing entries are kept, so hand edits survive.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+import re
+from pathlib import Path
+
+import yaml
+
+from .boards import BOARDS_FILE, load_boards, merge_boards
+from .http import NotFound, PoliteClient
+from .locations import parse_locations
+from .models import Board
+from .sources.ats import FETCHERS
+
+log = logging.getLogger("ingest.discover")
+
+SEEDS_FILE = Path(__file__).with_name("seeds.yaml")
+YC_COMPANIES = "https://yc-oss.github.io/api/companies/all.json"
+PROBE_ATS = ["greenhouse", "lever", "ashby", "workable", "recruitee"]
+
+
+def _size_from_headcount(team_size) -> str | None:
+    try:
+        n = int(team_size)
+    except (TypeError, ValueError):
+        return None
+    return "startup" if n < 300 else "mid" if n <= 3000 else "large"
+
+
+def slug_candidates(name: str, domain: str | None, extra: list[str] = ()) -> list[str]:
+    base = name.lower().replace("&", "and")
+    candidates = [
+        *extra,
+        re.sub(r"[^a-z0-9]", "", base),
+        re.sub(r"[^a-z0-9]+", "-", base).strip("-"),
+    ]
+    if domain:
+        stem = re.sub(r"^(https?://)?(www\.)?", "", domain.lower()).split("/")[0].split(".")[0]
+        candidates.insert(0, stem)
+    return [c for c in dict.fromkeys(candidates) if len(c) >= 3]
+
+
+async def probe(client: PoliteClient, company: dict) -> Board | None:
+    """The first board with postings among the company's likely slugs."""
+    for slug in slug_candidates(company["name"], company.get("domain"), company.get("slugs", [])):
+        for ats in PROBE_ATS:
+            board = Board(company=company["name"], ats=ats, slug=slug,
+                          size=company.get("size"), domain=company.get("domain"))
+            try:
+                postings = await FETCHERS[ats](client, board)
+            except NotFound:
+                continue
+            except Exception as exc:
+                log.debug("%s/%s: %r", ats, slug, exc)
+                continue
+            if not postings:
+                continue
+            # A slug can belong to an unrelated company ("float", "tempo"). Trust it only
+            # when it's the company's own domain name, or the board has Canadian postings
+            # and (where the ATS tells us) the board's name matches.
+            own_domain = slug == (company.get("domain") or "").split(".")[0] and len(slug) >= 6
+            if not own_domain and not any(parse_locations(p.locations, p.country_hint) for p in postings):
+                continue
+            if ats == "greenhouse" and not await _greenhouse_name_matches(client, slug, company["name"]):
+                continue
+            return board
+    return None
+
+
+def _same_company(a: str, b: str) -> bool:
+    norm = lambda s: re.sub(r"\b(inc|ltd|corp|co|technologies|labs|ai)\b|[^a-z0-9]", "", s.lower())
+    x, y = norm(a), norm(b)
+    return bool(x and y) and (x in y or y in x)
+
+
+async def _greenhouse_name_matches(client: PoliteClient, slug: str, name: str) -> bool:
+    try:
+        meta = await client.get_json(f"https://boards-api.greenhouse.io/v1/boards/{slug}")
+    except Exception:
+        return False
+    return _same_company(meta.get("name") or "", name)
+
+
+async def yc_canadian_companies(client: PoliteClient) -> list[dict]:
+    data = await client.get_json(YC_COMPANIES)
+    out = []
+    for c in data:
+        if c.get("status") != "Active":
+            continue
+        if not parse_locations((c.get("all_locations") or "").split(";")):
+            continue
+        domain = re.sub(r"^(https?://)?(www\.)?", "", c.get("website") or "").split("/")[0] or None
+        out.append({"name": c["name"], "domain": domain, "slugs": [c.get("slug") or ""],
+                    "size": _size_from_headcount(c.get("team_size"))})
+    return out
+
+
+async def run() -> list[Board]:
+    seeds = (yaml.safe_load(SEEDS_FILE.read_text()) or {}).get("companies", [])
+    async with PoliteClient(per_host=6) as client:
+        yc = await yc_canadian_companies(client)
+        log.info("probing %d seed + %d YC companies", len(seeds), len(yc))
+        found = await asyncio.gather(*(probe(client, c) for c in seeds + yc))
+    return [b for b in found if b]
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    discovered = asyncio.run(run())
+    boards = merge_boards(load_boards(), discovered)
+    boards.sort(key=lambda b: (b.company.lower(), b.ats))
+    header = ("# Generated by `python -m ingest.discover` and safe to hand-edit.\n"
+              "# Boards linked from the GitHub lists are found automatically each run and\n"
+              "# don't need to be listed here.\n")
+    rows = [{k: v for k, v in vars(b).items() if v is not None} for b in boards]
+    BOARDS_FILE.write_text(header + yaml.safe_dump({"boards": rows}, sort_keys=False, allow_unicode=True))
+    log.info("found %d boards (%d total in %s)", len(discovered), len(boards), BOARDS_FILE.name)
+
+
+if __name__ == "__main__":
+    main()

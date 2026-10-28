@@ -1,107 +1,74 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface DecryptedTextProps {
   text: string;
   speed?: number;
-  maxIterations?: number;
-  sequential?: boolean;
-  revealDirection?: "start" | "end" | "center";
-  useOriginalCharsOnly?: boolean;
   characters?: string;
   className?: string;
-  animateOn?: "view" | "hover";
   parentClassName?: string;
+  animateOn?: "view" | "hover";
 }
 
+/**
+ * Text that "decrypts" from random characters. Screen readers always get the real text,
+ * and nothing animates when the user prefers reduced motion.
+ */
 export default function DecryptedText({
   text,
   speed = 45,
-  maxIterations = 10,
-  sequential = true,
-  revealDirection = "start",
-  useOriginalCharsOnly = false,
-  characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+~`|}{[]:;?><,./-=",
+  characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
   className = "",
   parentClassName = "",
   animateOn = "view",
 }: DecryptedTextProps) {
-  const [displayText, setDisplayText] = useState<string>(text);
-  const [isHovering, setIsHovering] = useState<boolean>(false);
-  const [isScrambling, setIsScrambling] = useState<boolean>(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [display, setDisplay] = useState(text);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const running = useRef(false);
+
+  const scramble = useCallback(
+    (step: number) => {
+      if (running.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      running.current = true;
+      let revealed = 0;
+      if (timer.current) clearInterval(timer.current);
+      timer.current = setInterval(() => {
+        setDisplay(
+          text
+            .split("")
+            .map((ch, i) => (ch === " " || i < revealed ? ch : characters[Math.floor(Math.random() * characters.length)]))
+            .join("")
+        );
+        revealed += step;
+        if (revealed >= text.length + 1) {
+          clearInterval(timer.current!);
+          setDisplay(text);
+          running.current = false;
+        }
+      }, speed);
+    },
+    [text, speed, characters]
+  );
 
   useEffect(() => {
-    let iteration = 0;
-    const splitText = text.split("");
-
-    const scramble = () => {
-      setIsScrambling(true);
-      if (intervalRef.current) clearInterval(intervalRef.current);
-
-      intervalRef.current = setInterval(() => {
-        setDisplayText(() =>
-          splitText
-            .map((char, index) => {
-              if (char === " ") return " ";
-              if (index < iteration) return text[index];
-              return characters[Math.floor(Math.random() * characters.length)];
-            })
-            .join("")
-        );
-
-        if (iteration >= text.length) {
-          setIsScrambling(false);
-          if (intervalRef.current) clearInterval(intervalRef.current);
-        }
-
-        iteration += 1 / 3;
-      }, speed);
-    };
-
-    if (animateOn === "view") {
-      scramble();
-    }
-
+    setDisplay(text);
+    if (animateOn === "view") scramble(1 / 3);
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timer.current) clearInterval(timer.current);
+      running.current = false;
     };
-  }, [text, speed, characters, animateOn]);
-
-  const handleMouseEnter = () => {
-    if (animateOn === "hover" && !isScrambling) {
-      setIsHovering(true);
-      let iteration = 0;
-      const splitText = text.split("");
-
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      intervalRef.current = setInterval(() => {
-        setDisplayText(() =>
-          splitText
-            .map((char, index) => {
-              if (char === " ") return " ";
-              if (index < iteration) return text[index];
-              return characters[Math.floor(Math.random() * characters.length)];
-            })
-            .join("")
-        );
-
-        if (iteration >= text.length) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-        }
-
-        iteration += 1 / 2;
-      }, speed);
-    }
-  };
+  }, [text, animateOn, scramble]);
 
   return (
     <span
       className={`inline-block ${parentClassName}`}
-      onMouseEnter={handleMouseEnter}
+      onMouseEnter={animateOn === "hover" ? () => scramble(1 / 2) : undefined}
     >
-      <span className={className}>{displayText}</span>
+      <span className="sr-only">{text}</span>
+      <span aria-hidden className={className}>
+        {display}
+      </span>
     </span>
   );
 }
