@@ -39,7 +39,7 @@ and lets you track each application from wishlist to offer.
 | App | Next.js 15 (App Router), React 19, Tailwind, TanStack Query, dnd-kit, framer-motion + GSAP |
 | Data & auth | Supabase (Postgres, RLS, Auth); migrations in `supabase/migrations`, pgTAP tests in `supabase/tests` |
 | Jobs pipeline | Python (`ingest/`), every 6 hours in GitHub Actions, as a restricted `trackr_ingest` DB role |
-| Billing & AI | Stripe Checkout + customer portal; Anthropic API (Claude Sonnet 5.5) with quotas in Postgres |
+| Billing & AI | Stripe Checkout + customer portal; Anthropic API (Claude Sonnet 5.5) or Gemini, with quotas in Postgres |
 | Ops | Vercel, Sentry, nightly encrypted `pg_dump` backups, CI with Playwright end-to-end tests |
 
 ## Run it locally
@@ -68,7 +68,7 @@ Other checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run e2e` (in
 ### Optional services
 
 - **Stripe:** put `STRIPE_SECRET_KEY` in `frontend/.env.local` and run `node frontend/scripts/stripe-setup.mjs`. It creates the product, prices, portal and webhook.
-- **AI:** set `ANTHROPIC_API_KEY`. `AI_DAILY_BUDGET_USD` caps total daily spend (default $5).
+- **AI:** set `ANTHROPIC_API_KEY`. `AI_DAILY_BUDGET_USD` caps total daily spend (default $5). To use Gemini instead, set `AI_PROVIDER=gemini` and `GEMINI_API_KEY` (optionally `GEMINI_MODEL`, default `gemini-3.6-flash`). Gemini's free tier may train on prompts, which the privacy policy rules out, so use it in production only on a billed key and update the privacy page first.
 - **Sentry:** set `NEXT_PUBLIC_SENTRY_DSN`.
 
 Each one stays off, with a clear message in the UI, until its key is set.
