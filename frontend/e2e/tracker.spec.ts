@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { column, serviceGet, signIn } from "./helpers";
 
@@ -18,7 +19,7 @@ test.describe("tracker", () => {
     await page.getByRole("button", { name: "Save to wishlist" }).click();
     await expect(page.getByText("In your tracker")).toBeVisible();
 
-    await page.goto("/");
+    await page.goto("/board");
     const card = page.getByRole("button", { name: new RegExp(`^${escapeRe(role)} at`) });
     await expect(column(page, "Wishlist")).toContainText(role);
 
@@ -117,7 +118,7 @@ test.describe("tracker", () => {
     const download = page.waitForEvent("download");
     await page.getByRole("button", { name: "Export CSV" }).click();
     const file = await (await download).path();
-    const text = require("node:fs").readFileSync(file, "utf8");
+    const text = readFileSync(file, "utf8");
     expect(text).toContain("Shopify,Dev Intern,interviewing");
     expect(text).toContain("RBC,Analyst Co-op,applied");
   });

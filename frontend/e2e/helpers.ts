@@ -5,7 +5,7 @@ const MAILPIT = process.env.MAILPIT_URL ?? "http://127.0.0.1:54324";
 
 /** Signs in through the real magic-link flow, reading the email from local Mailpit. */
 export async function signIn(page: Page, email: string) {
-  await page.goto("/login?next=/");
+  await page.goto("/login?next=/board");
   await page.getByLabel("Email").fill(email);
   await page.getByRole("button", { name: "Email me a sign-in link" }).click();
   await expect(page.getByText(`Check ${email}`)).toBeVisible();

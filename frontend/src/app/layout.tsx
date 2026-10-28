@@ -23,8 +23,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Trackr | Canadian Tech Internships & Co-ops (BC & Alberta)",
-  description: "Curated tech internships and co-ops across British Columbia and Alberta with automated tracking and resume matching.",
+  title: "Trackr | Canadian internships & co-ops, tracked",
+  description:
+    "Tech internships and co-ops across Canada, refreshed every 6 hours from company job boards, with a tracker for every application.",
 };
 
 export default function RootLayout({

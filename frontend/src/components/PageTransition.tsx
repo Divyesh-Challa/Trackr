@@ -1,29 +1,26 @@
 "use client";
 
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { motionTokens, springs } from "../lib/motion-tokens";
 
-interface PageTransitionProps {
-  children: React.ReactNode;
-}
-
-export default function PageTransition({ children }: PageTransitionProps) {
+/**
+ * Fades each page in on navigation. Entrance only: App Router swaps the page before an
+ * exit animation could run, so exit animations would play on the new page's content.
+ */
+export default function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-
+  const reduce = useReducedMotion();
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={pathname}
-        initial={{ opacity: 0, y: motionTokens.distance.md }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -motionTokens.distance.sm }}
-        transition={springs.gentle}
-        className="w-full flex-1"
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      key={pathname}
+      initial={{ opacity: 0, y: reduce ? 0 : motionTokens.distance.md }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={springs.gentle}
+      className="w-full flex-1"
+    >
+      {children}
+    </motion.div>
   );
 }

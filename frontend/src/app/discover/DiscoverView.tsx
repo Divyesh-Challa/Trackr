@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
-import { Check, ExternalLink, Loader2, MapPin, Plus, Search, X } from "lucide-react";
+import { Check, ExternalLink, Loader2, MapPin, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { createApplication } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -19,6 +19,8 @@ import {
   type FeedFilters,
 } from "@/lib/feed";
 import type { DiscoveredJob } from "@/types";
+import VantaBackground from "@/components/ui/VantaBackground";
+import { useGSAPStagger } from "@/lib/useGSAPStagger";
 
 const PROGRAM_LABELS: Record<NonNullable<DiscoveredJob["job_type"]>, string> = {
   internship: "Internship",
@@ -275,8 +277,16 @@ export default function DiscoverView({
   const [query, setQuery] = useState(filters.q);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [tracked, setTracked] = useState(() => new Set(trackedJobIds));
   const terms = useMemo(() => upcomingTerms(), []);
+  const resultsRef = useGSAPStagger<HTMLUListElement>({
+    selector: "[data-stagger]",
+    triggerDeps: [jobs.map((j) => j.id).join()],
+    y: 10,
+    duration: 0.35,
+    stagger: 0.035,
+  });
 
   useEffect(() => setQuery(filters.q), [filters.q]);
   useEffect(() => setTracked(new Set(trackedJobIds)), [trackedJobIds]);
@@ -315,11 +325,15 @@ export default function DiscoverView({
     filters.q || filters.provinces.length || filters.terms.length || filters.disciplines.length ||
     filters.remote || filters.smallCompanies || filters.postedWithin;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const activeFilterCount =
+    filters.provinces.length + filters.terms.length + filters.disciplines.length +
+    Number(filters.remote) + Number(filters.smallCompanies) + Number(Boolean(filters.postedWithin));
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-simplify-card md:flex-row md:items-end md:justify-between">
-        <div>
+      <header className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-simplify-card md:flex-row md:items-end md:justify-between">
+        <VantaBackground className="opacity-50" lines={3} waveHeight={16} />
+        <div className="relative">
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-slate-900">
             Internships &amp; co-ops in Canada
           </h1>
@@ -350,9 +364,27 @@ export default function DiscoverView({
         </form>
       </header>
 
-      <section aria-label="Filters" className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-simplify-card">
+      <button
+        type="button"
+        onClick={() => setFiltersOpen((o) => !o)}
+        aria-expanded={filtersOpen}
+        aria-controls="feed-filters"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 md:hidden"
+      >
+        <SlidersHorizontal className="h-4 w-4" aria-hidden />
+        {filtersOpen ? "Hide filters" : "Filters"}
+        {activeFilterCount > 0 && (
+          <span className="rounded-full bg-[#0066FF] px-2 py-0.5 text-xs font-semibold text-white">{activeFilterCount}</span>
+        )}
+      </button>
+
+      <section
+        id="feed-filters"
+        aria-label="Filters"
+        className={`${filtersOpen ? "block" : "hidden"} space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-simplify-card md:block`}
+      >
         <div className="flex flex-wrap items-center gap-2">
-          <span className="w-20 text-[13px] font-medium text-slate-500">Term</span>
+          <span className="w-full text-[13px] font-medium text-slate-500 sm:w-20">Term</span>
           {terms.map((t) => (
             <Chip key={t} active={filters.terms.includes(t)} onClick={() => toggle("terms", t)}>
               {termLabel(t)}
@@ -360,7 +392,7 @@ export default function DiscoverView({
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="w-20 text-[13px] font-medium text-slate-500">Where</span>
+          <span className="w-full text-[13px] font-medium text-slate-500 sm:w-20">Where</span>
           {PROVINCES.slice(0, 4).map((p) => (
             <Chip key={p.code} active={filters.provinces.includes(p.code)} onClick={() => toggle("provinces", p.code)}>
               {p.label}
@@ -387,7 +419,7 @@ export default function DiscoverView({
           </Chip>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="w-20 text-[13px] font-medium text-slate-500">Field</span>
+          <span className="w-full text-[13px] font-medium text-slate-500 sm:w-20">Field</span>
           {DISCIPLINES.map((d) => (
             <Chip key={d.code} active={filters.disciplines.includes(d.code)} onClick={() => toggle("disciplines", d.code)}>
               {d.label}
@@ -395,7 +427,7 @@ export default function DiscoverView({
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="w-20 text-[13px] font-medium text-slate-500">Company</span>
+          <span className="w-full text-[13px] font-medium text-slate-500 sm:w-20">Company</span>
           <Chip active={filters.smallCompanies} onClick={() => apply({ smallCompanies: !filters.smallCompanies })}>
             Startups &amp; mid-size
           </Chip>
@@ -436,7 +468,7 @@ export default function DiscoverView({
       </p>
 
       <div className={`grid grid-cols-1 items-start gap-4 lg:grid-cols-12 ${isPending ? "opacity-60" : ""}`}>
-        <ul className="space-y-2 lg:col-span-5" aria-label="Job results">
+        <ul ref={resultsRef} className="space-y-2 lg:col-span-5" aria-label="Job results">
           {jobs.length === 0 && (
             <li className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
               No open roles match these filters.
@@ -445,7 +477,7 @@ export default function DiscoverView({
           {jobs.map((job) => {
             const isSelected = selected?.id === job.id;
             return (
-              <li key={job.id}>
+              <li key={job.id} data-stagger>
                 <button
                   type="button"
                   onClick={() => {
@@ -522,6 +554,7 @@ export default function DiscoverView({
 
         {selected && (
           <div
+            data-lenis-prevent
             className={`lg:col-span-7 lg:sticky lg:top-20 lg:block ${
               mobileDetailOpen ? "fixed inset-0 z-50 overflow-y-auto bg-white p-4" : "hidden"
             } lg:inset-auto lg:z-auto lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-slate-200 lg:p-6 lg:shadow-simplify-card`}

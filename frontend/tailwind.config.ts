@@ -34,6 +34,7 @@ const config: Config = {
         },
       },
       boxShadow: {
+        xs: "0 1px 1px 0 rgba(15, 23, 42, 0.04)",
         "simplify-card": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
         "simplify-hover": "0 4px 12px 0 rgba(0, 0, 0, 0.06)",
         "simplify-glow": "0 0 20px -3px rgba(0, 102, 255, 0.2)",

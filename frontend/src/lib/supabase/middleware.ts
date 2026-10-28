@@ -2,11 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./database.types";
 
-// Routes that require a signed-in user. /discover stays public.
-const PROTECTED_PREFIXES = ["/profile", "/applications", "/resume", "/simulator"];
+// Routes that require a signed-in user. The landing page and /discover stay public.
+const PROTECTED_PREFIXES = ["/board", "/profile", "/resume", "/simulator"];
 
 function isProtected(pathname: string) {
-  return pathname === "/" || PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 export async function updateSession(request: NextRequest) {

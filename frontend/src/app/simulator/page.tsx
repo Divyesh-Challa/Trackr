@@ -544,7 +544,7 @@ export default function SimulatorPage() {
           {/* 3. LAST ROUND STAR RUBRIC FEEDBACK                                  */}
           {/* =================================================================== */}
           {lastTurnData && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-5 animate-in fade-in duration-300">
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-blue-50 border-2 border-blue-600 flex flex-col items-center justify-center">
@@ -647,7 +647,7 @@ export default function SimulatorPage() {
           {/* 4. FINAL HIRING DEBRIEF MODAL / PANEL                               */}
           {/* =================================================================== */}
           {isFinalDebriefOpen && lastTurnData?.final_debrief && (
-            <div className="bg-white rounded-xl border-2 border-blue-600 p-6 shadow-md space-y-6 animate-in zoom-in-95 duration-300">
+            <div className="bg-white rounded-xl border-2 border-blue-600 p-6 shadow-md space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <div className="flex items-center gap-2">

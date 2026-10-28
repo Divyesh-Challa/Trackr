@@ -5,7 +5,7 @@ import gsap from "gsap";
 
 interface GSAPStaggerOptions {
   selector: string;
-  triggerDeps?: any[];
+  triggerDeps?: unknown[];
   y?: number;
   opacity?: number;
   duration?: number;
@@ -13,7 +13,7 @@ interface GSAPStaggerOptions {
   ease?: string;
 }
 
-export function useGSAPStagger({
+export function useGSAPStagger<T extends HTMLElement = HTMLDivElement>({
   selector,
   triggerDeps = [],
   y = 16,
@@ -22,7 +22,7 @@ export function useGSAPStagger({
   stagger = 0.05,
   ease = "power2.out",
 }: GSAPStaggerOptions) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<T | null>(null);
 
   useEffect(() => {
     // Respect user's reduced-motion preference

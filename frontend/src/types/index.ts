@@ -96,7 +96,7 @@ export interface ApplicationStateTransition {
   from_status: string | null;
   to_status: string;
   transitioned_at: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ResumeBullet {
