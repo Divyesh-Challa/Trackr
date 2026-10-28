@@ -14,9 +14,14 @@ export async function POST(request: NextRequest) {
   const { data: sub } = await supabase.from("subscriptions").select("stripe_customer_id").maybeSingle();
   if (!sub?.stripe_customer_id) return NextResponse.redirect(`${origin}/pricing`, 303);
 
-  const portal = await stripe.billingPortal.sessions.create({
-    customer: sub.stripe_customer_id,
-    return_url: `${origin}/pricing`,
-  });
-  return NextResponse.redirect(portal.url, 303);
+  try {
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: sub.stripe_customer_id,
+      return_url: `${origin}/pricing`,
+    });
+    return NextResponse.redirect(portal.url, 303);
+  } catch (err) {
+    console.error("billing portal failed", err);
+    return NextResponse.redirect(`${origin}/pricing?billing=error`, 303);
+  }
 }
