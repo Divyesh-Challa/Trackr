@@ -210,3 +210,72 @@ describe("ai guard", () => {
     expect(p2.sources).toEqual([]);
   });
 });
+
+import { buildResume, tex, texUrl, toLatex, toPlainText, type ResumeBulletRow, type ResumeEntryRow } from "../resume";
+
+describe("Jake's resume", () => {
+  const entry = (o: Partial<ResumeEntryRow>): ResumeEntryRow => ({
+    id: "e", section: "experience", title: "", organization: "", location: "", start_date: "", end_date: "", tech: "", details: "", position: 0, ...o,
+  });
+  const bullet = (o: Partial<ResumeBulletRow>): ResumeBulletRow => ({ id: "b", entry_id: null, section: "experience", heading: "", content: "", position: 0, ...o });
+  const entries = [
+    entry({ id: "ed", section: "education", title: "BSc Computer Science", organization: "University of Calgary", location: "Calgary, AB", start_date: "Sep 2023", end_date: "Apr 2027", details: "GPA 3.8" }),
+    entry({ id: "x1", title: "Software Intern", organization: "R&D Labs", location: "Toronto, ON", start_date: "May 2026", end_date: "Aug 2026", position: 1 }),
+    entry({ id: "x2", title: "IT Assistant", organization: "Campus IT", position: 2 }),
+    entry({ id: "p1", section: "project", title: "Trackr", tech: "Next.js, Postgres", start_date: "2026" }),
+  ];
+  const bullets = [
+    bullet({ id: "b1", entry_id: "x1", content: "Cut p99 latency 40% & saved $2k/mo", position: 1 }),
+    bullet({ id: "b2", entry_id: "x1", content: "Wrote C# tooling for the_build", position: 2 }),
+    bullet({ id: "b3", entry_id: "x2", content: "Fixed laptops" }),
+    bullet({ id: "b4", entry_id: "p1", section: "project", content: "Built a job tracker" }),
+    bullet({ id: "s1", section: "skills", heading: "Languages", content: "TypeScript, Python, C++" }),
+  ];
+  const contact = { name: "Ada Lovelace", email: "ada@example.com", linkedin_url: "https://www.linkedin.com/in/ada/", phone: "403-555-0100" };
+
+  it("escapes every LaTeX special character", () => {
+    expect(tex("R&D 40% $5 #1 a_b {x} ~ ^ \\ <a>")).toBe(
+      "R\\&D 40\\% \\$5 \\#1 a\\_b \\{x\\} $\\sim$ \\textasciicircum{} \\textbackslash{} \\textless{}a\\textgreater{}"
+    );
+    expect(texUrl("https://x.com/a%20b#c")).toBe("https://x.com/a\\%20b\\#c");
+  });
+
+  it("renders the full resume in Jake's structure with escaped content", () => {
+    const latex = toLatex(buildResume(contact, entries, bullets));
+    expect(latex).toContain("\\documentclass[letterpaper,11pt]{article}");
+    expect(latex).toContain("\\textbf{\\Huge \\scshape Ada Lovelace}");
+    expect(latex).toContain("\\href{https://www.linkedin.com/in/ada/}{\\underline{linkedin.com/in/ada}}");
+    expect(latex).toMatch(/\\section\{Education\}[\s\S]*\{University of Calgary\}\{Calgary, AB\}\s*\{BSc Computer Science, GPA 3.8\}\{Sep 2023 -- Apr 2027\}/);
+    expect(latex).toContain("{Software Intern}{May 2026 -- Aug 2026}");
+    expect(latex).toContain("{R\\&D Labs}{Toronto, ON}");
+    expect(latex).toContain("\\resumeItem{Cut p99 latency 40\\% \\& saved \\$2k/mo}");
+    expect(latex).toContain("\\resumeItem{Wrote C\\# tooling for the\\_build}");
+    expect(latex).toContain("{\\textbf{Trackr} $|$ \\emph{Next.js, Postgres}}{2026}");
+    expect(latex).toContain("\\textbf{Languages}{: TypeScript, Python, C++}");
+    expect(latex.indexOf("\\section{Education}")).toBeLessThan(latex.indexOf("\\section{Experience}"));
+    expect(latex.indexOf("\\section{Experience}")).toBeLessThan(latex.indexOf("\\section{Projects}"));
+    // Braces stay balanced so the document compiles.
+    const opens = (latex.match(/(?<!\\)\{/g) ?? []).length;
+    const closes = (latex.match(/(?<!\\)\}/g) ?? []).length;
+    expect(opens).toBe(closes);
+  });
+
+  it("tailoring keeps only chosen bullets, in order, with rewritten text", () => {
+    const m = buildResume(contact, entries, bullets, {
+      bullets: [
+        { bullet_id: "b2", text: "Built C# build tooling" },
+        { bullet_id: "b1", text: "Reduced p99 latency 40%" },
+      ],
+    });
+    expect(m.experience.map((e) => e.title)).toEqual(["Software Intern"]); // IT Assistant had no chosen bullets
+    expect(m.experience[0].bullets.map((b) => b.text)).toEqual(["Built C# build tooling", "Reduced p99 latency 40%"]);
+    expect(m.education).toHaveLength(1);
+    expect(m.projects).toHaveLength(0);
+  });
+
+  it("makes paste-ready plain text", () => {
+    const text = toPlainText(buildResume(contact, entries, bullets));
+    expect(text).toContain("EXPERIENCE\nSoftware Intern | R&D Labs, Toronto, ON | May 2026 – Aug 2026\n• Cut p99 latency 40% & saved $2k/mo");
+    expect(text).toContain("TECHNICAL SKILLS\nLanguages: TypeScript, Python, C++");
+  });
+});

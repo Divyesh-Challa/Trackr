@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Save } from "lucide-react";
+import { ArrowRight, FileText, Loader2, Save } from "lucide-react";
 import { fetchProfile, updateProfile } from "../../lib/api";
 import { Profile } from "../../types";
 import AccountSection from "../../components/AccountSection";
-import ExperienceSection from "../../components/ExperienceSection";
+import Link from "next/link";
 
 const CANADIAN_UNIVERSITIES = [
   "University of British Columbia (UBC)",
@@ -270,7 +270,19 @@ export default function ProfilePage() {
         </span>
       </div>
     </form>
-    <ExperienceSection />
+    <Link
+      href="/resume"
+      className="group mx-auto flex max-w-xl items-center gap-4 rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm transition hover:border-blue-200 hover:shadow-md"
+    >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0066FF]">
+        <FileText className="h-5 w-5" aria-hidden />
+      </span>
+      <span className="flex-1">
+        <span className="block text-base font-semibold text-slate-900">Your resume</span>
+        <span className="block text-sm text-slate-600">Education, experience, projects and skills, in Jake&apos;s one-page template. The AI tools only use what&apos;s there.</span>
+      </span>
+      <ArrowRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[#0066FF]" aria-hidden />
+    </Link>
     <AccountSection />
     </div>
   );

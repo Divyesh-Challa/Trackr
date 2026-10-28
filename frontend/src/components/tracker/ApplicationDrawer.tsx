@@ -393,7 +393,7 @@ export default function ApplicationDrawer({ id, onClose }: { id: string | null; 
             {tab === "tasks" && <TasksTab appId={app.id} />}
             {tab === "contacts" && <ContactsTab appId={app.id} />}
             {tab === "notes" && <NotesTab appId={app.id} />}
-            {tab === "ai" && <AiTab appId={app.id} />}
+            {tab === "ai" && <AiTab appId={app.id} label={`${app.role_title} at ${app.company_name}`} />}
             {tab === "history" && <HistoryTab appId={app.id} />}
           </div>
         </div>

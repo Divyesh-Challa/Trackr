@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./database.types";
 
 // Routes that require a signed-in user. The landing page and /discover stay public.
-const PROTECTED_PREFIXES = ["/board", "/profile"];
+const PROTECTED_PREFIXES = ["/board", "/profile", "/resume"];
 
 function isProtected(pathname: string) {
   return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
