@@ -34,10 +34,10 @@ function LoginForm() {
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWith = async (provider: "google" | "github") => {
     setError(null);
     const { error } = await createClient().auth.signInWithOAuth({
-      provider: "google",
+      provider,
       options: { redirectTo: redirectTo() },
     });
     if (error) setError(error.message);
@@ -59,13 +59,22 @@ function LoginForm() {
         </div>
       ) : (
         <>
-          <button
-            type="button"
-            onClick={signInWithGoogle}
-            className="mt-6 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50"
-          >
-            Continue with Google
-          </button>
+          <div className="mt-6 space-y-2">
+            <button
+              type="button"
+              onClick={() => signInWith("google")}
+              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50"
+            >
+              Continue with Google
+            </button>
+            <button
+              type="button"
+              onClick={() => signInWith("github")}
+              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50"
+            >
+              Continue with GitHub
+            </button>
+          </div>
 
           <div className="my-5 flex items-center gap-3 text-xs text-slate-500">
             <span className="h-px flex-1 bg-slate-200" />
