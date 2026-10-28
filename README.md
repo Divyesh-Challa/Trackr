@@ -1,180 +1,88 @@
-# Trackr — Internship Job Board
+# Trackr
 
-> An open-source Canadian Tech Co-op & Internship Application Hub  
-> **Live Demo:** [trackr-vercel-app.vercel.app](https://trackr-vercel-app.vercel.app) • **API Gateway:** [trackr-gateway.onrender.com](https://trackr-gateway.onrender.com/health)
+> Canadian tech internships and co-ops in one feed, and a tracker for every application.
+> **Live:** [trackr-vercel-app.vercel.app](https://trackr-vercel-app.vercel.app)
 
-[![Next.js 15](https://img.shields.io/badge/Next.js-15%20App%20Router-black?style=flat&logo=next.js)](https://nextjs.org/)
-[![Go](https://img.shields.io/badge/Go-1.24%2B-00ADD8?style=flat&logo=go)](https://go.dev/)
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python)](https://python.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20%2B%20pgvector-336791?style=flat&logo=postgresql)](https://github.com/pgvector/pgvector)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4%20(Simplify%20Theme)-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
+[![CI](https://github.com/Divyesh-Challa/Trackr/actions/workflows/ci.yml/badge.svg)](https://github.com/Divyesh-Challa/Trackr/actions/workflows/ci.yml)
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth-3ECF8E?logo=supabase)](https://supabase.com/)
 
-Trackr is an end-to-end career platform designed specifically for university students navigating high-volume Canadian tech co-op and internship recruiting cycles.
+## Why
 
----
+Applying to dozens of co-ops a term means juggling a spreadsheet, stale job lists and
+missed follow-ups. Trackr pulls open Canadian roles from company job boards every 6 hours,
+and lets you track each application from wishlist to offer.
 
-## Why I Built Trackr
+## Features
 
-Applying to hundreds of software engineering internships every term is exhausting:
-1. **Spreadsheet Chaos:** Tracking 50–150 applications across Google Sheets or Notion leads to broken links, missed follow-ups, and forgotten interview deadlines.
-2. **Stale Job Postings:** Most scrapers ingest stale listings from 2024 or 2025, or link to expired Greenhouse/Lever pages that 404 when you click them.
-3. **Time-Consuming Tailoring:** Customizing a resume and cover letter for every single role takes hours, and generic AI cover letters sound robotic and get rejected.
-4. **Interview Anxiety:** Practicing behavioral and technical interview questions alone in front of a mirror doesn't provide actionable feedback on whether your answers follow the **STAR method**.
+- **Jobs feed** (`/discover`): internships and co-ops across Canada, from public company
+  job boards (Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Recruitee) and community
+  lists. It includes the startups and mid-size companies big job sites miss. You can
+  search and filter by term, province, remote, field and company size. Pay is shown only
+  when the posting states it. Roles drop off when they close or their term starts.
+- **Tracker** (`/board`):
+  - Drag-and-drop board (mouse, touch and keyboard), plus list and insights views.
+  - Deadlines and follow-up reminders, tasks, contacts and notes.
+  - Add an application by pasting a posting link.
+  - CSV import and export.
+- **Pro** ($15 CAD/month or $144/year): unlimited applications, plus AI tools on Claude.
+  The tools tailor your resume, draft a cover letter, and run interview practice with STAR
+  feedback. They only rewrite and select from your own bullets. Every line cites its
+  source, and invented numbers are caught on the server.
+- **Your data:** row-level security on every table, data export, account deletion, and a
+  PIPEDA-oriented [privacy policy](https://trackr-vercel-app.vercel.app/privacy).
 
-I built Trackr to solve these pain points in a single, high-performance platform.
+## Stack
 
----
+| Layer | Tech |
+|---|---|
+| App | Next.js 15 (App Router), React 19, Tailwind, TanStack Query, dnd-kit, framer-motion + GSAP |
+| Data & auth | Supabase (Postgres, RLS, Auth); migrations in `supabase/migrations`, pgTAP tests in `supabase/tests` |
+| Jobs pipeline | Python (`ingest/`), every 6 hours in GitHub Actions, as a restricted `trackr_ingest` DB role |
+| Billing & AI | Stripe Checkout + customer portal; Anthropic API (Claude Sonnet 5.5) with quotas in Postgres |
+| Ops | Vercel, Sentry, nightly encrypted `pg_dump` backups, CI with Playwright end-to-end tests |
 
-## Key Features
+## Run it locally
 
-### 1. Curated Canadian Tech Jobs Feed (2027+ Focus)
-* **Real-Time Job Ingestion:** Aggregates verified student postings from top Canadian tech trackers (Job Bank Canada, Canadian-Tech-Internships, Ashby, Greenhouse, Lever).
-* **Strict Freshness & Link Validation:** Actively filters out stale 2024/2025 listings, closed postings, and broken URLs. Only serves verified **2027 and forward** Canadian roles (BC, Alberta, Ontario, Quebec, Remote).
-* **One-Click Add to Board:** Move any job directly into your tracking pipeline with one click.
+Prerequisites: Node 20+, Python 3.12, Docker, and the [Supabase CLI](https://supabase.com/docs/guides/local-development).
 
-### 2. Resume Studio with Jake's Resume Format
-* **ATS-Optimized Single-Page Layout:** Formatted strictly in the widely-used **Jake's Resume** template (Computer Modern serif typography, clean 0.5" margins, small-caps section headers, pipe-separated contact bar).
-* **Job-Specific Tailoring:** Select any target job or paste a job description. The engine calculates an **ATS match score (0–100%)**, highlights matched keywords, and orders technical skills by relevance.
-* **Instant Export Options:** One-click **Print / Save PDF** (clean single-page print stylesheet), **Copy LaTeX code** (ready to paste into Overleaf), or copy plain text for application portals.
-
-### 3. High-Converting Cover Letter Generator
-* **Pain-Point Matching:** Focuses on the "What You'll Do" section of the job posting to identify the employer's top 3 engineering pain points rather than arbitrary requirements.
-* **Dialect & Metric Alignment:** Directly maps candidate metrics to the employer's exact technical terminology.
-* **Authentic Company Research:** Highlights genuine team values and initiatives without generic filler.
-* **Zero Guesswork Salutation:** Defaults safely to `Hi [Company] Hiring Team,` when a hiring manager isn't publicly listed, avoiding awkward hallucinations.
-
-### 4. Interactive AI Interview Simulator
-* **Company & Role Tailored Challenges:** Simulates real interview rounds customized to top Canadian employers (Shopify, Amazon, Clio, Hootsuite, RBC).
-* **Multi-Turn Conversational Rounds:** Progressive 3-round interview flow where the AI interviewer asks **dynamic follow-up questions** probing into trade-offs, concurrency, and failure modes.
-* **Instant STAR Rubric Scoring:** Live feedback across Situation, Task, Action, and Result with percentage scores and coaching tips.
-* **Voice Integration (Web Speech API):** Speak your answers naturally using microphone dictation (`SpeechRecognition`) and listen to questions read aloud (`speechSynthesis`).
-* **Hiring Committee Debrief:** Concludes with an official recommendation (`Strong Hire`, `Hire`, `Leaning Hire`, `Needs Practice`), key strengths, growth areas, and a model response architecture.
-
-### 5. Application Pipeline & CRM
-* **Interactive Kanban Board:** Manage applications across `Wishlist`, `Applied`, `Interviewing`, `Offer`, and `Rejected` with smooth drag-and-drop and optimistic UI updates.
-* **Per-Job Hub:** Track deadlines, follow-up tasks, recruiter contacts (names, emails, LinkedIn), and interview notes for every company.
-* **Simplify.jobs Aesthetic:** Crisp light theme (`#F8FAFC` background, white cards, subtle borders, Simplify blue accents) designed for clean readability.
-
----
-
-## System Architecture
-
-```text
-                     +---------------------------------------+
-                     |         Next.js 15 Client             |
-                     |  (React 19, Tailwind CSS, TanStack)   |
-                     +-------------------+-------------------+
-                                         |
-                       HTTP REST / SSE   |   Proxy
-                                         v
-                     +---------------------------------------+
-                     |          Go REST Gateway              |
-                     |         (Gin, pgxpool, :8080)         |
-                     +---------+-------------------+---------+
-                               |                   |
-            Direct Queries /   |                   | Async Tasks /
-            State Transitions  |                   | Forwarding
-                               v                   v
-            +----------------------+   +-----------------------+
-            |    PostgreSQL 16     |   |   Python AI Worker    |
-            |     + pgvector       |   |   (FastAPI, :8085)    |
-            | (Applications, Jobs, |   | (Resume Tailor, STAR  |
-            |  Profile, Embeddings)|   |  Simulator, Ingest)   |
-            +----------------------+   +-----------+-----------+
-                                                   |
-                                                   v
-                                       +-----------------------+
-                                       |   FastEmbed / Gemini  |
-                                       |  768d Dense Vectors   |
-                                       +-----------------------+
-```
-
-### Engineering Decisions & Trade-Offs
-
-1. **Go for the API Gateway:**
-   - Go's lightweight concurrency model (`goroutines`) and compiled binary provide sub-15ms responses for critical paths like Kanban board updates, status transitions, and user profile management.
-2. **PostgreSQL with `pgvector`:**
-   - Keeping relational application state and 768-dimensional vector embeddings in a single database eliminates the operational overhead of a separate vector database (like Pinecone) while allowing atomic transactions.
-3. **Python for Specialized AI & Scraping:**
-   - Python handles document parsing (`pypdf`, `python-docx`), embeddings (`fastembed`), and structured LLM prompt generation where the ecosystem is strongest.
-4. **Optimistic UI with TanStack Query:**
-   - Card movements on the Kanban board update immediately in the UI before server confirmation, rolling back gracefully if a network issue occurs.
-
----
-
-## Tech Stack
-
-| Layer | Technologies |
-| :--- | :--- |
-| **Frontend** | Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS, TanStack Query v5, Lucide Icons |
-| **Backend API** | Go 1.24, Gin Web Framework, pgxpool, Go-Redis |
-| **AI & Workers** | Python 3.12, FastAPI, Asyncpg, FastEmbed, Google Gemini API, Web Speech API |
-| **Database & Cache** | PostgreSQL 16 (`pgvector`), Redis 7 |
-| **Infrastructure** | Docker, Docker Compose, Render (Gateway), Vercel (Frontend), Supabase |
-
----
-
-## Getting Started Locally
-
-### Prerequisites
-- Node.js 20+
-- Docker (running)
-- [Supabase CLI](https://supabase.com/docs/guides/local-development) (`brew install supabase/tap/supabase`)
-
-### 1. Start the local Supabase stack
 ```bash
-make db-start     # applies supabase/migrations and prints the local URL and keys
-make db-test      # optional: runs the RLS isolation tests
+make db-start        # local Postgres + Auth; applies migrations, prints keys
+make db-test         # database tests (RLS isolation, ingestion, billing, AI quotas)
+
+cp frontend/.env.example frontend/.env.local   # set the publishable key printed above
+cd frontend && npm install && npm run dev      # http://localhost:3000
+
+make ingest          # fill the local feed from live sources (~1–2 min)
 ```
 
-### 2. Configure and run the frontend
-```bash
-cp frontend/.env.example frontend/.env.local
-# set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to the PUBLISHABLE_KEY printed by `make db-start`
-cd frontend && npm install && npm run dev
+Sign in with a magic link. Local emails go to Mailpit at http://127.0.0.1:54324.
+
+Other checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run e2e` (in `frontend/`), and `make ingest-test`.
+
+### Where jobs come from
+
+- **Community lists:** [SimplifyJobs/Summer2027-Internships](https://github.com/SimplifyJobs/Summer2027-Internships) (including off-season terms), [negarprh/Canadian-Tech-Internships-2027](https://github.com/negarprh/Canadian-Tech-Internships-2027) and [Bobwillrule/Canadian-Internship-List](https://github.com/Bobwillrule/Canadian-Internship-List).
+- **Company job boards:** every apply link in those lists reveals a board, which is then scanned whole. More boards come from `ingest/boards.yaml`, which `make discover` builds from `ingest/seeds.yaml` and YC companies in Canada. A weekly workflow opens a PR when it finds new boards.
+
+### Optional services
+
+- **Stripe:** put `STRIPE_SECRET_KEY` in `frontend/.env.local` and run `node frontend/scripts/stripe-setup.mjs`. It creates the product, prices, portal and webhook.
+- **AI:** set `ANTHROPIC_API_KEY`. `AI_DAILY_BUDGET_USD` caps total daily spend (default $5).
+- **Sentry:** set `NEXT_PUBLIC_SENTRY_DSN`.
+
+Each one stays off, with a clear message in the UI, until its key is set.
+
+## Project structure
+
+```
+frontend/          Next.js app (src/app routes, src/components, src/lib, e2e/)
+ingest/            Python jobs pipeline, board discovery, tests
+supabase/          migrations, pgTAP tests, local config
+scripts/           one-time secret and role-password setup
+.github/workflows  CI, ingest (6-hourly), backups (nightly), board discovery (weekly)
 ```
 
-Open http://localhost:3000 and sign in with a magic link. Local emails land in Mailpit at http://127.0.0.1:54324.
+## Contact
 
-### 3. Load jobs into the feed
-```bash
-make ingest-test   # unit tests for parsing and classification
-make ingest        # fetch every source and write to the local database (~1–2 min)
-make discover      # optional: re-scan seeds.yaml and Canadian YC companies for job boards
-```
-
-Where jobs come from (`ingest/`):
-- **Community lists on GitHub:** [SimplifyJobs/Summer2027-Internships](https://github.com/SimplifyJobs/Summer2027-Internships) (including off-season Fall/Winter terms), [negarprh/Canadian-Tech-Internships-2027](https://github.com/negarprh/Canadian-Tech-Internships-2027) and [Bobwillrule/Canadian-Internship-List](https://github.com/Bobwillrule/Canadian-Internship-List).
-- **Company job boards:** the public Greenhouse, Lever, Ashby, Workable, SmartRecruiters and Recruitee APIs. Boards come from every apply link in the lists, plus `ingest/boards.yaml` (Canadian startups and scale-ups from `seeds.yaml`, and YC companies located in Canada).
-
-The production schedule is `.github/workflows/ingest.yml` (every 6 hours). It connects as the restricted `trackr_ingest` database role through the `INGEST_DATABASE_URL` repository secret, so CI never holds the service-role key.
-
-## Project Structure
-
-```text
-trackr/
-├── frontend/                  # Next.js 15 web application
-│   ├── src/app/
-│   │   ├── page.tsx           # Kanban board & application tracker
-│   │   ├── discover/          # Canadian tech job feed (2027+)
-│   │   ├── resume/            # Resume studio & cover letter generator
-│   │   ├── simulator/         # Interactive AI interview simulator
-│   │   └── profile/           # Canonical profile & ATS autofill export
-│   └── src/components/        # UI components (Jake's Resume preview, drawers, modals)
-├── gateway/                   # Go REST API gateway
-│   ├── cmd/server/main.go     # Route definitions & HTTP server
-│   └── internal/              # Handlers, models, database pool, redis client
-├── workers/                   # Python microservices
-│   ├── app/main.py            # FastAPI endpoints & worker logic
-│   └── app/services/          # Resume tailoring, interview simulator, scrapers
-├── db/                        # SQL migrations & seed data
-└── docker-compose.yml         # Local container orchestration
-```
-
----
-
-## Contact & License
-
-Open source under the [MIT License](LICENSE).  
-- **Documentation & Issues:** [GitHub Issues](https://github.com/johndoe/trackr/issues)
-- **Demo Persona:** John Doe (`john.doe@uwaterloo.ca`)
+Divyesh Challa · divyeshchallavgr@gmail.com
