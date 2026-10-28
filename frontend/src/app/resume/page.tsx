@@ -9,14 +9,14 @@ import {
   updateResumeBullet,
   uploadResumeFile,
   deleteResumeBullet,
-  fetchDiscoveredJobs,
   tailorResume,
   generateCoverLetter,
   fetchUserProfile,
   updateUserProfile,
   TailoredResumeData,
   CoverLetterData,
-} from "../../lib/api";
+} from "../../lib/ai-legacy";
+import { fetchDiscoveredJobs } from "../../lib/api";
 import { ResumeBullet, DiscoveredJob, UserProfile, ExperienceItem } from "../../types";
 import JakesResumePreview from "@/components/JakesResumePreview";
 import {
@@ -233,7 +233,7 @@ export default function ResumePage() {
   // Fetch jobs for target job selector
   const { data: discoveredJobs = [] } = useQuery({
     queryKey: ["discoveredJobsForTailor"],
-    queryFn: () => fetchDiscoveredJobs({ province: "ALL" }),
+    queryFn: () => fetchDiscoveredJobs(),
   });
 
   // ---------------------------------------------------------------------------
@@ -415,7 +415,7 @@ export default function ResumePage() {
     if (found) {
       setCustomCompany(found.company_name);
       setCustomRole(found.role_title);
-      setCustomJD(found.description || `${found.role_title} at ${found.company_name} in ${found.city}, ${found.province}. Requirements: ${found.requirements?.join(", ") || ""}`);
+      setCustomJD(found.description || `${found.role_title} at ${found.company_name} in ${found.city}, ${found.province}.`);
     }
   };
 

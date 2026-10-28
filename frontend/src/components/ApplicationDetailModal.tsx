@@ -12,8 +12,6 @@ import {
 } from "../types";
 import {
   fetchTransitions,
-  generateOutreach,
-  OutreachResponse,
   fetchTasks,
   createTask,
   toggleTask,
@@ -27,6 +25,7 @@ import {
   deleteApplication,
   updateApplicationStatus,
 } from "../lib/api";
+import { generateOutreach, OutreachResponse, AI_FEATURES_ENABLED } from "../lib/ai-legacy";
 import {
   X,
   Sparkles,
@@ -488,6 +487,8 @@ export default function ApplicationDetailModal({
             </span>
           </button>
 
+          {AI_FEATURES_ENABLED && (
+          <>
           <button
             type="button"
             onClick={() => setActiveTab("ai")}
@@ -513,6 +514,8 @@ export default function ApplicationDetailModal({
             <FileText className="h-3.5 w-3.5" />
             <span>ATS Keywords & JD</span>
           </button>
+          </>
+          )}
 
           <button
             type="button"
@@ -524,7 +527,7 @@ export default function ApplicationDetailModal({
             }`}
           >
             <History className="h-3.5 w-3.5" />
-            <span>Audit Velocity</span>
+            <span>History</span>
           </button>
         </div>
 

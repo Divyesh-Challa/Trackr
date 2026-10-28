@@ -4,21 +4,13 @@
 import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  fetchDiscoveredJobs,
-  createApplication,
-  fetchResumeBullets,
-} from "../../lib/api";
+import { fetchDiscoveredJobs, createApplication } from "../../lib/api";
 import { DiscoveredJob } from "../../types";
 import { springs } from "../../lib/motion-tokens";
-import { INITIAL_DISCOVERED_JOBS } from "../../lib/initial-data";
-import { formatRealisticSalary } from "../../lib/salary";
 import {
   Search,
   MapPin,
-  Sparkles,
   CheckCircle2,
-  AlertTriangle,
   ExternalLink,
   Plus,
   Clock,
@@ -32,7 +24,6 @@ import {
   Building,
 } from "lucide-react";
 import VantaBackground from "../../components/ui/VantaBackground";
-import ShinyBadge from "../../components/ui/ShinyBadge";
 import Magnet from "../../components/ui/Magnet";
 import SpotlightCard from "../../components/ui/SpotlightCard";
 import DecryptedText from "../../components/ui/DecryptedText";
@@ -85,6 +76,25 @@ const KNOWN_DOMAINS: Record<string, string> = {
   databricks: "databricks.com",
 };
 
+const PROGRAM_LABELS: Record<NonNullable<DiscoveredJob["job_type"]>, string> = {
+  internship: "Internship",
+  coop: "Co-op",
+  new_grad: "New grad",
+  full_time: "Full-time",
+};
+
+function programLabel(job: DiscoveredJob) {
+  const type = job.job_type ? PROGRAM_LABELS[job.job_type] : "Internship / Co-op";
+  return job.term ? `${type} · ${job.term}` : type;
+}
+
+function postedAgo(iso: string) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days <= 0) return "Posted today";
+  if (days === 1) return "Posted yesterday";
+  return `Posted ${days} days ago`;
+}
+
 export default function DiscoverPage() {
   const queryClient = useQueryClient();
 
@@ -104,22 +114,10 @@ export default function DiscoverPage() {
   };
 
   // Queries
-  const { data: jobs = INITIAL_DISCOVERED_JOBS, isLoading } = useQuery({
+  const { data: jobs = [], isLoading, isError, error } = useQuery({
     queryKey: ["discoveredJobs"],
     queryFn: () => fetchDiscoveredJobs(),
-    initialData: INITIAL_DISCOVERED_JOBS,
   });
-
-  const { data: resumeBullets = [] } = useQuery({
-    queryKey: ["resumeBullets"],
-    queryFn: fetchResumeBullets,
-  });
-
-  // Extract set of user resume words for ATS client check
-  const candidateKeywords = useMemo(() => {
-    const text = resumeBullets.map((b) => b.content).join(" ").toLowerCase();
-    return new Set(text.match(/[a-z0-9#+.]+/g) || []);
-  }, [resumeBullets]);
 
   // Client-side filtering
   const filteredJobs = useMemo(() => {
@@ -178,8 +176,7 @@ export default function DiscoverPage() {
         const matchesCompany = job.company_name.toLowerCase().includes(q);
         const matchesRole = job.role_title.toLowerCase().includes(q);
         const matchesCity = job.city.toLowerCase().includes(q);
-        const matchesSkills = (job.skills || []).some((s) => s.toLowerCase().includes(q));
-        if (!matchesCompany && !matchesRole && !matchesCity && !matchesSkills) return false;
+        if (!matchesCompany && !matchesRole && !matchesCity) return false;
       }
 
       return true;
@@ -203,9 +200,11 @@ export default function DiscoverPage() {
         company_name: job.company_name,
         role_title: job.role_title,
         status,
-        salary_range: formatRealisticSalary(job),
-        job_location: `${job.city}, ${job.province}`,
+        salary_range: job.salary,
+        job_location: [job.city, job.province].filter(Boolean).join(", "),
         work_model: job.work_model,
+        job_id: job.id,
+        job_url: job.job_url,
       });
     },
     onSuccess: (data, variables) => {
@@ -217,8 +216,12 @@ export default function DiscoverPage() {
         }!`
       );
     },
-    onError: (err: any) => {
-      showToast(`Failed to add application: ${err.message}`);
+    onError: (err: Error) => {
+      showToast(
+        err.message.includes("duplicate key")
+          ? "That job is already in your tracker."
+          : `Failed to add application: ${err.message}`
+      );
     },
   });
 
@@ -245,6 +248,7 @@ export default function DiscoverPage() {
         domain = parts.slice(-2).join(".");
       }
     }
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
   };
 
   const jobsListRef = useGSAPStagger({
@@ -279,12 +283,9 @@ export default function DiscoverPage() {
             <h1 className="font-serif text-3xl md:text-4xl font-semibold tracking-tight text-slate-900">
               Discover Canadian Tech Roles, <span className="italic font-normal text-slate-500">Curated & Matched.</span>
             </h1>
-            <ShinyBadge variant="emerald" className="py-0.5 px-3">
-              🇨🇦 100% Verified Canadian Roles (ON, BC, QC, AB & Remote)
-            </ShinyBadge>
           </div>
           <p className="text-xs text-slate-600 max-w-3xl">
-            Exclusively active Canadian tech internships and co-ops with verified live application links.
+            Canadian tech internships and co-ops, linked to the original postings.
           </p>
         </div>
 
@@ -338,7 +339,7 @@ export default function DiscoverPage() {
 
         {/* Roles Counter */}
         <div className="text-xs text-slate-500 font-medium">
-          Showing <span className="text-slate-900 font-semibold">{filteredJobs.length}</span> verified tech internships & co-ops
+          Showing <span className="text-slate-900 font-semibold">{filteredJobs.length}</span> internships & co-ops
         </div>
       </div>
 
@@ -350,9 +351,13 @@ export default function DiscoverPage() {
           data-lenis-prevent
           className="lg:col-span-5 space-y-3 h-[calc(100vh-210px)] min-h-[600px] overflow-y-auto pr-2 momentum-scroll overscroll-contain"
         >
-          {isLoading ? (
+          {isError ? (
+            <div role="alert" className="p-8 text-center text-xs text-red-700 rounded-2xl bg-white border border-red-200 shadow-simplify-card">
+              Couldn&apos;t load jobs: {(error as Error).message}
+            </div>
+          ) : isLoading ? (
             <div className="p-12 text-center text-xs text-slate-500 rounded-2xl bg-white border border-slate-200/90 shadow-simplify-card">
-              Loading verified tech roles...
+              Loading jobs...
             </div>
           ) : filteredJobs.length === 0 ? (
             <div className="p-8 rounded-2xl bg-white border border-slate-200/90 shadow-simplify-card text-center text-xs text-slate-500 space-y-2">
@@ -421,11 +426,8 @@ export default function DiscoverPage() {
                         </div>
                       </div>
 
-                      {job.match_score !== undefined && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                          <Sparkles className="h-3 w-3" />
-                          <span>{Math.round(job.match_score)}% Match</span>
-                        </span>
+                      {job.posted_at && (
+                        <span className="text-[11px] text-slate-500 shrink-0">{postedAgo(job.posted_at)}</span>
                       )}
                     </div>
 
@@ -436,19 +438,25 @@ export default function DiscoverPage() {
 
                     {/* Location & Work Model & Salary */}
                     <div className="flex items-center gap-2 text-xs text-slate-600 mt-2 flex-wrap relative z-0">
-                      <span>{job.city}, {job.province}</span>
-                      <span>•</span>
-                      <span>{job.work_model}</span>
-                      <span>•</span>
-                      <span className="text-emerald-700 font-medium">
-                        {formatRealisticSalary(job)}
-                      </span>
+                      <span>{[job.city, job.province].filter(Boolean).join(", ")}</span>
+                      {job.work_model && (
+                        <>
+                          <span>•</span>
+                          <span>{job.work_model}</span>
+                        </>
+                      )}
+                      {job.salary && (
+                        <>
+                          <span>•</span>
+                          <span className="text-emerald-700 font-medium">{job.salary}</span>
+                        </>
+                      )}
                     </div>
 
                     {/* Footer Pill Row */}
                     <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100 text-[10px] relative z-0">
                       <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">
-                        Student / Co-op
+                        {programLabel(job)}
                       </span>
 
                       {hasAdded && (
@@ -489,7 +497,10 @@ export default function DiscoverPage() {
                       </span>
                       <div className="flex items-center gap-1 text-[11px] text-slate-500">
                         <MapPin className="h-3 w-3 text-[#0066FF]" />
-                        <span>{activeJob.city}, {activeJob.province} ({activeJob.work_model})</span>
+                        <span>
+                          {[activeJob.city, activeJob.province].filter(Boolean).join(", ")}
+                          {activeJob.work_model ? ` (${activeJob.work_model})` : ""}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -539,21 +550,21 @@ export default function DiscoverPage() {
                 <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80">
                   <span className="text-[10px] text-slate-500 block uppercase font-medium">Compensation</span>
                   <span className="text-xs font-semibold text-emerald-700 mt-0.5 block">
-                    {formatRealisticSalary(activeJob)}
+                    {activeJob.salary ?? "Not listed"}
                   </span>
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80">
                   <span className="text-[10px] text-slate-500 block uppercase font-medium">Program</span>
                   <span className="text-xs font-semibold text-slate-900 mt-0.5 block">
-                    Tech Intern / Co-op
+                    {programLabel(activeJob)}
                   </span>
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80">
-                  <span className="text-[10px] text-slate-500 block uppercase font-medium">Match Score</span>
-                  <span className="text-xs font-semibold text-emerald-700 mt-0.5 block">
-                    {activeJob.match_score ? `${Math.round(activeJob.match_score)}% Match` : "High Match"}
+                  <span className="text-[10px] text-slate-500 block uppercase font-medium">Posted</span>
+                  <span className="text-xs font-semibold text-slate-900 mt-0.5 block">
+                    {activeJob.posted_at ? postedAgo(activeJob.posted_at) : "Unknown"}
                   </span>
                 </div>
 
@@ -567,60 +578,6 @@ export default function DiscoverPage() {
                 </div>
               </div>
 
-              {/* Resume Keyword Checklist */}
-              <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
-                  <h3 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-[#0066FF]" />
-                    Resume Keyword Checklist
-                  </h3>
-                  <span className="text-[11px] text-slate-500">
-                    Skills you have vs. keywords in the job description
-                  </span>
-                </div>
-
-                {/* Keyword Comparison */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                  {/* Skills Found */}
-                  <div className="space-y-2">
-                    <span className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1 uppercase tracking-wider">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Skills Found in Resume
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(activeJob.skills || ["Go", "Python", "PostgreSQL", "Docker"]).map((s, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"
-                        >
-                          <Check className="h-2.5 w-2.5 text-emerald-600" />
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Requirements / JD Highlights */}
-                  <div className="space-y-2">
-                    <span className="text-[11px] font-semibold text-blue-700 flex items-center gap-1 uppercase tracking-wider">
-                      <AlertTriangle className="h-3 w-3" />
-                      Key Role Criteria
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                        Canadian Work Authorization
-                      </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                        Co-op Term Availability
-                      </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                        Active University Enrollment
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Full Job Description */}
               <div className="space-y-2.5">
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
@@ -631,29 +588,12 @@ export default function DiscoverPage() {
                 </div>
               </div>
 
-              {/* Requirements List */}
-              {activeJob.requirements && activeJob.requirements.length > 0 && (
-                <div className="space-y-2.5 pt-2">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                    Core Qualifications
-                  </h3>
-                  <ul className="space-y-1.5 text-xs text-slate-700">
-                    {activeJob.requirements.map((req, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-[#0066FF] font-bold mt-0.5">•</span>
-                        <span>{req}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               {/* Direct Apply Call-to-Action Bar */}
               {activeJob.job_url && (
                 <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="text-xs text-slate-500 flex items-center gap-1.5">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                    <span>Verified active link to employer career portal.</span>
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    <span>Opens the original posting{activeJob.source ? ` (via ${activeJob.source})` : ""}.</span>
                   </div>
                   <a
                     href={activeJob.job_url}

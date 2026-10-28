@@ -33,6 +33,7 @@ export interface MatchDetails {
 export interface Application {
   id: string;
   user_id: string;
+  job_id?: string | null;
   company_name: string;
   role_title: string;
   job_location?: string;
@@ -45,6 +46,8 @@ export interface Application {
   raw_description?: string;
   match_score?: number;
   match_details?: MatchDetails;
+  deadline_at?: string | null;
+  follow_up_at?: string | null;
   created_at: string;
   updated_at: string;
   task_count?: number;
@@ -86,7 +89,7 @@ export interface ApplicationNote {
 export interface ApplicationStateTransition {
   id: string;
   application_id: string;
-  from_status: string;
+  from_status: string | null;
   to_status: string;
   transitioned_at: string;
   metadata?: Record<string, any>;
@@ -122,21 +125,34 @@ export interface STAREvaluationChunk {
 
 export interface DiscoveredJob {
   id: string;
+  source: string;
   company_name: string;
   company_domain?: string;
   role_title: string;
   city: string;
-  province: "ON" | "BC" | "AB" | "QC" | "REMOTE" | "US" | string;
+  province: string;
   work_model?: "REMOTE" | "HYBRID" | "ONSITE";
-  job_type?: "INTERNSHIP" | "NEW_GRAD" | "FULL_TIME";
-  salary_range_cad?: string;
-  job_url?: string;
+  job_type?: "internship" | "coop" | "new_grad" | "full_time";
+  term?: string;
+  /** Pay as stated in the posting; null when the posting doesn't say. */
+  salary: string | null;
+  job_url: string;
   description: string;
-  requirements?: string[];
-  skills?: string[];
+  posted_at: string | null;
   deadline_at?: string;
-  match_score?: number;
   created_at: string;
+}
+
+/** Row of the `profiles` table (one per signed-in user). */
+export interface Profile {
+  id: string;
+  full_name: string;
+  school: string;
+  grad_term: string | null;
+  target_roles: string[];
+  target_provinces: string[];
+  created_at: string;
+  updated_at: string;
 }
 
 export interface EducationDetails {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ingestJobDescription, scrapeJobURL } from "../lib/api";
+import { ingestJobDescription, scrapeJobURL } from "../lib/ai-legacy";
 import {
   X,
   Sparkles,

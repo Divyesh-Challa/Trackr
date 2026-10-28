@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Copy, Check, Printer, FileCode, ExternalLink, Sparkles } from "lucide-react";
-import { TailoredResumeData } from "@/lib/api";
+import { TailoredResumeData } from "@/lib/ai-legacy";
 
 interface JakesResumePreviewProps {
   resume: TailoredResumeData;

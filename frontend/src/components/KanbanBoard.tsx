@@ -4,10 +4,9 @@ import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Application, ApplicationMilestone, ApplicationStatus } from "../types";
+import { Application, ApplicationStatus } from "../types";
 import {
   fetchApplications,
-  fetchMilestones,
   updateApplicationStatus,
   createApplication,
   deleteApplication,
@@ -15,8 +14,8 @@ import {
 import ApplicationCard from "./ApplicationCard";
 import ApplicationDetailModal from "./ApplicationDetailModal";
 import JDIngestModal from "./JDIngestModal";
+import { AI_FEATURES_ENABLED } from "../lib/ai-legacy";
 import { springs } from "../lib/motion-tokens";
-import { INITIAL_APPLICATIONS } from "../lib/initial-data";
 import SpotlightCard from "./ui/SpotlightCard";
 import Magnet from "./ui/Magnet";
 import ShinyBadge from "./ui/ShinyBadge";
@@ -93,18 +92,11 @@ export default function KanbanBoard() {
   const { data: rawApps = [], isLoading } = useQuery({
     queryKey: ["applications"],
     queryFn: fetchApplications,
-    initialData: [],
-    refetchInterval: 6000,
   });
 
   const applications = useMemo(() => {
     return rawApps || [];
   }, [rawApps]);
-
-  const { data: milestones = [] } = useQuery({
-    queryKey: ["milestones"],
-    queryFn: fetchMilestones,
-  });
 
   const showToast = (text: string, type: "success" | "error" | "info" = "success") => {
     setToastMessage({ text, type });
@@ -238,10 +230,6 @@ export default function KanbanBoard() {
       role_title: quickRole.trim(),
       status,
     });
-  };
-
-  const getMilestoneForApp = (appId: string) => {
-    return milestones.find((m) => m.application_id === appId && !m.is_completed);
   };
 
   // Filtered & Sorted Applications
@@ -443,7 +431,7 @@ export default function KanbanBoard() {
               <Download className="h-4 w-4" />
             </button>
 
-            <Magnet radius={50} pullFactor={0.25}>
+            {AI_FEATURES_ENABLED && <Magnet radius={50} pullFactor={0.25}>
               <button
                 onClick={() => setIsIngestOpen(true)}
                 className="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#0066FF] hover:bg-blue-700 text-white transition-all shadow-sm flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
@@ -451,7 +439,7 @@ export default function KanbanBoard() {
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Import Job Posting</span>
               </button>
-            </Magnet>
+            </Magnet>}
           </div>
         </div>
       </div>
@@ -635,7 +623,6 @@ export default function KanbanBoard() {
                         <ApplicationCard
                           key={app.id}
                           application={app}
-                          milestone={getMilestoneForApp(app.id)}
                           onClick={() => setSelectedApp(app)}
                           onDragStart={handleDragStart}
                           onQuickAdvance={handleQuickAdvance}
@@ -910,14 +897,14 @@ export default function KanbanBoard() {
       />
 
       {/* AI Ingest Modal */}
-      <JDIngestModal
+      {AI_FEATURES_ENABLED && <JDIngestModal
         isOpen={isIngestOpen}
         onClose={() => setIsIngestOpen(false)}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ["applications"] });
           showToast("Job description ingested! Analyzing matching skills...", "success");
         }}
-      />
+      />}
     </div>
   );
 }

@@ -117,49 +117,24 @@ I built Trackr to solve these pain points in a single, high-performance platform
 ## Getting Started Locally
 
 ### Prerequisites
-- [Docker](https://www.docker.com/) & Docker Compose
-- [Go 1.22+](https://go.dev/dl/)
-- [Node.js 18+](https://nodejs.org/) & npm
-- [Python 3.11+](https://www.python.org/)
+- Node.js 20+
+- Docker (running)
+- [Supabase CLI](https://supabase.com/docs/guides/local-development) (`brew install supabase/tap/supabase`)
 
-### 1. Clone & Setup Environment
+### 1. Start the local Supabase stack
 ```bash
-git clone https://github.com/Divyesh-Challa/Trackr.git
-cd Trackr
-cp .env.example .env
+make db-start     # applies supabase/migrations and prints the local URL and keys
+make db-test      # optional: runs the RLS isolation tests
 ```
 
-### 2. Start PostgreSQL & Redis
+### 2. Configure and run the frontend
 ```bash
-docker compose up -d postgres redis
+cp frontend/.env.example frontend/.env.local
+# set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to the PUBLISHABLE_KEY printed by `make db-start`
+cd frontend && npm install && npm run dev
 ```
 
-### 3. Start the Go Gateway
-```bash
-cd gateway
-go run cmd/server/main.go
-```
-The gateway will start on `http://localhost:8080`.
-
-### 4. Start the Python AI Worker
-```bash
-cd workers
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8085
-```
-The worker will listen on `http://localhost:8085`.
-
-### 5. Start the Next.js Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
+Open http://localhost:3000 and sign in with a magic link. Local emails land in Mailpit at http://127.0.0.1:54324.
 
 ## Project Structure
 

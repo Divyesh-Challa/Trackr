@@ -12,9 +12,13 @@ import {
   Sparkles,
   Sun,
   Moon,
-  Download,
+  LogOut,
+  LogIn,
   MapPin,
 } from "lucide-react";
+import type { User as AuthUser } from "@supabase/supabase-js";
+import { createClient } from "../lib/supabase/client";
+import { AI_FEATURES_ENABLED } from "../lib/ai-legacy";
 import { springs } from "../lib/motion-tokens";
 import DecryptedText from "./ui/DecryptedText";
 import ShinyBadge from "./ui/ShinyBadge";
@@ -23,6 +27,16 @@ import Magnet from "./ui/Magnet";
 export default function Navbar() {
   const pathname = usePathname();
   const [isDark, setIsDark] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains("dark");
@@ -42,8 +56,12 @@ export default function Navbar() {
   const navItems = [
     { href: "/", label: "Tracker", icon: Layers },
     { href: "/discover", label: "Discover", icon: Compass, badge: "🇨🇦 Internships" },
-    { href: "/resume", label: "Resume Studio", icon: FileText },
-    { href: "/simulator", label: "Interview Practice", icon: Sparkles },
+    ...(AI_FEATURES_ENABLED
+      ? [
+          { href: "/resume", label: "Resume Studio", icon: FileText },
+          { href: "/simulator", label: "Interview Practice", icon: Sparkles },
+        ]
+      : []),
     { href: "/profile", label: "Profile", icon: User },
   ];
 
@@ -112,15 +130,28 @@ export default function Navbar() {
             </span>
           </div>
 
-          <Magnet radius={50} pullFactor={0.25}>
-            <Link
-              href="/profile"
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#0066FF] hover:bg-blue-700 text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Download className="h-3.5 w-3.5" />
-              <span>Master Profile</span>
-            </Link>
-          </Magnet>
+          {user ? (
+            <form action="/auth/signout" method="post">
+              <button
+                type="submit"
+                title={user.email ?? "Sign out"}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition"
+              >
+                <LogOut className="h-3.5 w-3.5" aria-hidden />
+                <span>Sign out</span>
+              </button>
+            </form>
+          ) : (
+            <Magnet radius={50} pullFactor={0.25}>
+              <Link
+                href="/login"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#0066FF] hover:bg-blue-700 text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <LogIn className="h-3.5 w-3.5" aria-hidden />
+                <span>Sign in</span>
+              </Link>
+            </Magnet>
+          )}
 
           {/* Theme Toggle Button */}
           <button

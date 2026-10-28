@@ -4,12 +4,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  fetchDiscoveredJobs,
   startInterviewSession,
   respondInterviewTurn,
   InterviewSessionData,
   InterviewTurnData,
-} from "../../lib/api";
+} from "../../lib/ai-legacy";
+import { fetchDiscoveredJobs } from "../../lib/api";
 import {
   Sparkles,
   Send,
@@ -51,7 +51,7 @@ export default function SimulatorPage() {
   // Fetch live jobs for quick preset selection
   const { data: discoveredJobs = [] } = useQuery({
     queryKey: ["discoveredJobsForSimulator"],
-    queryFn: () => fetchDiscoveredJobs({ province: "ALL" }),
+    queryFn: () => fetchDiscoveredJobs(),
   });
 
   // Setup / Configuration State
