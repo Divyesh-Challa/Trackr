@@ -1,0 +1,93 @@
+# Canadian startups and scale-ups to look for, beyond what the GitHub lists already link.
+# `python -m ingest.discover` finds which ATS board each one uses and writes boards.yaml.
+# size is a rough best-effort label (startup ≈ under 300 people, mid ≈ 300–3000) used for
+# the feed's "startups & mid-size" filter. Fix it here if it's wrong.
+companies:
+  - {name: Wealthsimple, domain: wealthsimple.com, size: mid}
+  - {name: Clio, domain: clio.com, size: mid}
+  - {name: Jobber, domain: getjobber.com, size: mid}
+  - {name: Neo Financial, domain: neofinancial.com, size: mid}
+  - {name: Cohere, domain: cohere.com, size: mid}
+  - {name: Ada, domain: ada.cx, size: startup}
+  - {name: KOHO, domain: koho.ca, size: mid}
+  - {name: Float, domain: floatfinancial.com, size: startup}
+  - {name: Wave, domain: waveapps.com, size: mid}
+  - {name: 1Password, domain: 1password.com, size: mid}
+  - {name: Hootsuite, domain: hootsuite.com, size: mid}
+  - {name: Thinkific, domain: thinkific.com, size: startup}
+  - {name: Benevity, domain: benevity.com, size: mid}
+  - {name: Questrade, domain: questrade.com, size: mid}
+  - {name: Ritual, domain: ritual.co, size: startup}
+  - {name: Tealbook, domain: tealbook.com, size: startup}
+  - {name: Borrowell, domain: borrowell.com, size: startup}
+  - {name: League, domain: league.com, size: mid}
+  - {name: Lightspeed, domain: lightspeedhq.com, size: mid}
+  - {name: Coveo, domain: coveo.com, size: mid}
+  - {name: Unbounce, domain: unbounce.com, size: startup}
+  - {name: Later, domain: later.com, size: startup}
+  - {name: Vidyard, domain: vidyard.com, size: startup}
+  - {name: ApplyBoard, domain: applyboard.com, size: mid}
+  - {name: Dialogue, domain: dialogue.co, size: mid}
+  - {name: Hopper, domain: hopper.com, size: mid}
+  - {name: Mejuri, domain: mejuri.com, size: mid}
+  - {name: Wattpad, domain: wattpad.com, size: startup}
+  - {name: Klue, domain: klue.com, size: startup}
+  - {name: Arctic Wolf, domain: arcticwolf.com, size: mid}
+  - {name: D2L, domain: d2l.com, size: mid}
+  - {name: Auvik, domain: auvik.com, size: startup}
+  - {name: Miovision, domain: miovision.com, size: startup}
+  - {name: Top Hat, domain: tophat.com, size: startup}
+  - {name: Clearco, domain: clear.co, size: startup}
+  - {name: Maple, domain: getmaple.ca, size: startup}
+  - {name: PolicyMe, domain: policyme.com, size: startup}
+  - {name: Trulioo, domain: trulioo.com, size: startup}
+  - {name: Visier, domain: visier.com, size: mid}
+  - {name: Dapper Labs, domain: dapperlabs.com, size: startup}
+  - {name: FreshBooks, domain: freshbooks.com, size: mid}
+  - {name: ecobee, domain: ecobee.com, size: mid}
+  - {name: Kinaxis, domain: kinaxis.com, size: mid}
+  - {name: Sanctuary AI, domain: sanctuary.ai, size: startup}
+  - {name: Waabi, domain: waabi.ai, size: startup}
+  - {name: Untether AI, domain: untether.ai, size: startup}
+  - {name: Tenstorrent, domain: tenstorrent.com, size: mid}
+  - {name: Xanadu, domain: xanadu.ai, size: startup}
+  - {name: Photonic, domain: photonic.com, size: startup}
+  - {name: D-Wave, domain: dwavequantum.com, size: startup}
+  - {name: Nanoleaf, domain: nanoleaf.me, size: startup}
+  - {name: Plooto, domain: plooto.com, size: startup}
+  - {name: Swift Medical, domain: swiftmedical.com, size: startup}
+  - {name: Certn, domain: certn.co, size: startup}
+  - {name: Absorb Software, domain: absorblms.com, size: mid}
+  - {name: Geotab, domain: geotab.com, size: mid}
+  - {name: Faire, domain: faire.com, size: mid}
+  - {name: Solink, domain: solink.com, size: startup}
+  - {name: Bree, domain: trybree.com, size: startup}
+  - {name: Apera AI, domain: apera.ai, size: startup}
+  - {name: Kepler Communications, domain: keplercommunications.com, size: startup}
+  - {name: Nuclear Promise X, domain: npxinnovation.ca, size: startup}
+  - {name: Semios, domain: semios.com, size: startup}
+  - {name: Pebl, domain: pebl.com, size: startup}
+  - {name: Boson AI, domain: boson.ai, size: startup}
+  - {name: Fullscript, domain: fullscript.com, size: mid}
+  - {name: Shakepay, domain: shakepay.com, size: startup}
+  - {name: Wealthica, domain: wealthica.com, size: startup}
+  - {name: Bench Accounting, domain: bench.co, size: startup}
+  - {name: Fable Tech Labs, domain: makeitfable.com, size: startup}
+  - {name: Blackbird Interactive, domain: blackbirdinteractive.com, size: startup}
+  - {name: Relic Entertainment, domain: relic.com, size: mid}
+  - {name: Hypercare, domain: hypercare.com, size: startup}
+  - {name: Humi, domain: humi.ca, size: startup}
+  - {name: Rose Rocket, domain: roserocket.com, size: startup}
+  - {name: Nesto, domain: nesto.ca, size: startup}
+  - {name: Silofit, domain: silofit.com, size: startup}
+  - {name: Carta Worldwide, domain: cartaworldwide.com, size: startup}
+  - {name: Paystone, domain: paystone.com, size: startup}
+  - {name: Copperleaf, domain: copperleaf.com, size: startup}
+  - {name: Procurify, domain: procurify.com, size: startup}
+  - {name: Tribal Scale, domain: tribalscale.com, size: startup}
+  - {name: Cyclica, domain: cyclicarx.com, size: startup}
+  - {name: Ideon Technologies, domain: ideon.ai, size: startup}
+  - {name: Tailscale, domain: tailscale.com, size: startup}
+  - {name: Vena Solutions, domain: venasolutions.com, size: mid}
+  - {name: Shopify, domain: shopify.com, size: large}
+  - {name: Electronic Arts, domain: ea.com, size: large}

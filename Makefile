@@ -1,4 +1,4 @@
-.PHONY: db-start db-stop db-reset db-test db-types dev build
+.PHONY: db-start db-stop db-reset db-test db-types dev build ingest ingest-test ingest-dry discover
 
 # Local Supabase stack (Postgres, Auth, REST). Requires Docker and the Supabase CLI.
 db-start:
@@ -24,3 +24,22 @@ dev:
 
 build:
 	cd frontend && npm run build
+
+# Job ingestion (Python). Uses the local stack unless SUPABASE_URL is set.
+ingest/.venv:
+	python3 -m venv ingest/.venv && ingest/.venv/bin/pip install -q -r ingest/requirements.txt
+
+ingest-test: ingest/.venv
+	ingest/.venv/bin/python -m pytest ingest/tests -q
+
+ingest-dry: ingest/.venv
+	ingest/.venv/bin/python -m ingest --dry-run
+
+ingest: ingest/.venv
+	SUPABASE_URL=$${SUPABASE_URL:-http://127.0.0.1:54321} \
+	SUPABASE_SERVICE_ROLE_KEY=$${SUPABASE_SERVICE_ROLE_KEY:-$$(supabase status -o json | python3 -c "import json,sys;print(json.load(sys.stdin)['SERVICE_ROLE_KEY'])")} \
+	ingest/.venv/bin/python -m ingest
+
+# Re-scan seeds.yaml and Canadian YC companies for job boards; review and commit boards.yaml.
+discover: ingest/.venv
+	ingest/.venv/bin/python -m ingest.discover

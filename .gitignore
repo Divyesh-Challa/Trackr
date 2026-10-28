@@ -46,3 +46,4 @@ artifacts/
 .agents/
 
 # Unrelated local directories
+.pytest_cache/

@@ -123,16 +123,30 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"jobs": {
+                },"ingest_runs": {
                   Row: {
-                    "city": string | null,"company_domain": string | null,"company_name": string,"created_at": string,"deadline_at": string | null,"description_md": string | null,"disciplines": (string)[],"first_seen_at": string,"id": string,"is_active": boolean,"job_type": Database["public"]['Enums']["job_type"] | null,"job_url": string,"job_url_canonical": string,"last_seen_at": string,"locations": (string)[],"missed_runs": number,"posted_at": string | null,"province": string | null,"salary_currency": string,"salary_max": number | null,"salary_min": number | null,"salary_period": string | null,"salary_source": string | null,"search": unknown,"source": string,"source_id": string | null,"term": string | null,"title": string,"updated_at": string,"work_model": Database["public"]['Enums']["work_model"] | null
+                    "deactivated": number,"finished_at": string | null,"id": string,"inserted": number,"started_at": string,"stats": NonNullable<Json>,"status": string,"updated": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "city"?: string | null,"company_domain"?: string | null,"company_name": string,"created_at"?: string,"deadline_at"?: string | null,"description_md"?: string | null,"disciplines"?: (string)[],"first_seen_at"?: string,"id"?: string,"is_active"?: boolean,"job_type"?: Database["public"]['Enums']["job_type"] | null,"job_url": string,"job_url_canonical": string,"last_seen_at"?: string,"locations"?: (string)[],"missed_runs"?: number,"posted_at"?: string | null,"province"?: string | null,"salary_currency"?: string,"salary_max"?: number | null,"salary_min"?: number | null,"salary_period"?: string | null,"salary_source"?: string | null,"search"?: never,"source": string,"source_id"?: string | null,"term"?: string | null,"title": string,"updated_at"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
+                    "deactivated"?: number,"finished_at"?: string | null,"id"?: string,"inserted"?: number,"started_at"?: string,"stats"?: NonNullable<Json>,"status"?: string,"updated"?: number
                   }
                   Update: {
-                    "city"?: string | null,"company_domain"?: string | null,"company_name"?: string,"created_at"?: string,"deadline_at"?: string | null,"description_md"?: string | null,"disciplines"?: (string)[],"first_seen_at"?: string,"id"?: string,"is_active"?: boolean,"job_type"?: Database["public"]['Enums']["job_type"] | null,"job_url"?: string,"job_url_canonical"?: string,"last_seen_at"?: string,"locations"?: (string)[],"missed_runs"?: number,"posted_at"?: string | null,"province"?: string | null,"salary_currency"?: string,"salary_max"?: number | null,"salary_min"?: number | null,"salary_period"?: string | null,"salary_source"?: string | null,"search"?: never,"source"?: string,"source_id"?: string | null,"term"?: string | null,"title"?: string,"updated_at"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
+                    "deactivated"?: number,"finished_at"?: string | null,"id"?: string,"inserted"?: number,"started_at"?: string,"stats"?: NonNullable<Json>,"status"?: string,"updated"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"jobs": {
+                  Row: {
+                    "city": string | null,"company_domain": string | null,"company_name": string,"company_size": string | null,"created_at": string,"deadline_at": string | null,"description_md": string | null,"disciplines": (string)[],"first_seen_at": string,"id": string,"is_active": boolean,"job_type": Database["public"]['Enums']["job_type"] | null,"job_url": string,"job_url_canonical": string,"last_seen_at": string,"locations": (string)[],"missed_runs": number,"posted_at": string | null,"province": string | null,"salary_currency": string,"salary_max": number | null,"salary_min": number | null,"salary_period": string | null,"salary_source": string | null,"search": unknown,"source": string,"source_id": string | null,"term": string | null,"terms": (string)[],"title": string,"updated_at": string,"work_model": Database["public"]['Enums']["work_model"] | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "city"?: string | null,"company_domain"?: string | null,"company_name": string,"company_size"?: string | null,"created_at"?: string,"deadline_at"?: string | null,"description_md"?: string | null,"disciplines"?: (string)[],"first_seen_at"?: string,"id"?: string,"is_active"?: boolean,"job_type"?: Database["public"]['Enums']["job_type"] | null,"job_url": string,"job_url_canonical": string,"last_seen_at"?: string,"locations"?: (string)[],"missed_runs"?: number,"posted_at"?: string | null,"province"?: string | null,"salary_currency"?: string,"salary_max"?: number | null,"salary_min"?: number | null,"salary_period"?: string | null,"salary_source"?: string | null,"search"?: never,"source": string,"source_id"?: string | null,"term"?: string | null,"terms"?: (string)[],"title": string,"updated_at"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
+                  }
+                  Update: {
+                    "city"?: string | null,"company_domain"?: string | null,"company_name"?: string,"company_size"?: string | null,"created_at"?: string,"deadline_at"?: string | null,"description_md"?: string | null,"disciplines"?: (string)[],"first_seen_at"?: string,"id"?: string,"is_active"?: boolean,"job_type"?: Database["public"]['Enums']["job_type"] | null,"job_url"?: string,"job_url_canonical"?: string,"last_seen_at"?: string,"locations"?: (string)[],"missed_runs"?: number,"posted_at"?: string | null,"province"?: string | null,"salary_currency"?: string,"salary_max"?: number | null,"salary_min"?: number | null,"salary_period"?: string | null,"salary_source"?: string | null,"search"?: never,"source"?: string,"source_id"?: string | null,"term"?: string | null,"terms"?: (string)[],"title"?: string,"updated_at"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
                   }
                   Relationships: [
                     
@@ -157,7 +171,23 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "ingest_deactivate":
+{ Args: { "p_canonical": (string)[] }; Returns: number
+                           },
+"ingest_expire":
+{ Args: { "p_max_age_days"?: number }; Returns: number
+                           },
+"ingest_mark_missing":
+{ Args: { "p_run_started": string,"p_skip_companies"?: (string)[],"p_sources": (string)[] }; Returns: number
+                           },
+"ingest_upsert_jobs":
+{ Args: { "p_jobs": Json }; Returns: {
+              "inserted": number,"updated": number
+            }[]
+                           },
+"term_start":
+{ Args: { "p_term": string }; Returns: string
+                           }
           }
           Enums: {
             "application_status": "wishlist"|"applied"|"oa"|"interviewing"|"offer"|"rejected"|"withdrawn","job_type": "internship"|"coop"|"new_grad"|"full_time","work_model": "remote"|"hybrid"|"onsite"
