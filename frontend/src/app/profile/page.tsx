@@ -118,7 +118,7 @@ export default function ProfilePage() {
         e.preventDefault();
         saveMutation.mutate(form);
       }}
-      className="mx-auto max-w-xl space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="mx-auto max-w-xl space-y-6 rounded-2xl border border-slate-200 bg-surface p-6 shadow-sm"
     >
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Profile</h1>

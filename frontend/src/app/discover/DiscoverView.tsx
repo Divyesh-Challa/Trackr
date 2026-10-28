@@ -70,7 +70,7 @@ function CompanyMark({ job, size = "h-9 w-9" }: { job: DiscoveredJob; size?: str
         src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(job.company_domain)}&sz=64`}
         alt=""
         onError={() => setFailed(true)}
-        className={`${size} shrink-0 rounded-xl border border-slate-200 bg-white object-contain p-1`}
+        className={`${size} shrink-0 rounded-xl border border-slate-200 bg-surface object-contain p-1`}
       />
     );
   }
@@ -101,7 +101,7 @@ function Chip({
       className={`rounded-xl border px-3 py-1.5 text-[13px] font-medium transition ${
         active
           ? "border-[#0066FF] bg-blue-50 text-[#0066FF]"
-          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+          : "border-slate-200 bg-surface text-slate-700 hover:bg-slate-50"
       }`}
     >
       {children}
@@ -175,7 +175,7 @@ function JobDetail({
                 type="button"
                 disabled={tracking}
                 onClick={() => onTrack("WISHLIST")}
-                className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-60"
+                className="rounded-xl border border-slate-300 bg-surface px-3.5 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-60"
               >
                 Save to wishlist
               </button>
@@ -192,7 +192,7 @@ function JobDetail({
           ) : (
             <Link
               href={`/login?next=${encodeURIComponent(pathname)}`}
-              className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+              className="rounded-xl border border-slate-300 bg-surface px-3.5 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
             >
               Sign in to track this
             </Link>
@@ -201,7 +201,7 @@ function JobDetail({
             href={job.job_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-surface px-3.5 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
           >
             Apply on {job.company_name}&apos;s site <ExternalLink className="h-4 w-4" aria-hidden />
           </a>
@@ -331,7 +331,7 @@ export default function DiscoverView({
 
   return (
     <div className="space-y-4">
-      <header className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-simplify-card md:flex-row md:items-end md:justify-between">
+      <header className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-surface p-5 shadow-simplify-card md:flex-row md:items-end md:justify-between">
         <VantaBackground className="opacity-50" lines={3} waveHeight={16} />
         <div className="relative">
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-slate-900">
@@ -359,7 +359,7 @@ export default function DiscoverView({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search roles or companies (e.g. firmware, Shopify)"
-            className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20"
+            className="w-full rounded-xl border border-slate-300 bg-surface py-2.5 pl-9 pr-3 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20"
           />
         </form>
       </header>
@@ -369,7 +369,7 @@ export default function DiscoverView({
         onClick={() => setFiltersOpen((o) => !o)}
         aria-expanded={filtersOpen}
         aria-controls="feed-filters"
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 md:hidden"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-surface px-3.5 py-2.5 text-sm font-medium text-slate-800 md:hidden"
       >
         <SlidersHorizontal className="h-4 w-4" aria-hidden />
         {filtersOpen ? "Hide filters" : "Filters"}
@@ -381,7 +381,7 @@ export default function DiscoverView({
       <section
         id="feed-filters"
         aria-label="Filters"
-        className={`${filtersOpen ? "block" : "hidden"} space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-simplify-card md:block`}
+        className={`${filtersOpen ? "block" : "hidden"} space-y-3 rounded-2xl border border-slate-200 bg-surface p-4 shadow-simplify-card md:block`}
       >
         <div className="flex flex-wrap items-center gap-2">
           <span className="w-full text-[13px] font-medium text-slate-500 sm:w-20">Term</span>
@@ -405,7 +405,7 @@ export default function DiscoverView({
             id="more-provinces"
             value=""
             onChange={(e) => e.target.value && toggle("provinces", e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[13px] text-slate-700"
+            className="rounded-xl border border-slate-200 bg-surface px-2.5 py-1.5 text-[13px] text-slate-700"
           >
             <option value="">More…</option>
             {PROVINCES.slice(4).map((p) => (
@@ -438,7 +438,7 @@ export default function DiscoverView({
             id="posted-within"
             value={filters.postedWithin ?? ""}
             onChange={(e) => apply({ postedWithin: e.target.value ? Number(e.target.value) : null })}
-            className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[13px] text-slate-700"
+            className="rounded-xl border border-slate-200 bg-surface px-2.5 py-1.5 text-[13px] text-slate-700"
           >
             <option value="">Any time</option>
             {POSTED_WITHIN.map((p) => (
@@ -470,7 +470,7 @@ export default function DiscoverView({
       <div className={`grid grid-cols-1 items-start gap-4 lg:grid-cols-12 ${isPending ? "opacity-60" : ""}`}>
         <ul ref={resultsRef} className="space-y-2 lg:col-span-5" aria-label="Job results">
           {jobs.length === 0 && (
-            <li className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
+            <li className="rounded-2xl border border-slate-200 bg-surface p-8 text-center text-sm text-slate-600">
               No open roles match these filters.
             </li>
           )}
@@ -485,7 +485,7 @@ export default function DiscoverView({
                     setMobileDetailOpen(true);
                   }}
                   aria-current={isSelected ? "true" : undefined}
-                  className={`w-full rounded-2xl border bg-white p-4 text-left transition hover:border-slate-300 ${
+                  className={`w-full rounded-2xl border bg-surface p-4 text-left transition hover:border-slate-300 ${
                     isSelected ? "border-[#0066FF] ring-2 ring-[#0066FF]/15" : "border-slate-200"
                   }`}
                 >
@@ -536,7 +536,7 @@ export default function DiscoverView({
                 type="button"
                 disabled={filters.page <= 1}
                 onClick={() => apply({ page: filters.page - 1 })}
-                className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm disabled:opacity-40"
+                className="rounded-xl border border-slate-300 bg-surface px-3.5 py-2 text-sm disabled:opacity-40"
               >
                 Previous
               </button>
@@ -544,7 +544,7 @@ export default function DiscoverView({
                 type="button"
                 disabled={filters.page >= pages}
                 onClick={() => apply({ page: filters.page + 1 })}
-                className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm disabled:opacity-40"
+                className="rounded-xl border border-slate-300 bg-surface px-3.5 py-2 text-sm disabled:opacity-40"
               >
                 Next
               </button>
@@ -556,7 +556,7 @@ export default function DiscoverView({
           <div
             data-lenis-prevent
             className={`lg:col-span-7 lg:sticky lg:top-20 lg:block ${
-              mobileDetailOpen ? "fixed inset-0 z-50 overflow-y-auto bg-white p-4" : "hidden"
+              mobileDetailOpen ? "fixed inset-0 z-50 overflow-y-auto bg-surface p-4" : "hidden"
             } lg:inset-auto lg:z-auto lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-slate-200 lg:p-6 lg:shadow-simplify-card`}
           >
             <button

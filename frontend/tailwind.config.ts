@@ -1,5 +1,15 @@
 import type { Config } from "tailwindcss";
 
+// Palettes used by the UI are CSS variables (src/app/theme.css) so dark mode can swap the
+// whole scale at once instead of every component carrying dark: variants.
+const themed = (name: string) =>
+  Object.fromEntries(
+    ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"].map((shade) => [
+      shade,
+      `rgb(var(--c-${name}-${shade}) / <alpha-value>)`,
+    ])
+  );
+
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -14,8 +24,17 @@ const config: Config = {
         sans: ["var(--font-sans)", "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
       },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: "rgb(var(--background) / <alpha-value>)",
+        surface: "rgb(var(--surface) / <alpha-value>)",
+        slate: themed("slate"),
+        blue: themed("blue"),
+        emerald: themed("emerald"),
+        rose: themed("rose"),
+        red: themed("red"),
+        amber: themed("amber"),
+        violet: themed("violet"),
+        purple: themed("purple"),
+        sky: themed("sky"),
         simplify: {
           canvas: "#F8FAFC",
           card: "#FFFFFF",

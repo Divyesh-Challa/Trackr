@@ -56,7 +56,7 @@ export default function Navbar() {
       <button
         type="submit"
         title={user.email ?? undefined}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-surface px-3.5 py-2 text-[13px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
       >
         <LogOut className="h-4 w-4" aria-hidden /> Sign out
       </button>
@@ -73,7 +73,7 @@ export default function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-surface/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1720px] items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
         <div className="flex items-center gap-8">
           <Link href={user ? "/board" : "/"} className="group flex items-center gap-2.5" aria-label="Trackr home">
@@ -137,7 +137,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: reduce ? 0 : -8 }}
             transition={springs.snappy}
-            className="border-t border-slate-100 bg-white px-4 pb-4 pt-2 md:hidden"
+            className="border-t border-slate-100 bg-surface px-4 pb-4 pt-2 md:hidden"
           >
             <ul className="space-y-1">
               {navItems.map(({ href, label, icon: Icon }) => (

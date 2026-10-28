@@ -33,7 +33,7 @@ export default function ListView({ apps, onOpen }: { apps: Application[]; onOpen
   );
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+    <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-surface">
       <table className="w-full min-w-[640px] text-sm">
         <thead className="border-b border-slate-200 bg-slate-50 text-[13px] text-slate-600">
           <tr>

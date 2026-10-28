@@ -42,7 +42,7 @@ export default function AccountSection() {
   };
 
   return (
-    <section aria-labelledby="your-data" className="mx-auto max-w-xl space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section aria-labelledby="your-data" className="mx-auto max-w-xl space-y-4 rounded-2xl border border-slate-200 bg-surface p-6 shadow-sm">
       <div>
         <h2 id="your-data" className="text-lg font-semibold text-slate-900">Your data</h2>
         <p className="mt-1 text-sm text-slate-600">
@@ -55,7 +55,7 @@ export default function AccountSection() {
           type="button"
           onClick={download}
           disabled={exporting}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-surface px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-60"
         >
           {exporting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Download className="h-4 w-4" aria-hidden />}
           Download my data
@@ -63,7 +63,7 @@ export default function AccountSection() {
         <button
           type="button"
           onClick={() => setConfirmOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-surface px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50"
         >
           <Trash2 className="h-4 w-4" aria-hidden /> Delete account
         </button>

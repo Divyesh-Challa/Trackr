@@ -7,7 +7,7 @@ import type { Application } from "@/types";
 
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+    <div className="rounded-2xl border border-slate-200 bg-surface p-4">
       <p className="text-[13px] font-medium text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">{value}</p>
       {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
@@ -43,7 +43,7 @@ export default function InsightsView({ apps }: { apps: Application[] }) {
         />
       </div>
 
-      <section aria-labelledby="funnel-title" className="rounded-2xl border border-slate-200 bg-white p-5">
+      <section aria-labelledby="funnel-title" className="rounded-2xl border border-slate-200 bg-surface p-5">
         <h2 id="funnel-title" className="text-sm font-semibold text-slate-900">How far your applications got</h2>
         <ol className="mt-4 space-y-3">
           {insights.funnel.map((f) => {
@@ -64,7 +64,7 @@ export default function InsightsView({ apps }: { apps: Application[] }) {
         </ol>
       </section>
 
-      <section aria-labelledby="weekly-title" className="rounded-2xl border border-slate-200 bg-white p-5">
+      <section aria-labelledby="weekly-title" className="rounded-2xl border border-slate-200 bg-surface p-5">
         <h2 id="weekly-title" className="text-sm font-semibold text-slate-900">Applications per week</h2>
         <div className="mt-4 flex h-36 items-end gap-2" role="list">
           {insights.perWeek.map((w) => (

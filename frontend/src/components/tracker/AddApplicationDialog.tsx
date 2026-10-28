@@ -31,7 +31,7 @@ const empty = (status: ApplicationStatus): Form => ({
 });
 
 export const inputClass =
-  "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20";
+  "w-full rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20";
 
 export function Field({ label, htmlFor, children, hint }: { label: string; htmlFor: string; children: React.ReactNode; hint?: string }) {
   return (
@@ -150,7 +150,7 @@ export default function AddApplicationDialog({
               type="button"
               onClick={lookup}
               disabled={!link.trim() || looking}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-50"
             >
               {looking ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Link2 className="h-4 w-4" aria-hidden />}
               Fill in

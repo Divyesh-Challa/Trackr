@@ -36,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${newsreader.variable} ${inter.variable}`}>
-      <body className="min-h-screen bg-[#F8FAFC] text-slate-900 antialiased flex flex-col selection:bg-blue-500/20 selection:text-blue-600 font-sans overflow-x-hidden">
+      <body className="min-h-screen bg-background text-slate-900 antialiased flex flex-col selection:bg-blue-500/20 selection:text-blue-600 font-sans overflow-x-hidden">
         <SmoothScroll>
           <Providers>
             <Navbar />

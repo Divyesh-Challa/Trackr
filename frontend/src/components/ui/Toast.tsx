@@ -39,7 +39,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <div
               key={t.id}
               role={t.kind === "error" ? "alert" : "status"}
-              className="pointer-events-auto flex items-start gap-2.5 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl"
+              className="pointer-events-auto flex items-start gap-2.5 rounded-xl bg-[#0f172a] px-4 py-3 text-sm text-white shadow-xl ring-1 ring-white/10"
             >
               <Icon
                 className={`mt-0.5 h-4 w-4 shrink-0 ${t.kind === "error" ? "text-rose-400" : t.kind === "info" ? "text-sky-300" : "text-emerald-400"}`}
@@ -58,7 +58,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   {t.action.label}
                 </button>
               )}
-              <button type="button" onClick={() => dismiss(t.id)} aria-label="Dismiss" className="text-slate-400 hover:text-white">
+              <button type="button" onClick={() => dismiss(t.id)} aria-label="Dismiss" className="text-[#94a3b8] hover:text-white">
                 <X className="h-4 w-4" aria-hidden />
               </button>
             </div>

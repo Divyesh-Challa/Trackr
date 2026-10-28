@@ -96,7 +96,7 @@ export default function Landing({
             </Magnet>
             <Link
               href="/login?next=/board"
-              className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-white/80 px-6 py-3.5 text-base font-medium text-slate-800 backdrop-blur transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-surface/80 px-6 py-3.5 text-base font-medium text-slate-800 backdrop-blur transition hover:bg-surface"
             >
               Start tracking, free
             </Link>
@@ -147,16 +147,16 @@ export default function Landing({
         ))}
       </section>
 
-      <section className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-slate-900 px-6 py-12 text-center md:py-16">
+      <section className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-[#0b1220] px-6 py-12 ring-1 ring-white/5 text-center md:py-16">
         <VantaBackground rgb="147, 197, 253" className="opacity-70" lines={3} />
         <div className="relative">
           <h2 className="font-serif text-3xl font-semibold tracking-tight text-white md:text-4xl">
             Your next co-op is already posted.
           </h2>
-          <p className="mx-auto mt-3 max-w-md text-slate-300">Save it before the deadline sneaks up on you.</p>
+          <p className="mx-auto mt-3 max-w-md text-[#cbd5e1]">Save it before the deadline sneaks up on you.</p>
           <div className="mt-6">
             <Magnet>
-              <Link href="/login?next=/board" className="inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-medium text-slate-900 transition hover:bg-blue-50">
+              <Link href="/login?next=/board" className="inline-flex items-center gap-2 rounded-2xl bg-[#ffffff] px-6 py-3.5 font-medium text-[#0f172a] transition hover:bg-[#eff6ff]">
                 Create your board <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             </Magnet>

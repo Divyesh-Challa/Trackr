@@ -51,7 +51,7 @@ export default function Dialog({
       onClick={(e) => {
         if (e.target === ref.current) onClose(); // backdrop click
       }}
-      className={`${layout} border border-slate-200 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-900/40`}
+      className={`${layout} border border-slate-200 bg-surface p-0 text-slate-900 shadow-2xl backdrop:bg-black/50`}
     >
       {open && (
         <div className="flex h-full flex-col">

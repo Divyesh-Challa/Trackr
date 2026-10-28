@@ -44,7 +44,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="mx-auto mt-16 w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="mx-auto mt-16 w-full max-w-sm rounded-2xl border border-slate-200 bg-surface p-6 shadow-sm">
       <h1 className="text-xl font-semibold text-slate-900">Sign in to Trackr</h1>
       <p className="mt-1 text-sm text-slate-600">
         Track your internship applications in one place.

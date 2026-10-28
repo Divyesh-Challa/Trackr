@@ -64,7 +64,7 @@ function CardBody({ app, dragHandle }: { app: Application; dragHandle?: React.Re
 }
 
 const cardClass =
-  "rounded-xl border border-slate-200 bg-white p-3 text-left shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-300";
+  "rounded-xl border border-slate-200 bg-surface p-3 text-left shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-300";
 
 /** A board card. The whole card is draggable (mouse/touch/keyboard); clicking opens it. */
 export function SortableCard({ app, onOpen }: { app: Application; onOpen: (id: string) => void }) {
@@ -132,7 +132,7 @@ export function StaticCard({
         <select
           value={app.status}
           onChange={(e) => onMove(e.target.value as ApplicationStatus)}
-          className="flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[13px] text-slate-800"
+          className="flex-1 rounded-lg border border-slate-200 bg-surface px-2 py-1.5 text-[13px] text-slate-800"
         >
           {COLUMNS.map((c) => (
             <option key={c.id} value={c.id}>

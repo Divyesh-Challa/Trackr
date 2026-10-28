@@ -293,7 +293,7 @@ export default function SimulatorPage() {
         {inSession && (
           <button
             onClick={resetInterview}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-surface hover:bg-slate-50 border border-slate-300 rounded-lg shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
           >
             <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
             End &amp; Reset Interview
@@ -305,7 +305,7 @@ export default function SimulatorPage() {
       {/* 1. SETUP ROOM (Before Session Starts)                                   */}
       {/* ======================================================================= */}
       {!inSession && (
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-6">
+        <div className="bg-surface rounded-xl border border-slate-200 p-6 shadow-xs space-y-6">
           <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
               <BrainCircuit className="w-5 h-5" />
@@ -349,7 +349,7 @@ export default function SimulatorPage() {
                   placeholder="e.g. Shopify, Amazon, Hootsuite, Clio, RBC"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
                 />
               </div>
 
@@ -361,7 +361,7 @@ export default function SimulatorPage() {
                   placeholder="e.g. Backend Developer Intern (Co-op)"
                   value={roleTitle}
                   onChange={(e) => setRoleTitle(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
                 />
               </div>
             </div>
@@ -372,7 +372,7 @@ export default function SimulatorPage() {
                 <select
                   value={interviewType}
                   onChange={(e: any) => setInterviewType(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-xs bg-surface border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="BEHAVIORAL_STAR">Behavioral STAR (Ownership, Conflict, Trade-offs)</option>
                   <option value="SYSTEM_DESIGN">System Design &amp; Architecture (APIs, Caching, Databases)</option>
@@ -385,7 +385,7 @@ export default function SimulatorPage() {
                 <select
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-xs bg-surface border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="INTERN_NEW_GRAD">Co-op / Intern / New Grad (Recommended)</option>
                   <option value="MID_LEVEL">Junior to Mid-Level (2-4 Years)</option>
@@ -403,7 +403,7 @@ export default function SimulatorPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-[#0066FF] hover:bg-blue-700 rounded-lg shadow-xs transition-all disabled:opacity-60 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-[#0066FF] hover:bg-[#0052cc] rounded-lg shadow-xs transition-all disabled:opacity-60 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
@@ -429,7 +429,7 @@ export default function SimulatorPage() {
       {inSession && sessionData && (
         <div className="space-y-6">
           {/* Top Progress & Role Badge */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-surface rounded-xl border border-slate-200 p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
                 {currentRound}/{totalRounds}
@@ -476,7 +476,7 @@ export default function SimulatorPage() {
               {sessionData.expected_dimensions?.map((dim, idx) => (
                 <span
                   key={idx}
-                  className="px-2 py-0.5 rounded text-[11px] font-medium bg-white text-blue-700 border border-blue-200"
+                  className="px-2 py-0.5 rounded text-[11px] font-medium bg-surface text-blue-700 border border-blue-200"
                 >
                   {dim}
                 </span>
@@ -485,7 +485,7 @@ export default function SimulatorPage() {
           </SpotlightCard>
 
           {/* User Answer Form */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
+          <div className="bg-surface rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-slate-900 flex items-center gap-2">
                 <User className="w-3.5 h-3.5 text-slate-500" />
@@ -523,7 +523,7 @@ export default function SimulatorPage() {
               <button
                 onClick={handleSubmitAnswer}
                 disabled={isSubmitting || !userAnswer.trim()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#0066FF] hover:bg-blue-700 rounded-lg shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#0066FF] hover:bg-[#0052cc] rounded-lg shadow-xs transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
@@ -544,7 +544,7 @@ export default function SimulatorPage() {
           {/* 3. LAST ROUND STAR RUBRIC FEEDBACK                                  */}
           {/* =================================================================== */}
           {lastTurnData && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-5">
+            <div className="bg-surface rounded-xl border border-slate-200 p-6 shadow-xs space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-blue-50 border-2 border-blue-600 flex flex-col items-center justify-center">
@@ -647,7 +647,7 @@ export default function SimulatorPage() {
           {/* 4. FINAL HIRING DEBRIEF MODAL / PANEL                               */}
           {/* =================================================================== */}
           {isFinalDebriefOpen && lastTurnData?.final_debrief && (
-            <div className="bg-white rounded-xl border-2 border-blue-600 p-6 shadow-md space-y-6">
+            <div className="bg-surface rounded-xl border-2 border-blue-600 p-6 shadow-md space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <div className="flex items-center gap-2">
@@ -665,7 +665,7 @@ export default function SimulatorPage() {
 
                 <button
                   onClick={resetInterview}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-[#0066FF] hover:bg-blue-700 rounded-lg shadow-xs cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-[#0066FF] hover:bg-[#0052cc] rounded-lg shadow-xs cursor-pointer"
                 >
                   Start New Interview Practice
                 </button>
@@ -727,7 +727,7 @@ export default function SimulatorPage() {
                 {history.map((h, idx) => (
                   <div
                     key={idx}
-                    className="bg-white p-3.5 rounded-lg border border-slate-200/90 shadow-xs text-xs space-y-1.5"
+                    className="bg-surface p-3.5 rounded-lg border border-slate-200/90 shadow-xs text-xs space-y-1.5"
                   >
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-slate-900">

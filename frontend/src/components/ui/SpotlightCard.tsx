@@ -31,7 +31,7 @@ export default function SpotlightCard({
     <div
       ref={ref}
       onPointerMove={onMove}
-      className={`group/spot relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white transition-shadow duration-200 hover:shadow-lg ${className}`}
+      className={`group/spot relative overflow-hidden rounded-2xl border border-slate-200/80 bg-surface transition-shadow duration-200 hover:shadow-lg ${className}`}
       {...props}
     >
       <div

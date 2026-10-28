@@ -69,7 +69,7 @@ export default function JakesResumePreview({
   return (
     <div className="space-y-4">
       {/* Top Action Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs print:hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-3.5 rounded-xl border border-slate-200 shadow-xs print:hidden">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
             <Sparkles className="w-3.5 h-3.5" />
@@ -101,7 +101,7 @@ export default function JakesResumePreview({
             href="https://www.overleaf.com/project"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 bg-surface hover:bg-slate-50 border border-slate-200 rounded-lg transition-colors"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             Overleaf
@@ -109,7 +109,7 @@ export default function JakesResumePreview({
 
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-[#0066FF] hover:bg-blue-700 rounded-lg shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-[#0066FF] hover:bg-[#0052cc] rounded-lg shadow-xs transition-colors cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5" />
             Print / Save PDF
@@ -118,10 +118,10 @@ export default function JakesResumePreview({
       </div>
 
       {/* Sheet Canvas (Authentic Jake's Resume Layout) */}
-      <div className="bg-slate-100 p-2 sm:p-6 rounded-xl flex justify-center overflow-x-auto print:p-0 print:bg-white print:rounded-none">
+      <div className="bg-slate-100 p-2 sm:p-6 rounded-xl flex justify-center overflow-x-auto print:p-0 print:bg-surface print:rounded-none">
         <div
           id="jakes-resume-sheet"
-          className="bg-white text-black w-full max-w-[850px] min-h-[1100px] p-8 sm:p-12 shadow-md border border-slate-200/80 print:shadow-none print:border-none print:p-0 print:max-w-none print:min-h-0 print:w-full font-serif"
+          className="bg-surface text-black w-full max-w-[850px] min-h-[1100px] p-8 sm:p-12 shadow-md border border-slate-200/80 print:shadow-none print:border-none print:p-0 print:max-w-none print:min-h-0 print:w-full font-serif"
           style={{ fontFamily: "'Times New Roman', Times, 'Nimbus Roman No9 L', Georgia, serif" }}
         >
           {/* HEADER */}

@@ -86,7 +86,7 @@ function Column({
           type="button"
           onClick={() => onAdd(id)}
           aria-label={`Add to ${title}`}
-          className="rounded-lg p-1 text-slate-500 hover:bg-white hover:text-slate-900"
+          className="rounded-lg p-1 text-slate-500 hover:bg-surface hover:text-slate-900"
         >
           <Plus className="h-4 w-4" aria-hidden />
         </button>
@@ -279,7 +279,7 @@ export default function TrackerBoard() {
       aria-selected={view === id}
       onClick={() => setView(id)}
       className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium ${
-        view === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+        view === id ? "bg-surface text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
       }`}
     >
       <Icon className="h-4 w-4" aria-hidden /> {label}
@@ -316,7 +316,7 @@ export default function TrackerBoard() {
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={importing}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-surface px-3 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
             {importing ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Upload className="h-4 w-4" aria-hidden />}
             Import CSV
@@ -325,7 +325,7 @@ export default function TrackerBoard() {
             type="button"
             onClick={exportCsv}
             disabled={!apps.length}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-surface px-3 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
             <Download className="h-4 w-4" aria-hidden /> Export CSV
           </button>
@@ -352,7 +352,7 @@ export default function TrackerBoard() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search company, role, city"
-              className="w-full rounded-xl border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20"
+              className="w-full rounded-xl border border-slate-300 bg-surface py-2 pl-9 pr-3 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20"
             />
           </div>
           <label className="sr-only" htmlFor="work-model">
@@ -362,7 +362,7 @@ export default function TrackerBoard() {
             id="work-model"
             value={workModel}
             onChange={(e) => setWorkModel(e.target.value as typeof workModel)}
-            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
+            className="rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm text-slate-700"
           >
             <option value="ALL">Any work model</option>
             <option value="REMOTE">Remote</option>
@@ -373,7 +373,7 @@ export default function TrackerBoard() {
       )}
 
       {isError ? (
-        <div role="alert" className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-white p-5 text-sm">
+        <div role="alert" className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-surface p-5 text-sm">
           <AlertCircle className="mt-0.5 h-5 w-5 text-rose-600" aria-hidden />
           <div>
             <p className="font-medium text-rose-700">Couldn&apos;t load your applications.</p>
@@ -390,7 +390,7 @@ export default function TrackerBoard() {
           ))}
         </div>
       ) : apps.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-surface p-10 text-center">
           <h2 className="text-lg font-semibold text-slate-900">Nothing tracked yet</h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">
             Save roles from the jobs feed, paste a posting link, or import the spreadsheet you&apos;ve been using.
@@ -448,7 +448,7 @@ export default function TrackerBoard() {
                 aria-selected={mobileColumn === c.id}
                 onClick={() => setMobileColumn(c.id)}
                 className={`shrink-0 rounded-xl border px-3 py-1.5 text-[13px] font-medium ${
-                  mobileColumn === c.id ? "border-[#0066FF] bg-blue-50 text-[#0066FF]" : "border-slate-200 bg-white text-slate-700"
+                  mobileColumn === c.id ? "border-[#0066FF] bg-blue-50 text-[#0066FF]" : "border-slate-200 bg-surface text-slate-700"
                 }`}
               >
                 {c.title} <span className="text-slate-500">{columns[c.id].length}</span>
