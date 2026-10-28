@@ -10,7 +10,8 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   use: { baseURL: "http://localhost:3000", trace: "retain-on-failure" },
   webServer: {
-    command: "npm run dev",
+    // CI tests the production build; locally the dev server is quicker to iterate with.
+    command: process.env.CI ? "npm run start" : "npm run dev",
     url: "http://localhost:3000/login",
     reuseExistingServer: true,
     timeout: 120_000,

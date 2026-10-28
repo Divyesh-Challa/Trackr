@@ -73,6 +73,16 @@ export async function lookupJobUrl(rawUrl: string): Promise<LookupResult> {
   const ref = parseJobUrl(String(rawUrl).slice(0, 2048));
   if (!ref) return { kind: "unsupported" };
 
+  // Each lookup may call a third-party API; cap it per user.
+  const { data: allowed, error: limitError } = await supabase.rpc("consume_rate_limit", {
+    p_bucket: "job_url_lookup",
+    p_limit: 60,
+    p_window_seconds: 3600,
+  });
+  if (limitError || !allowed) {
+    return { kind: "error", message: "You've looked up a lot of links this hour. Try again later, or fill the form in yourself." };
+  }
+
   // Already in the feed? Use our row, which has a cleaned-up location and the job id.
   const { data: job } = await supabase
     .from("jobs")

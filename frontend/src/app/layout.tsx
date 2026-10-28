@@ -3,6 +3,7 @@ import { Newsreader, Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import Navbar from "../components/Navbar";
+import SiteFooter from "../components/SiteFooter";
 import PageTransition from "../components/PageTransition";
 import SmoothScroll from "../components/providers/SmoothScroll";
 import { Analytics } from "@vercel/analytics/react";
@@ -42,6 +43,7 @@ export default function RootLayout({
             <main className="flex-1 max-w-[1720px] w-full mx-auto px-4 sm:px-6 py-6 overflow-x-hidden">
               <PageTransition>{children}</PageTransition>
             </main>
+            <SiteFooter />
           </Providers>
         </SmoothScroll>
         <Analytics />

@@ -32,6 +32,5 @@ jobs:
 
       - name: Ingest
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          INGEST_DATABASE_URL: ${{ secrets.INGEST_DATABASE_URL }}
         run: python -m ingest

@@ -2,5 +2,6 @@ httpx==0.28.1
 beautifulsoup4==4.13.4
 markdownify==1.2.0
 PyYAML==6.0.2
+psycopg[binary]==3.2.10
 pytest==8.4.1
 pytest-asyncio==1.1.0

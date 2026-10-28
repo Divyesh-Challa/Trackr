@@ -332,6 +332,48 @@ export async function fetchDiscoveredJobs(): Promise<DiscoveredJob[]> {
 }
 
 // -----------------------------------------------------------------------------
+// Your data (PIPEDA: access and deletion)
+// -----------------------------------------------------------------------------
+
+/** Everything Trackr stores about the signed-in user, as one JSON document. */
+export async function exportMyData() {
+  const client = supabase();
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+  if (!user) throw new Error("Not signed in");
+  const [profile, applications, tasks, contacts, notes, history] = await Promise.all([
+    client.from("profiles").select("*").maybeSingle(),
+    client.from("applications").select("*").order("created_at"),
+    client.from("application_tasks").select("*").order("created_at"),
+    client.from("application_contacts").select("*").order("created_at"),
+    client.from("application_notes").select("*").order("created_at"),
+    client.from("application_state_transitions").select("*").order("transitioned_at"),
+  ]);
+  for (const r of [profile, applications, tasks, contacts, notes, history]) {
+    if (r.error) throw new Error(`Export failed: ${r.error.message}`);
+  }
+  return {
+    exported_at: new Date().toISOString(),
+    account: { id: user.id, email: user.email, created_at: user.created_at },
+    profile: profile.data,
+    applications: applications.data,
+    tasks: tasks.data,
+    contacts: contacts.data,
+    notes: notes.data,
+    status_history: history.data,
+  };
+}
+
+/** Permanently deletes the account and everything attached to it. */
+export async function deleteMyAccount(): Promise<void> {
+  const client = supabase();
+  const { error } = await client.rpc("delete_my_account");
+  if (error) throw new Error(`Couldn't delete your account: ${error.message}`);
+  await client.auth.signOut();
+}
+
+// -----------------------------------------------------------------------------
 // Profile
 // -----------------------------------------------------------------------------
 

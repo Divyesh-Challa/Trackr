@@ -35,9 +35,9 @@ ingest-test: ingest/.venv
 ingest-dry: ingest/.venv
 	ingest/.venv/bin/python -m ingest --dry-run
 
+# Locally this connects as postgres; production uses the restricted trackr_ingest role.
 ingest: ingest/.venv
-	SUPABASE_URL=$${SUPABASE_URL:-http://127.0.0.1:54321} \
-	SUPABASE_SERVICE_ROLE_KEY=$${SUPABASE_SERVICE_ROLE_KEY:-$$(supabase status -o json | python3 -c "import json,sys;print(json.load(sys.stdin)['SERVICE_ROLE_KEY'])")} \
+	INGEST_DATABASE_URL=$${INGEST_DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:54322/postgres} \
 	ingest/.venv/bin/python -m ingest
 
 # Re-scan seeds.yaml and Canadian YC companies for job boards; review and commit boards.yaml.

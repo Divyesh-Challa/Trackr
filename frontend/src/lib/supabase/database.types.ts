@@ -165,20 +165,53 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"rate_limits": {
+                  Row: {
+                    "bucket": string,"count": number,"user_id": string,"window_start": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bucket": string,"count"?: number,"user_id": string,"window_start": string
+                  }
+                  Update: {
+                    "bucket"?: string,"count"?: number,"user_id"?: string,"window_start"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            "ingest_deactivate":
+            "consume_rate_limit":
+{ Args: { "p_bucket": string,"p_limit": number,"p_window_seconds": number }; Returns: boolean
+                           },
+"delete_my_account":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"ingest_active_ats_postings":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "company_name": string,"company_size": string,"job_url": string
+            }[]
+                           },
+"ingest_deactivate":
 { Args: { "p_canonical": (string)[] }; Returns: number
                            },
 "ingest_expire":
 { Args: { "p_max_age_days"?: number }; Returns: number
                            },
+"ingest_finish_run":
+{ Args: { "p_deactivated"?: number,"p_id": string,"p_inserted"?: number,"p_stats"?: Json,"p_status": string,"p_updated"?: number }; Returns: undefined
+                           },
 "ingest_mark_missing":
 { Args: { "p_run_started": string,"p_skip_companies"?: (string)[],"p_sources": (string)[] }; Returns: number
+                           },
+"ingest_start_run":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "id": string,"started_at": string
+            }[]
                            },
 "ingest_upsert_jobs":
 { Args: { "p_jobs": Json }; Returns: {

@@ -147,7 +147,7 @@ Where jobs come from (`ingest/`):
 - **Community lists on GitHub:** [SimplifyJobs/Summer2027-Internships](https://github.com/SimplifyJobs/Summer2027-Internships) (including off-season Fall/Winter terms), [negarprh/Canadian-Tech-Internships-2027](https://github.com/negarprh/Canadian-Tech-Internships-2027) and [Bobwillrule/Canadian-Internship-List](https://github.com/Bobwillrule/Canadian-Internship-List).
 - **Company job boards:** the public Greenhouse, Lever, Ashby, Workable, SmartRecruiters and Recruitee APIs. Boards come from every apply link in the lists, plus `ingest/boards.yaml` (Canadian startups and scale-ups from `seeds.yaml`, and YC companies located in Canada).
 
-The production schedule is `.github/workflows/ingest.yml` (every 6 hours). It needs the `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` repository secrets.
+The production schedule is `.github/workflows/ingest.yml` (every 6 hours). It connects as the restricted `trackr_ingest` database role through the `INGEST_DATABASE_URL` repository secret, so CI never holds the service-role key.
 
 ## Project Structure
 

@@ -1,0 +1,36 @@
+name: Nightly backup
+
+on:
+  schedule:
+    - cron: "23 7 * * *"   # 07:23 UTC, the middle of the night across Canada
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Dump and encrypt
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          # Match the server's major version (Postgres 17); the read-only trackr_backup role connects.
+          docker run --rm -e DB="$BACKUP_DATABASE_URL" -v "$PWD:/out" postgres:17 \
+            sh -c 'pg_dump "$DB" --schema=public --schema=auth --schema=legacy --no-owner --no-privileges -Fc -f /out/trackr.dump'
+          name="trackr-$(date -u +%Y-%m-%d).dump.gpg"
+          gpg --batch --yes --pinentry-mode loopback --passphrase-file <(printf '%s' "$BACKUP_PASSPHRASE") \
+            --symmetric --cipher-algo AES256 -o "$name" trackr.dump
+          rm trackr.dump
+          ls -lh "$name"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trackr-backup-${{ github.run_id }}
+          path: trackr-*.dump.gpg
+          retention-days: 14
+          if-no-files-found: error

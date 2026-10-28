@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save } from "lucide-react";
 import { fetchProfile, updateProfile } from "../../lib/api";
 import { Profile } from "../../types";
+import AccountSection from "../../components/AccountSection";
 
 const CANADIAN_UNIVERSITIES = [
   "University of British Columbia (UBC)",
@@ -111,6 +112,7 @@ export default function ProfilePage() {
     "w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20";
 
   return (
+    <div className="space-y-6">
     <form
       onSubmit={(e) => {
         e.preventDefault();
@@ -267,5 +269,7 @@ export default function ProfilePage() {
         </span>
       </div>
     </form>
+    <AccountSection />
+    </div>
   );
 }
