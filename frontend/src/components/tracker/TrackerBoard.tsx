@@ -266,7 +266,14 @@ export default function TrackerBoard() {
         errors.length ? "info" : "success"
       );
     } catch (err) {
-      toast((err as Error).message, "error");
+      const message = (err as Error).message;
+      await qc.invalidateQueries({ queryKey: keys.applications, exact: true });
+      toast(
+        message.includes("free_plan_limit")
+          ? "Import stopped at the free plan's 50 active applications. Upgrade to Pro for unlimited."
+          : message,
+        message.includes("free_plan_limit") ? "info" : "error"
+      );
     } finally {
       setImporting(false);
     }

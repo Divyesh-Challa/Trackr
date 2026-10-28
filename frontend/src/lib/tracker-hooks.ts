@@ -93,11 +93,19 @@ export function useCreateApplication() {
       qc.invalidateQueries({ queryKey: keys.allHistory });
       toast(`Added ${created.company_name}`);
     },
-    onError: (err: Error) =>
+    onError: (err: Error) => {
+      if (err.message.includes("free_plan_limit")) {
+        toast("The free plan tracks up to 50 active applications. Move finished ones to Rejected or Withdrawn, or upgrade.", "info", {
+          label: "See Pro",
+          run: () => window.location.assign("/pricing"),
+        });
+        return;
+      }
       toast(
         err.message.includes("duplicate key") ? "That job is already on your board." : `Couldn't add it: ${err.message}`,
         "error"
-      ),
+      );
+    },
   });
 }
 

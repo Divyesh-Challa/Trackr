@@ -47,6 +47,7 @@ export default function Navbar() {
           { href: "/simulator", label: "Interview Practice", icon: Sparkles },
         ]
       : []),
+    { href: "/pricing", label: "Pricing", icon: Sparkles },
     ...(user ? [{ href: "/profile", label: "Profile", icon: User }] : []),
   ];
 
