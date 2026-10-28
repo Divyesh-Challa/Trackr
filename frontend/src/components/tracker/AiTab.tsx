@@ -2,8 +2,9 @@
 
 import React, { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Copy, Loader2, Sparkles } from "lucide-react";
+import { Copy, FileText, Loader2, Sparkles } from "lucide-react";
 import {
   getAiStatus,
   interviewFeedback,
@@ -15,6 +16,7 @@ import {
   type TailorResult,
 } from "@/app/actions/ai";
 import { useToast } from "../ui/Toast";
+import { TAILORING_KEY, type StoredTailoring } from "@/lib/resume";
 
 type Tool = "tailor" | "letter" | "interview";
 
@@ -43,7 +45,8 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-export default function AiTab({ appId }: { appId: string }) {
+export default function AiTab({ appId, label }: { appId: string; label: string }) {
+  const router = useRouter();
   const { data: status, refetch } = useQuery({ queryKey: ["ai-status"], queryFn: () => getAiStatus() });
   const [tool, setTool] = useState<Tool>("tailor");
   const [busy, start] = useTransition();
@@ -89,7 +92,7 @@ export default function AiTab({ appId }: { appId: string }) {
     <div className="space-y-4">
       {status.bulletCount === 0 && (
         <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
-          Add your experience bullets on your <Link href="/profile" className="underline">Profile</Link> first. The AI only works from what you&apos;ve written.
+          Add your experience to your <Link href="/resume" className="underline">Resume</Link> first. The AI only works from what you&apos;ve written.
         </p>
       )}
       <div role="tablist" aria-label="AI tools" className="flex flex-wrap gap-1.5">
@@ -120,7 +123,20 @@ export default function AiTab({ appId }: { appId: string }) {
           </button>
           {tailor && (
             <div className="space-y-4">
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const stored: StoredTailoring = { label, bullets: tailor.bullets.map((b) => ({ bullet_id: b.bullet_id, text: b.text })) };
+                    try {
+                      sessionStorage.setItem(TAILORING_KEY, JSON.stringify(stored));
+                    } catch {}
+                    router.push("/resume?tailored=1");
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  <FileText className="h-3.5 w-3.5" aria-hidden /> Open as a tailored resume
+                </button>
                 <CopyButton text={tailor.bullets.map((b) => `• ${b.text}`).join("\n")} />
               </div>
               <ol className="space-y-3">

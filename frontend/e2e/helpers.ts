@@ -36,3 +36,15 @@ export async function serviceGet(path: string) {
 
 export const column = (page: Page, title: string) =>
   page.locator("section", { has: page.getByRole("heading", { name: new RegExp(`^${title}`) }) });
+
+export async function servicePost(path: string, body: unknown) {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new Error("Set SUPABASE_SERVICE_ROLE_KEY (from `supabase status`) to run e2e tests");
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: "POST",
+    headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=representation" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`${path}: ${res.status} ${await res.text()}`);
+  return res.json();
+}

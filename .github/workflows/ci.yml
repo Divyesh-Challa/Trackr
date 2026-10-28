@@ -36,6 +36,26 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
 
+  # The resume builder's LaTeX must actually compile, not just look right.
+  resume-latex:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install TeX Live (Jake's Resume packages)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+      - name: Render and compile a sample resume
+        working-directory: frontend
+        run: |
+          node --experimental-strip-types scripts/render-sample-resume.mts sample.tex
+          pdflatex -interaction=nonstopmode -halt-on-error sample.tex
+          test -s sample.pdf
+
   ingest:
     runs-on: ubuntu-latest
     timeout-minutes: 10

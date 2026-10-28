@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { dateRange } from "@/lib/resume";
 import { MONTHLY_LIMITS, aiConfigured, runStructured, type AiFeature, type AiResult } from "@/lib/ai";
 import {
   checkParagraphs,
@@ -40,11 +41,24 @@ export async function getAiStatus(): Promise<AiStatus> {
 
 async function loadContext(applicationId: string) {
   const supabase = await createClient();
-  const [{ data: app }, { data: bullets }] = await Promise.all([
+  const [{ data: app }, { data: bullets }, { data: entries }] = await Promise.all([
     supabase.from("applications").select("company_name, role_title, description").eq("id", applicationId).maybeSingle(),
-    supabase.from("resume_bullets").select("id, heading, content").order("section").order("position").limit(200),
+    supabase.from("resume_bullets").select("id, entry_id, heading, content").order("section").order("position").limit(200),
+    supabase.from("resume_entries").select("id, title, organization, start_date, end_date").limit(100),
   ]);
-  return { app, bullets: (bullets ?? []) as SourceBullet[] };
+  // Bullets written in the resume builder take their heading from their entry.
+  const byId = new Map((entries ?? []).map((e) => [e.id, e]));
+  const label = (e: { title: string; organization: string; start_date: string; end_date: string }) => {
+    const dates = dateRange(e.start_date, e.end_date);
+    return `${e.title}${e.organization ? `, ${e.organization}` : ""}${dates ? ` (${dates})` : ""}`;
+  };
+  return {
+    app,
+    bullets: (bullets ?? []).map((b): SourceBullet => {
+      const entry = b.entry_id ? byId.get(b.entry_id) : undefined;
+      return { id: b.id, heading: entry ? label(entry) : b.heading, content: b.content };
+    }),
+  };
 }
 
 function bulletsXml(bullets: SourceBullet[]) {
@@ -56,7 +70,7 @@ function precheck(app: { description: string | null } | null, bullets: SourceBul
   if (!app.description || app.description.trim().length < 80) {
     return "Add the job description to this application first (Details tab), so the AI knows what the role needs.";
   }
-  if (!bullets.length) return "Add your experience bullets on your Profile page first. The AI only works from what you've written.";
+  if (!bullets.length) return "Add your experience to your Resume page first. The AI only works from what you've written.";
   return null;
 }
 

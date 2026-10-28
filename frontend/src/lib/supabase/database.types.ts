@@ -167,14 +167,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"full_name": string,"grad_term": string | null,"id": string,"school": string,"target_provinces": (string)[],"target_roles": (string)[],"updated_at": string
+                    "created_at": string,"email": string | null,"full_name": string,"github_url": string | null,"grad_term": string | null,"id": string,"linkedin_url": string | null,"location": string | null,"phone": string | null,"school": string,"target_provinces": (string)[],"target_roles": (string)[],"updated_at": string,"website_url": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"full_name"?: string,"grad_term"?: string | null,"id": string,"school"?: string,"target_provinces"?: (string)[],"target_roles"?: (string)[],"updated_at"?: string
+                    "created_at"?: string,"email"?: string | null,"full_name"?: string,"github_url"?: string | null,"grad_term"?: string | null,"id": string,"linkedin_url"?: string | null,"location"?: string | null,"phone"?: string | null,"school"?: string,"target_provinces"?: (string)[],"target_roles"?: (string)[],"updated_at"?: string,"website_url"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"full_name"?: string,"grad_term"?: string | null,"id"?: string,"school"?: string,"target_provinces"?: (string)[],"target_roles"?: (string)[],"updated_at"?: string
+                    "created_at"?: string,"email"?: string | null,"full_name"?: string,"github_url"?: string | null,"grad_term"?: string | null,"id"?: string,"linkedin_url"?: string | null,"location"?: string | null,"phone"?: string | null,"school"?: string,"target_provinces"?: (string)[],"target_roles"?: (string)[],"updated_at"?: string,"website_url"?: string | null
                   }
                   Relationships: [
                     
@@ -195,14 +195,34 @@ isOneToOne: false
                   ]
                 },"resume_bullets": {
                   Row: {
-                    "content": string,"created_at": string,"heading": string,"id": string,"position": number,"section": string,"updated_at": string,"user_id": string
+                    "content": string,"created_at": string,"entry_id": string | null,"heading": string,"id": string,"position": number,"section": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "content": string,"created_at"?: string,"heading"?: string,"id"?: string,"position"?: number,"section"?: string,"updated_at"?: string,"user_id"?: string
+                    "content": string,"created_at"?: string,"entry_id"?: string | null,"heading"?: string,"id"?: string,"position"?: number,"section"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "content"?: string,"created_at"?: string,"heading"?: string,"id"?: string,"position"?: number,"section"?: string,"updated_at"?: string,"user_id"?: string
+                    "content"?: string,"created_at"?: string,"entry_id"?: string | null,"heading"?: string,"id"?: string,"position"?: number,"section"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "resume_bullets_entry_fk"
+      columns: ["entry_id","user_id"]
+isOneToOne: false
+      referencedRelation: "resume_entries"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"resume_entries": {
+                  Row: {
+                    "created_at": string,"details": string,"end_date": string,"id": string,"location": string,"organization": string,"position": number,"section": string,"start_date": string,"tech": string,"title": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"details"?: string,"end_date"?: string,"id"?: string,"location"?: string,"organization"?: string,"position"?: number,"section": string,"start_date"?: string,"tech"?: string,"title": string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"details"?: string,"end_date"?: string,"id"?: string,"location"?: string,"organization"?: string,"position"?: number,"section"?: string,"start_date"?: string,"tech"?: string,"title"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
