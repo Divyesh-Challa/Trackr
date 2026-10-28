@@ -1,0 +1,51 @@
+name: Discover job boards
+
+on:
+  schedule:
+    - cron: "41 9 * * 1"   # Mondays
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ingest/requirements.txt
+
+      - run: pip install -r ingest/requirements.txt
+
+      - name: Re-scan seeds.yaml and Canadian YC companies
+        run: python -m ingest.discover
+
+      # PRs opened with GITHUB_TOKEN don't trigger CI, so check here before opening one.
+      - name: Tests
+        run: python -m pytest ingest/tests -q
+
+      - name: Open a PR if boards changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- ingest/boards.yaml; then
+            echo "No new boards found."
+            exit 0
+          fi
+          added=$(git diff -U0 -- ingest/boards.yaml | grep -c '^+- company:' || true)
+          branch="discover/boards-$(date -u +%Y-%m-%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git commit -am "chore(ingest): refresh discovered job boards (+$added)"
+          git push -u origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "Refresh discovered job boards (+$added)" \
+            --body "Weekly re-scan of \`ingest/seeds.yaml\` and Canadian YC companies found $added new or changed board(s). Review the company names in the diff, then merge."
