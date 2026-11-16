@@ -10,9 +10,11 @@ import { createApplication } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
 import {
   DISCIPLINES,
+  JOB_TYPES,
   PAGE_SIZE,
   POSTED_WITHIN,
   PROVINCES,
+  WORK_MODELS,
   feedSearchParams,
   termLabel,
   upcomingTerms,
@@ -49,6 +51,8 @@ function postedAgo(iso: string | null) {
   if (days < 60) return `${days}d ago`;
   return `${Math.floor(days / 30)}mo ago`;
 }
+
+const isNew = (iso: string | null) => Boolean(iso) && Date.now() - new Date(iso!).getTime() < 2 * 86_400_000;
 
 function placeLabel(job: DiscoveredJob) {
   if (job.locations.length > 1) return `${job.locations[0]} +${job.locations.length - 1}`;
@@ -109,6 +113,39 @@ function Chip({
   );
 }
 
+const trackInput = (job: DiscoveredJob, status: "WISHLIST" | "APPLIED") => ({
+  company_name: job.company_name,
+  role_title: job.role_title,
+  status,
+  salary_range: job.salary,
+  job_location: placeLabel(job),
+  work_model: job.work_model,
+  job_id: job.id,
+  job_url: job.job_url,
+});
+
+/** A single job on its own page (/discover/[id]), with the same track buttons as the feed. */
+export function JobPage({ job, signedIn, initiallyTracked }: { job: DiscoveredJob; signedIn: boolean; initiallyTracked: boolean }) {
+  const [tracked, setTracked] = useState(initiallyTracked);
+  const track = useMutation({
+    mutationFn: (status: "WISHLIST" | "APPLIED") => createApplication(trackInput(job, status)),
+    onSuccess: () => setTracked(true),
+    onError: (err: Error) => {
+      if (err.message.includes("duplicate key")) setTracked(true);
+    },
+  });
+  return (
+    <JobDetail
+      job={job}
+      signedIn={signedIn}
+      tracked={tracked}
+      tracking={track.isPending}
+      trackError={track.isError && !track.error.message.includes("duplicate key") ? track.error.message : null}
+      onTrack={(status) => track.mutate(status)}
+    />
+  );
+}
+
 function JobDetail({
   job,
   signedIn,
@@ -136,6 +173,8 @@ function JobDetail({
       if (error) throw new Error(error.message);
       return data.description_md;
     },
+    // The job page already has the description, so it renders on the server for search engines.
+    initialData: job.description || undefined,
     staleTime: Infinity,
   });
 
@@ -253,7 +292,10 @@ function JobDetail({
 
       <p className="border-t border-slate-100 pt-4 text-xs text-slate-500">
         Found via {SOURCE_LABELS[job.source] ?? job.source}. Details can change; the employer&apos;s posting is
-        the source of truth.
+        the source of truth.{" "}
+        <Link href={`/discover/${job.id}`} className="underline">
+          Link to this job
+        </Link>
       </p>
     </article>
   );
@@ -298,23 +340,14 @@ export default function DiscoverView({
     startTransition(() => router.push(next ? `/discover?${next}` : "/discover", { scroll: false }));
     setSelectedId(null);
   };
-  const toggle = (key: "provinces" | "terms" | "disciplines", value: string) =>
-    apply({
-      [key]: filters[key].includes(value) ? filters[key].filter((v) => v !== value) : [...filters[key], value],
-    });
+  const toggle = (key: "provinces" | "terms" | "disciplines" | "workModels" | "jobTypes", value: string) => {
+    const current: string[] = filters[key];
+    apply({ [key]: current.includes(value) ? current.filter((v) => v !== value) : [...current, value] });
+  };
 
   const trackMutation = useMutation({
     mutationFn: ({ job, status }: { job: DiscoveredJob; status: "WISHLIST" | "APPLIED" }) =>
-      createApplication({
-        company_name: job.company_name,
-        role_title: job.role_title,
-        status,
-        salary_range: job.salary,
-        job_location: placeLabel(job),
-        work_model: job.work_model,
-        job_id: job.id,
-        job_url: job.job_url,
-      }),
+      createApplication(trackInput(job, status)),
     onSuccess: (_data, { job }) => setTracked((prev) => new Set(prev).add(job.id)),
     onError: (err: Error, { job }) => {
       if (err.message.includes("duplicate key")) setTracked((prev) => new Set(prev).add(job.id));
@@ -323,11 +356,11 @@ export default function DiscoverView({
 
   const hasFilters =
     filters.q || filters.provinces.length || filters.terms.length || filters.disciplines.length ||
-    filters.remote || filters.smallCompanies || filters.postedWithin;
+    filters.workModels.length || filters.jobTypes.length || filters.smallCompanies || filters.postedWithin;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const activeFilterCount =
     filters.provinces.length + filters.terms.length + filters.disciplines.length +
-    Number(filters.remote) + Number(filters.smallCompanies) + Number(Boolean(filters.postedWithin));
+    filters.workModels.length + filters.jobTypes.length + Number(filters.smallCompanies) + Number(Boolean(filters.postedWithin));
 
   return (
     <div className="space-y-4">
@@ -414,9 +447,22 @@ export default function DiscoverView({
               </option>
             ))}
           </select>
-          <Chip active={filters.remote} onClick={() => apply({ remote: !filters.remote })}>
-            Remote only
-          </Chip>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="w-full text-[13px] font-medium text-slate-500 sm:w-20">Work mode</span>
+          {WORK_MODELS.map((m) => (
+            <Chip key={m.code} active={filters.workModels.includes(m.code)} onClick={() => toggle("workModels", m.code)}>
+              {m.label}
+            </Chip>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="w-full text-[13px] font-medium text-slate-500 sm:w-20">Program</span>
+          {JOB_TYPES.map((t) => (
+            <Chip key={t.code} active={filters.jobTypes.includes(t.code)} onClick={() => toggle("jobTypes", t.code)}>
+              {t.label}
+            </Chip>
+          ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="w-full text-[13px] font-medium text-slate-500 sm:w-20">Field</span>
@@ -504,6 +550,9 @@ export default function DiscoverView({
                         {job.salary ? <span className="text-emerald-700"> · {job.salary}</span> : null}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
+                        {isNew(job.posted_at) && (
+                          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span>
+                        )}
                         {job.terms.map((t) => (
                           <span key={t} className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
                             {termLabel(t)}

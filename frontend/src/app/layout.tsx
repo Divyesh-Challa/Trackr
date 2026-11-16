@@ -8,6 +8,7 @@ import PageTransition from "../components/PageTransition";
 import SmoothScroll from "../components/providers/SmoothScroll";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SITE_URL } from "@/lib/site";
 
 const newsreader = Newsreader({
   subsets: ["latin"],
@@ -26,6 +27,7 @@ const inter = Inter({
 const THEME_SCRIPT = `try{var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`;
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Trackr | Canadian internships & co-ops, tracked",
   description:
     "Tech internships and co-ops across Canada, refreshed every 6 hours from company job boards, with a tracker for every application.",

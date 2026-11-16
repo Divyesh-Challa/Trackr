@@ -28,6 +28,19 @@ export const DISCIPLINES = [
   { code: "mechanical", label: "Other engineering" },
 ] as const;
 
+export const WORK_MODELS = [
+  { code: "remote", label: "Remote" },
+  { code: "hybrid", label: "Hybrid" },
+  { code: "onsite", label: "On-site" },
+] as const;
+export type WorkModel = (typeof WORK_MODELS)[number]["code"];
+
+export const JOB_TYPES = [
+  { code: "internship", label: "Internship" },
+  { code: "coop", label: "Co-op" },
+] as const;
+export type JobType = (typeof JOB_TYPES)[number]["code"];
+
 export const POSTED_WITHIN = [
   { days: 3, label: "Last 3 days" },
   { days: 7, label: "Last week" },
@@ -57,7 +70,8 @@ export type FeedFilters = {
   provinces: string[];
   terms: string[];
   disciplines: string[];
-  remote: boolean;
+  workModels: WorkModel[];
+  jobTypes: JobType[];
   smallCompanies: boolean;
   postedWithin: number | null;
   page: number;
@@ -74,6 +88,8 @@ const list = (v: string | string[] | undefined) =>
 export function parseFeedParams(params: Params): FeedFilters {
   const provinceCodes = new Set<string>(PROVINCES.map((p) => p.code));
   const disciplineCodes = new Set<string>(DISCIPLINES.map((d) => d.code));
+  const workModels = WORK_MODELS.map((m) => m.code).filter((m) => list(params.mode).includes(m));
+  const jobTypes = JOB_TYPES.map((t) => t.code).filter((t) => list(params.type).includes(t));
   const days = Number(params.posted);
   const page = Number(params.page);
   return {
@@ -81,7 +97,9 @@ export function parseFeedParams(params: Params): FeedFilters {
     provinces: list(params.province).map((p) => p.toUpperCase()).filter((p) => provinceCodes.has(p)),
     terms: list(params.term).map((t) => t.toUpperCase()).filter((t) => /^(W|S|F)\d{4}$/.test(t)),
     disciplines: list(params.discipline).filter((d) => disciplineCodes.has(d)),
-    remote: params.remote === "1",
+    // `remote=1` is the old spelling of `mode=remote`; shared links still use it.
+    workModels: workModels.length || params.remote !== "1" ? workModels : ["remote"],
+    jobTypes,
     smallCompanies: params.size === "small",
     postedWithin: POSTED_WITHIN.some((p) => p.days === days) ? days : null,
     page: Number.isInteger(page) && page > 1 ? Math.min(page, 50) : 1,
@@ -94,7 +112,8 @@ export function feedSearchParams(f: FeedFilters): URLSearchParams {
   if (f.provinces.length) p.set("province", f.provinces.join(","));
   if (f.terms.length) p.set("term", f.terms.join(","));
   if (f.disciplines.length) p.set("discipline", f.disciplines.join(","));
-  if (f.remote) p.set("remote", "1");
+  if (f.workModels.length) p.set("mode", f.workModels.join(","));
+  if (f.jobTypes.length) p.set("type", f.jobTypes.join(","));
   if (f.smallCompanies) p.set("size", "small");
   if (f.postedWithin) p.set("posted", String(f.postedWithin));
   if (f.page > 1) p.set("page", String(f.page));
@@ -118,7 +137,8 @@ export async function queryFeed(
     // Remote-in-Canada postings have no province; keep them unless the user filters to onsite.
     query = query.or(`province.in.(${f.provinces.join(",")}),and(province.is.null,work_model.eq.remote)`);
   }
-  if (f.remote) query = query.eq("work_model", "remote");
+  if (f.workModels.length) query = query.in("work_model", f.workModels);
+  if (f.jobTypes.length) query = query.in("job_type", f.jobTypes);
   if (f.terms.length) query = query.overlaps("terms", f.terms);
   if (f.disciplines.length) query = query.overlaps("disciplines", f.disciplines);
   if (f.smallCompanies) query = query.in("company_size", ["startup", "mid"]);
@@ -138,6 +158,21 @@ export async function queryFeed(
     jobs: (data ?? []).map(toDiscoveredJob),
     total: count ?? 0,
   };
+}
+
+/** One job with its description, or null if the id is unknown. Closed postings are returned too. */
+export async function getJob(
+  supabase: SupabaseClient<Database>,
+  id: string
+): Promise<(DiscoveredJob & { is_active: boolean }) | null> {
+  if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) return null;
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(`${FEED_COLUMNS}, description_md, is_active`)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`Failed to load job: ${error.message}`);
+  return data ? { ...toDiscoveredJob(data), is_active: data.is_active } : null;
 }
 
 export { formatPostedSalary };
