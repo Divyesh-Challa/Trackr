@@ -7,7 +7,7 @@ const CONTACT = "divyeshchallavgr@gmail.com";
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy policy" updated="October 29, 2026">
+    <LegalPage title="Privacy policy" updated="November 16, 2026">
       <p>
         Trackr is run by Divyesh Challa, an individual based in Canada. This policy explains what personal
         information Trackr collects, why, and the choices you have. It is written to meet Canada&apos;s
@@ -19,7 +19,8 @@ export default function PrivacyPage() {
         <li><strong>Account details:</strong> your email address, and your name and profile picture if you sign in with Google or GitHub.</li>
         <li><strong>What you put in Trackr:</strong> your profile (school, graduation term, target roles and provinces), the applications you track, and their tasks, contacts, notes and status history.</li>
         <li><strong>Payment status</strong> if you subscribe to Pro. Card details go directly to Stripe; Trackr never sees or stores them.</li>
-        <li><strong>Text you send to the AI tools</strong> (Pro only), such as a job description and your resume bullets.</li>
+        <li><strong>Text you send to the AI tools</strong>, such as a job description, your resume bullets and questions you ask about a job. The AI tools are optional.</li>
+        <li><strong>Feedback</strong> you choose to send us.</li>
         <li><strong>Technical data:</strong> anonymous page-view and performance statistics, and error reports when something breaks.</li>
       </ul>
       <p>
@@ -35,7 +36,10 @@ export default function PrivacyPage() {
         <li>To generate the AI output you ask for.</li>
         <li>To fix bugs, keep the service secure, and prevent abuse.</li>
       </ul>
-      <p>We don&apos;t sell your personal information, show you ads, or use your data to train AI models.</p>
+      <p>
+        We don&apos;t sell your personal information or show you ads, and Trackr itself doesn&apos;t train AI models on
+        your data. The AI tools send text to an outside provider, described below.
+      </p>
 
       <h2>Who processes it for us</h2>
       <p>Trackr relies on these service providers, each bound by its own privacy and security commitments:</p>
@@ -44,7 +48,12 @@ export default function PrivacyPage() {
         <li><strong>Vercel:</strong> hosting, plus cookieless, anonymous web analytics.</li>
         <li><strong>Sentry:</strong> error reports with technical details about what broke and the page you were on. They don&apos;t include your name, email, cookies or what you typed.</li>
         <li><strong>Stripe:</strong> payments, if you subscribe.</li>
-        <li><strong>Anthropic:</strong> the AI tools, only for the text you send them. Anthropic does not train on this data.</li>
+        <li>
+          <strong>Google (Gemini API):</strong> the AI tools, only for the text you send them. During early access
+          these run on Gemini&apos;s free tier, where Google may use what is sent to improve its products and human
+          reviewers may read it. Don&apos;t use the AI tools for anything you wouldn&apos;t want shared this way; the
+          rest of Trackr works without them.
+        </li>
         <li><strong>Google and GitHub:</strong> only if you choose to sign in with them.</li>
       </ul>
       <p>

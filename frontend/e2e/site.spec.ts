@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signIn } from "./helpers";
+import { serviceGet, signIn } from "./helpers";
 
 test("signed-out visitors get the landing page with live numbers", async ({ page }) => {
   await page.goto("/");
@@ -31,4 +31,19 @@ test("phone layout: menu works and nothing scrolls sideways", async ({ page }, i
   await expect(menu.getByRole("link", { name: "Discover" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(menu).toBeHidden();
+});
+
+test("feedback needs sign-in, then saves what was sent", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "one pass is enough");
+  await page.goto("/feedback");
+  await expect(page).toHaveURL(/\/login\?next=%2Ffeedback/);
+  await signIn(page, `e2e-feedback-${Date.now()}@test.local`);
+  await page.goto("/feedback");
+  const message = `The Ottawa filter misses a job ${Date.now()}`;
+  await page.getByRole("button", { name: "Wrong job data" }).click();
+  await page.getByLabel("Details").fill(message);
+  await page.getByRole("button", { name: "Send feedback" }).click();
+  await expect(page.getByRole("heading", { name: "Thank you" })).toBeVisible();
+  const rows = await serviceGet(`feedback?select=kind&message=eq.${encodeURIComponent(message)}`);
+  expect(rows).toEqual([{ kind: "job_data" }]);
 });

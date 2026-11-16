@@ -16,7 +16,8 @@ const MODELS: Record<Provider, { model: string; price: { input: number; output: 
   gemini: { model: process.env.GEMINI_MODEL ?? "gemini-3.6-flash", price: { input: 0.5, output: 3 } },
 };
 
-export type AiFeature = "tailor" | "cover_letter" | "interview_question" | "interview_feedback";
+export type AiFeature =
+  | "tailor" | "cover_letter" | "interview_question" | "interview_feedback" | "job_match" | "job_question";
 
 /** Monthly calls included with Pro, per feature. */
 export const MONTHLY_LIMITS: Record<AiFeature, number> = {
@@ -24,12 +25,37 @@ export const MONTHLY_LIMITS: Record<AiFeature, number> = {
   cover_letter: 30,
   interview_question: 150,
   interview_feedback: 150,
+  job_match: 300,
+  job_question: 300,
 };
+
+/** Monthly calls for free accounts while AI_FREE_TIER is on. Kept low: every user shares one free API quota. */
+const FREE_MONTHLY_LIMITS: Record<AiFeature, number> = {
+  tailor: 5,
+  cover_letter: 5,
+  interview_question: 20,
+  interview_feedback: 20,
+  job_match: 30,
+  job_question: 30,
+};
+
+/**
+ * AI_FREE_TIER=1 means the model runs on a provider's free tier: every signed-in user may
+ * use the AI tools (with lower limits), and the UI says the provider may use what's sent.
+ * Turn it off when moving to a paid model to make AI a Pro feature again.
+ */
+export function aiFreeTier(): boolean {
+  return process.env.AI_FREE_TIER === "1";
+}
+
+export function monthlyLimits(pro: boolean): Record<AiFeature, number> {
+  return pro ? MONTHLY_LIMITS : FREE_MONTHLY_LIMITS;
+}
 
 const DAILY_BUDGET_USD = Number(process.env.AI_DAILY_BUDGET_USD ?? 5);
 
-// Gemini is opt-in (AI_PROVIDER=gemini): its free tier may use prompts for training,
-// which the privacy page rules out, so it's only for local testing until billing is on.
+// Gemini is opt-in (AI_PROVIDER=gemini). On its free tier Google may use prompts to improve
+// its products; set AI_FREE_TIER=1 alongside it so users are told before they send anything.
 function provider(): Provider | null {
   if (process.env.AI_PROVIDER === "gemini") return process.env.GEMINI_API_KEY ? "gemini" : null;
   return process.env.ANTHROPIC_API_KEY ? "anthropic" : null;
@@ -146,7 +172,7 @@ async function callGemini<S extends z.ZodType>(o: CallOptions<S>): Promise<Model
 }
 
 /**
- * One structured model call for the signed-in Pro user: checks quota first, records
+ * One structured model call for the signed-in user: checks plan and quota first, records
  * usage after. Never falls back to canned text; failures come back as honest errors.
  */
 export async function runStructured<S extends z.ZodType>(opts: {
@@ -164,10 +190,13 @@ export async function runStructured<S extends z.ZodType>(opts: {
   const admin = createAdminClient()!;
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return { ok: false, code: "not_pro", error: "Sign in first." };
+  const free = aiFreeTier();
+  const pro = free ? Boolean((await supabase.rpc("am_i_pro")).data) : true;
   const { data: status, error: checkError } = await supabase.rpc("ai_check", {
     p_feature: opts.feature,
-    p_monthly_limit: MONTHLY_LIMITS[opts.feature],
+    p_monthly_limit: monthlyLimits(pro)[opts.feature],
     p_daily_budget_usd: DAILY_BUDGET_USD,
+    p_require_pro: !free,
   });
   if (checkError) return { ok: false, error: "Couldn't check your AI allowance. Try again." };
   if (status === "not_pro") return { ok: false, code: "not_pro", error: "AI tools are part of Pro." };

@@ -23,6 +23,7 @@ import {
 import type { DiscoveredJob } from "@/types";
 import VantaBackground from "@/components/ui/VantaBackground";
 import { useGSAPStagger } from "@/lib/useGSAPStagger";
+import JobAi from "./JobAi";
 
 const PROGRAM_LABELS: Record<NonNullable<DiscoveredJob["job_type"]>, string> = {
   internship: "Internship",
@@ -261,6 +262,8 @@ function JobDetail({
         ))}
       </dl>
 
+      {signedIn && <JobAi jobId={job.id} />}
+
       <section aria-label="Job description" className="text-sm leading-relaxed text-slate-700">
         {isLoading ? (
           <p className="text-slate-500">Loading description…</p>
@@ -356,11 +359,11 @@ export default function DiscoverView({
 
   const hasFilters =
     filters.q || filters.provinces.length || filters.terms.length || filters.disciplines.length ||
-    filters.workModels.length || filters.jobTypes.length || filters.smallCompanies || filters.postedWithin;
+    filters.workModels.length || filters.jobTypes.length || filters.smallCompanies || filters.bigTech || filters.postedWithin;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const activeFilterCount =
     filters.provinces.length + filters.terms.length + filters.disciplines.length +
-    filters.workModels.length + filters.jobTypes.length + Number(filters.smallCompanies) + Number(Boolean(filters.postedWithin));
+    filters.workModels.length + filters.jobTypes.length + Number(filters.smallCompanies) + Number(filters.bigTech) + Number(Boolean(filters.postedWithin));
 
   return (
     <div className="space-y-4">
@@ -368,7 +371,7 @@ export default function DiscoverView({
         <VantaBackground className="opacity-50" lines={3} waveHeight={16} />
         <div className="relative">
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-slate-900">
-            Internships &amp; co-ops in Canada
+            Internships, co-ops &amp; new grad roles in Canada
           </h1>
           <p className="mt-1 text-sm text-slate-600">
             From company career sites and community lists, refreshed every 6 hours.
@@ -477,6 +480,9 @@ export default function DiscoverView({
           <Chip active={filters.smallCompanies} onClick={() => apply({ smallCompanies: !filters.smallCompanies })}>
             Startups &amp; mid-size
           </Chip>
+          <Chip active={filters.bigTech} onClick={() => apply({ bigTech: !filters.bigTech })}>
+            Big tech
+          </Chip>
           <label className="sr-only" htmlFor="posted-within">
             Posted within
           </label>
@@ -558,8 +564,10 @@ export default function DiscoverView({
                             {termLabel(t)}
                           </span>
                         ))}
-                        {job.job_type === "coop" && (
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Co-op</span>
+                        {(job.job_type === "coop" || job.job_type === "new_grad") && (
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                            {PROGRAM_LABELS[job.job_type]}
+                          </span>
                         )}
                         {job.company_size && job.company_size !== "large" && (
                           <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">

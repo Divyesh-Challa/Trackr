@@ -137,6 +137,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"feedback": {
+                  Row: {
+                    "created_at": string,"id": string,"kind": string,"message": string,"user_id": string,"wants_reply": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"kind": string,"message": string,"user_id"?: string,"wants_reply"?: boolean
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"kind"?: string,"message"?: string,"user_id"?: string,"wants_reply"?: boolean
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"ingest_runs": {
                   Row: {
                     "deactivated": number,"finished_at": string | null,"id": string,"inserted": number,"started_at": string,"stats": NonNullable<Json>,"status": string,"updated": number
@@ -248,7 +262,7 @@ isOneToOne: false
           }
           Functions: {
             "ai_check":
-{ Args: { "p_daily_budget_usd": number,"p_feature": string,"p_monthly_limit": number }; Returns: string
+{ Args: { "p_daily_budget_usd": number,"p_feature": string,"p_monthly_limit": number,"p_require_pro"?: boolean }; Returns: string
                            },
 "ai_record":
 { Args: { "p_cost_usd": number,"p_feature": string,"p_input_tokens": number,"p_model": string,"p_output_tokens": number,"p_user": string }; Returns: undefined

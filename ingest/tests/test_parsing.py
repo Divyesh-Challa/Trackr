@@ -3,7 +3,7 @@ from datetime import date, datetime, timezone
 import pytest
 
 from ingest.boards import board_from_url
-from ingest.classify import disciplines, extract_terms, is_student_role, job_type, upcoming_terms
+from ingest.classify import disciplines, extract_terms, is_new_grad_role, is_student_role, job_type, upcoming_terms
 from ingest.locations import parse_locations, work_model
 from ingest.models import RawPosting
 from ingest.normalize import canonical_key, clean_url, html_to_markdown, parse_stated_pay
@@ -67,6 +67,23 @@ def test_student_roles(title):
 ])
 def test_not_student_roles(title):
     assert not is_student_role(title)
+
+
+@pytest.mark.parametrize("title", [
+    "Software Engineer, New Grad (2027)", "Junior Software Developer", "Entry-Level Data Analyst",
+    "University Graduate - Hardware Engineer", "Early Career Software Engineer",
+])
+def test_new_grad_roles(title):
+    assert is_new_grad_role(title) and not is_student_role(title)
+    assert job_type(title) == "new_grad"
+
+
+@pytest.mark.parametrize("title", [
+    "Software Engineer", "Senior Engineer, New Grad Program", "Graduate Program Manager",
+    "Early Career Recruiter", "Junior Team Lead",
+])
+def test_not_new_grad_roles(title):
+    assert not is_new_grad_role(title)
 
 
 def test_terms_from_title_and_months():

@@ -38,8 +38,17 @@ export type WorkModel = (typeof WORK_MODELS)[number]["code"];
 export const JOB_TYPES = [
   { code: "internship", label: "Internship" },
   { code: "coop", label: "Co-op" },
+  { code: "new_grad", label: "New grad" },
 ] as const;
 export type JobType = (typeof JOB_TYPES)[number]["code"];
+
+// Matched against jobs.company_name exactly, as the ingest writes it.
+export const BIG_TECH = [
+  "Google", "Microsoft", "Amazon", "Apple", "Meta", "NVIDIA", "Intel", "Qualcomm", "AMD", "Shopify", "Stripe",
+  "Databricks", "Uber", "Lyft", "DoorDash", "Pinterest", "Atlassian", "Block", "Workday", "Salesforce", "Adobe",
+  "Netflix", "Snowflake", "Cloudflare", "Datadog", "Figma", "Notion", "OpenAI", "Anthropic", "Cohere",
+  "Electronic Arts", "Epic Games", "Synopsys", "Nokia", "Cisco", "IBM", "Oracle", "SAP", "Tesla", "Samsung",
+];
 
 export const POSTED_WITHIN = [
   { days: 3, label: "Last 3 days" },
@@ -73,6 +82,7 @@ export type FeedFilters = {
   workModels: WorkModel[];
   jobTypes: JobType[];
   smallCompanies: boolean;
+  bigTech: boolean;
   postedWithin: number | null;
   page: number;
 };
@@ -101,6 +111,7 @@ export function parseFeedParams(params: Params): FeedFilters {
     workModels: workModels.length || params.remote !== "1" ? workModels : ["remote"],
     jobTypes,
     smallCompanies: params.size === "small",
+    bigTech: params.top === "1",
     postedWithin: POSTED_WITHIN.some((p) => p.days === days) ? days : null,
     page: Number.isInteger(page) && page > 1 ? Math.min(page, 50) : 1,
   };
@@ -115,6 +126,7 @@ export function feedSearchParams(f: FeedFilters): URLSearchParams {
   if (f.workModels.length) p.set("mode", f.workModels.join(","));
   if (f.jobTypes.length) p.set("type", f.jobTypes.join(","));
   if (f.smallCompanies) p.set("size", "small");
+  if (f.bigTech) p.set("top", "1");
   if (f.postedWithin) p.set("posted", String(f.postedWithin));
   if (f.page > 1) p.set("page", String(f.page));
   return p;
@@ -142,6 +154,7 @@ export async function queryFeed(
   if (f.terms.length) query = query.overlaps("terms", f.terms);
   if (f.disciplines.length) query = query.overlaps("disciplines", f.disciplines);
   if (f.smallCompanies) query = query.in("company_size", ["startup", "mid"]);
+  if (f.bigTech) query = query.in("company_name", BIG_TECH);
   if (f.postedWithin) {
     const since = new Date(Date.now() - f.postedWithin * 86_400_000).toISOString();
     query = query.or(`posted_at.gte.${since},and(posted_at.is.null,first_seen_at.gte.${since})`);

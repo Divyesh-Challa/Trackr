@@ -9,6 +9,7 @@ export default function SiteFooter() {
           <Link href="/discover" className="hover:text-slate-900">Jobs</Link>
           <Link href="/privacy" className="hover:text-slate-900">Privacy</Link>
           <Link href="/terms" className="hover:text-slate-900">Terms</Link>
+          <Link href="/feedback" className="hover:text-slate-900">Feedback</Link>
           <a href="mailto:divyeshchallavgr@gmail.com" className="hover:text-slate-900">Contact</a>
         </nav>
       </div>

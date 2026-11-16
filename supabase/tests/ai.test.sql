@@ -1,7 +1,7 @@
 -- Run with: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(11);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000e1', 'e1@test.local'),
@@ -11,6 +11,7 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000e1","role":"authenticated"}', true);
 
 select is(public.ai_check('tailor', 2, 5), 'not_pro', 'free users cannot use AI');
+select is(public.ai_check('tailor', 2, 5, false), 'ok', 'unless the Pro gate is off (free model tier)');
 
 reset role;
 insert into public.subscriptions (user_id, status, current_period_end)
@@ -32,6 +33,12 @@ select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000
 select is(public.ai_check('tailor', 2, 5), 'quota', 'monthly quota is enforced per feature');
 select is(public.ai_check('cover_letter', 2, 5), 'ok', 'other features have their own quota');
 select is(public.ai_check('cover_letter', 2, 0.01), 'budget', 'the daily budget breaker trips');
+reset role;
+select lives_ok(
+  $$ select public.ai_record('00000000-0000-0000-0000-0000000000e1', 'job_match', 'x', 1, 1, 0) $$,
+  'job match usage can be logged');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000e1","role":"authenticated"}', true);
 
 insert into public.resume_bullets (heading, content) values ('Intern, Acme', 'Built a thing');
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000e2","role":"authenticated"}', true);

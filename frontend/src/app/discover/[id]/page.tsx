@@ -33,7 +33,7 @@ function jobPostingLd(job: NonNullable<Awaited<ReturnType<typeof loadJob>>>) {
     description: job.description,
     datePosted: job.posted_at ?? job.created_at,
     validThrough: job.deadline_at,
-    employmentType: "INTERN",
+    employmentType: job.job_type === "new_grad" || job.job_type === "full_time" ? "FULL_TIME" : "INTERN",
     directApply: false,
     url: job.job_url,
     hiringOrganization: {

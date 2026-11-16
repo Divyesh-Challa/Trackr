@@ -3,12 +3,13 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { billingConfigured } from "@/lib/stripe";
+import { aiFreeTier } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Pricing | Trackr" };
 
 const FREE = [
-  "The full Canadian internship & co-op feed",
+  "The full Canadian internship, co-op & new grad feed",
   "Up to 50 active applications",
   "Deadlines, follow-ups, contacts and notes",
   "CSV import and export",
@@ -16,8 +17,7 @@ const FREE = [
 const PRO = [
   "Everything in Free",
   "Unlimited applications",
-  "AI resume tailoring and cover letters from your own experience",
-  "AI interview practice with feedback",
+  "AI resume tailoring, cover letters, job match and interview practice at the highest limits",
   "Daily email alerts for saved searches (coming soon)",
 ];
 
@@ -66,7 +66,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
           <h2 id="free-plan" className="text-lg font-semibold text-slate-900">Free</h2>
           <p className="mt-1 text-3xl font-semibold text-slate-900">$0</p>
           <ul className="mt-5 space-y-2 text-sm text-slate-700">
-            {FREE.map((f) => (
+            {[...FREE, ...(aiFreeTier() ? ["AI tools during early access, with monthly limits"] : [])].map((f) => (
               <li key={f} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />{f}</li>
             ))}
           </ul>
