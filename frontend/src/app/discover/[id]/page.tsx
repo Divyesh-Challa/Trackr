@@ -4,7 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getJob } from "@/lib/feed";
+import { getJob, relatedJobs } from "@/lib/feed";
+import { JobRows } from "@/components/JobRows";
 import { JobPage } from "../DiscoverView";
 
 type Props = { params: Promise<{ id: string }> };
@@ -73,9 +74,10 @@ export default async function JobDetailPage({ params }: Props) {
 
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
-  const { data: tracked } = auth.user
-    ? await supabase.from("applications").select("id").eq("job_id", job.id).limit(1)
-    : { data: null };
+  const [{ data: tracked }, related] = await Promise.all([
+    auth.user ? supabase.from("applications").select("id").eq("job_id", job.id).limit(1) : { data: null },
+    relatedJobs(supabase, job),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -90,6 +92,18 @@ export default async function JobDetailPage({ params }: Props) {
       <div className="rounded-2xl border border-slate-200 bg-surface p-6 shadow-simplify-card">
         <JobPage job={job} signedIn={Boolean(auth.user)} initiallyTracked={Boolean(tracked?.length)} />
       </div>
+      {related.sameCompany.length > 0 && (
+        <section aria-labelledby="same-company" className="space-y-2 pt-4">
+          <h2 id="same-company" className="text-lg font-semibold text-slate-900">More at {job.company_name}</h2>
+          <JobRows jobs={related.sameCompany} />
+        </section>
+      )}
+      {related.similar.length > 0 && (
+        <section aria-labelledby="similar" className="space-y-2 pt-4">
+          <h2 id="similar" className="text-lg font-semibold text-slate-900">Similar roles</h2>
+          <JobRows jobs={related.similar} />
+        </section>
+      )}
       {job.is_active && job.description && (
         // "<" is escaped so a description can't close the script tag.
         <script

@@ -736,7 +736,7 @@ export default function DiscoverView({
   });
 
   const otherFilterCount =
-    filters.provinces.length + filters.terms.length + filters.disciplines.length +
+    filters.provinces.length + Number(filters.cities.length > 0) + Number(filters.skills.length > 0) + filters.terms.length + filters.disciplines.length +
     filters.workModels.length + filters.jobTypes.length + Number(filters.smallCompanies) + Number(filters.bigTech) + Number(Boolean(filters.postedWithin));
   const hasFilters = Boolean(filters.q) || otherFilterCount > 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -749,6 +749,13 @@ export default function DiscoverView({
       label: PROVINCES.find((x) => x.code === p)?.label ?? p,
       remove: () => toggle("provinces", p),
     })),
+    // Browse pages link here with a metro's cities or a set of skills; one chip each keeps the bar short.
+    ...(filters.cities.length
+      ? [{ key: "city", label: filters.cities.length > 1 ? `${filters.cities[0]} area` : filters.cities[0], remove: () => apply({ cities: [] }) }]
+      : []),
+    ...(filters.skills.length
+      ? [{ key: "skill", label: `Skills: ${filters.skills.slice(0, 2).join(", ")}${filters.skills.length > 2 ? ` +${filters.skills.length - 2}` : ""}`, remove: () => apply({ skills: [] }) }]
+      : []),
     ...filters.workModels.map((m) => ({
       key: `m-${m}`,
       label: WORK_MODELS.find((x) => x.code === m)!.label,
@@ -986,7 +993,7 @@ export default function DiscoverView({
                 type="button"
                 onClick={() => {
                   setQuery("");
-                  apply({ q: "", provinces: [], terms: [], disciplines: [], workModels: [], jobTypes: [], smallCompanies: false, bigTech: false, postedWithin: null });
+                  apply({ q: "", provinces: [], cities: [], skills: [], terms: [], disciplines: [], workModels: [], jobTypes: [], smallCompanies: false, bigTech: false, postedWithin: null });
                 }}
                 className="ml-1 text-xs font-medium text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline"
               >

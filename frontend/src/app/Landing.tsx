@@ -15,6 +15,36 @@ import { springs } from "@/lib/motion-tokens";
 import type { DiscoveredJob } from "@/types";
 import type { FeedPulse } from "@/lib/feed";
 import { PulseLine } from "@/components/PulseLine";
+import { CompanyLogo } from "@/components/CompanyLogo";
+import { JobTicker } from "@/components/landing/JobTicker";
+import { ResumeMatchDemo } from "@/components/landing/ResumeMatchDemo";
+
+const FAQ = [
+  {
+    q: "Where do the jobs come from?",
+    a: "Straight from employers' own job boards (Greenhouse, Lever, Ashby, Workday and more) and community-kept internship lists, checked every 6 hours. You always apply on the employer's site.",
+  },
+  {
+    q: "Are closed or fake postings filtered out?",
+    a: "A role drops off once it disappears from the employer's board. Reposts of the same role are labelled, and pay is only shown when the posting states it.",
+  },
+  {
+    q: "Is Trackr free?",
+    a: "The feed, skill match and a tracker board for up to 50 active applications are free. Pro removes the application limit and raises the limits on AI tools like resume tailoring and cover letters.",
+  },
+  {
+    q: "How does the match score work?",
+    a: "Trackr tags each posting with the skills it asks for and compares them with the skills on your resume. It's a quick guide, not a verdict: a 40% match can still be worth applying to.",
+  },
+  {
+    q: "Can I bring my existing spreadsheet?",
+    a: "Yes. Import a CSV into your board and every application keeps its stage, dates and notes. You can export everything again at any time.",
+  },
+  {
+    q: "Which roles are listed?",
+    a: "Internships, co-ops and new grad roles in Canada across software, data and ML, hardware, IT and security, product, quant and more, including remote roles open to Canadians.",
+  },
+];
 
 function Rise({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const reduce = useReducedMotion();
@@ -35,12 +65,14 @@ export default function Landing({
   smallerCompanyRoles,
   companyCount,
   latest,
+  topCompanies,
   pulse,
 }: {
   totalRoles: number;
   smallerCompanyRoles: number;
   companyCount: number;
   latest: DiscoveredJob[];
+  topCompanies: { name: string; domain: string | null; roles: number }[];
   pulse: FeedPulse;
 }) {
   const listRef = useGSAPStagger({ selector: "[data-stagger]", triggerDeps: [latest.length], stagger: 0.06 });
@@ -106,6 +138,9 @@ export default function Landing({
             </Link>
           </Rise>
         </div>
+        <Rise delay={0.2} className="relative mt-12">
+          <JobTicker jobs={latest.slice(0, 16)} />
+        </Rise>
       </section>
 
       <section aria-labelledby="latest-title" className="mx-auto max-w-5xl">
@@ -121,8 +156,8 @@ export default function Landing({
           </Link>
         </div>
         <div ref={listRef} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {latest.map((job) => (
-            <Link key={job.id} href="/discover" data-stagger className="block">
+          {latest.slice(0, 6).map((job) => (
+            <Link key={job.id} href={`/discover/${job.id}`} data-stagger className="block">
               <SpotlightCard className="h-full p-4">
                 <p className="truncate text-[13px] font-medium text-slate-600">{job.company_name}</p>
                 <h3 className="mt-0.5 line-clamp-2 font-semibold leading-snug text-slate-900">{job.role_title}</h3>
@@ -142,6 +177,20 @@ export default function Landing({
         </div>
       </section>
 
+      {topCompanies.length > 0 && (
+        <section aria-labelledby="companies-title" className="mx-auto max-w-5xl text-center">
+          <h2 id="companies-title" className="text-sm font-medium text-slate-500">Pulled every 6 hours from the career pages of</h2>
+          <ul className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-3">
+            {topCompanies.map((c) => (
+              <li key={c.name} className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <CompanyLogo name={c.name} domain={c.domain} className="h-7 w-7" />
+                {c.name}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section aria-label="Features" className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
         {features.map(({ icon: Icon, title, body }) => (
           <SpotlightCard key={title} className="p-6">
@@ -152,6 +201,25 @@ export default function Landing({
             <p className="mt-2 text-[15px] leading-relaxed text-slate-600">{body}</p>
           </SpotlightCard>
         ))}
+      </section>
+
+      <section aria-label="Try skill match" className="mx-auto max-w-5xl">
+        <ResumeMatchDemo jobs={latest} />
+      </section>
+
+      <section aria-labelledby="faq-title" className="mx-auto max-w-3xl">
+        <h2 id="faq-title" className="text-center font-serif text-3xl font-semibold tracking-tight text-slate-900">Good to know</h2>
+        <div className="mt-6 space-y-2">
+          {FAQ.map(({ q, a }) => (
+            <details key={q} className="group rounded-xl border border-slate-200 bg-surface px-4 py-3 transition open:shadow-sm">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-slate-900 marker:hidden">
+                {q}
+                <span aria-hidden className="text-slate-400 transition group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-2 text-[15px] leading-relaxed text-slate-600">{a}</p>
+            </details>
+          ))}
+        </div>
       </section>
 
       <section className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-[#0b1220] px-6 py-12 ring-1 ring-white/5 text-center md:py-16">

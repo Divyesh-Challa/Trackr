@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Compass, FileText, Layers, LogIn, LogOut, Menu, Sparkles, User, X } from "lucide-react";
+import { BookOpen, Compass, FileText, Layers, LogIn, LogOut, Menu, Sparkles, User, X } from "lucide-react";
 import type { User as AuthUser } from "@supabase/supabase-js";
 import { createClient } from "../lib/supabase/client";
 import { springs } from "../lib/motion-tokens";
@@ -45,6 +45,7 @@ export default function Navbar() {
         ]
       : []),
     { href: "/discover", label: "Discover", icon: Compass },
+    { href: "/guide", label: "Guide", icon: BookOpen },
     { href: "/pricing", label: "Pricing", icon: Sparkles },
     ...(user ? [{ href: "/profile", label: "Profile", icon: User }] : []),
   ];
