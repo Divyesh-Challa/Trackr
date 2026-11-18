@@ -157,6 +157,9 @@ export interface DiscoveredJob {
   min_gpa: number | null;
   /** People who tracked this job in the last 7 days; only on feed rows. */
   trackers_week?: number;
+  /** Share of the job's skills found on the viewer's resume; null when either side lists none. */
+  match_percent?: number | null;
+  skills?: string[];
 }
 
 /** Row of the `profiles` table (one per signed-in user). */

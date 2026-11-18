@@ -130,8 +130,8 @@ export type FeedJobRow = Pick<
   | "city" | "province" | "work_model" | "job_type" | "term" | "terms" | "disciplines" | "job_url"
   | "salary_min" | "salary_max" | "salary_currency" | "salary_period" | "salary_source"
   | "posted_at" | "deadline_at" | "first_seen_at" | "created_at"
-  | "is_repost" | "citizenship_required" | "clearance_required" | "min_gpa"
-> & { description_md?: string | null; trackers_week?: number | null };
+  | "is_repost" | "citizenship_required" | "clearance_required" | "min_gpa" | "skills"
+> & { description_md?: string | null; trackers_week?: number | null; match_percent?: number | null };
 
 export function toDiscoveredJob(row: FeedJobRow): DiscoveredJob {
   return {
@@ -160,5 +160,7 @@ export function toDiscoveredJob(row: FeedJobRow): DiscoveredJob {
     clearance_required: row.clearance_required,
     min_gpa: row.min_gpa,
     trackers_week: row.trackers_week ?? undefined,
+    match_percent: row.match_percent ?? null,
+    skills: row.skills ?? [],
   };
 }

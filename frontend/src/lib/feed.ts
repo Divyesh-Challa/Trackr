@@ -57,7 +57,8 @@ export const POSTED_WITHIN = [
 ] as const;
 
 export const SORTS = [
-  { code: "recommended", label: "Recommended", hint: "Fresh postings first, nudged up by company size, stated pay and how many students are tracking them." },
+  { code: "recommended", label: "Recommended", hint: "Fresh postings first, nudged up by your target roles and provinces, your resume skills, company size, stated pay and what students track." },
+  { code: "match", label: "Best match", hint: "Jobs asking for the most skills on your resume first." },
   { code: "recent", label: "Most recent", hint: "Newest postings first." },
   { code: "trending", label: "Trending", hint: "Most tracked by Trackr users this week." },
 ] as const;
@@ -147,7 +148,7 @@ export function feedSearchParams(f: FeedFilters): URLSearchParams {
 }
 
 const JOB_COLUMNS =
-  "id, source, company_name, company_domain, company_size, title, locations, city, province, work_model, job_type, term, terms, disciplines, job_url, salary_min, salary_max, salary_currency, salary_period, salary_source, posted_at, deadline_at, first_seen_at, created_at, is_repost, citizenship_required, clearance_required, min_gpa";
+  "id, source, company_name, company_domain, company_size, title, locations, city, province, work_model, job_type, term, terms, disciplines, job_url, salary_min, salary_max, salary_currency, salary_period, salary_source, posted_at, deadline_at, first_seen_at, created_at, is_repost, citizenship_required, clearance_required, min_gpa, skills";
 
 export async function queryFeed(
   supabase: SupabaseClient<Database>,
@@ -155,7 +156,7 @@ export async function queryFeed(
 ): Promise<{ jobs: DiscoveredJob[]; total: number }> {
   let query = supabase
     .from("job_feed")
-    .select(`${JOB_COLUMNS}, trackers_week`, { count: "exact" })
+    .select(`${JOB_COLUMNS}, trackers_week, match_percent`, { count: "exact" })
     .eq("is_active", true)
     .eq("hidden", f.hidden);
 
@@ -177,6 +178,7 @@ export async function queryFeed(
 
   if (f.sort === "recommended") query = query.order("rank_score", { ascending: false });
   if (f.sort === "trending") query = query.order("trackers_week", { ascending: false });
+  if (f.sort === "match") query = query.order("match_percent", { ascending: false, nullsFirst: false });
   const from = (f.page - 1) * PAGE_SIZE;
   const { data, error, count } = await query
     .order("posted_sort", { ascending: false })
