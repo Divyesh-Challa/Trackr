@@ -210,7 +210,9 @@ export async function runStructured<S extends z.ZodType>(opts: {
   } catch (err) {
     if (err instanceof BusyError) return { ok: false, error: "AI tools are busy. Try again in a minute." };
     if (err instanceof ServiceError) return { ok: false, error: `The AI service returned an error (${err.status}). Try again.` };
-    throw err;
+    // Network failures and timeouts: report them instead of crashing the page.
+    console.error("AI request failed", err);
+    return { ok: false, error: "The AI request failed. Try again." };
   }
 
   const { price } = MODELS[which];

@@ -31,6 +31,13 @@ export const metadata: Metadata = {
   title: "Trackr | Canadian internships & co-ops, tracked",
   description:
     "Tech internships and co-ops across Canada, refreshed every 6 hours from company job boards, with a tracker for every application.",
+  openGraph: {
+    siteName: "Trackr",
+    type: "website",
+    title: "Trackr | Canadian internships & co-ops, tracked",
+    description: "Tech internships, co-ops and new grad roles across Canada, with a tracker for every application.",
+  },
+  twitter: { card: "summary" },
 };
 
 export default function RootLayout({

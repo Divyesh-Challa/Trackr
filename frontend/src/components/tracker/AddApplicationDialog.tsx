@@ -91,6 +91,8 @@ export default function AddApplicationDialog({
           text: result.fromFeed ? "Found it in the jobs feed. Check the details below." : "Filled in from the company's job board. Check the details below.",
           tone: "ok",
         });
+      } else if (!/^https?:\/\//i.test(link.trim())) {
+        setLookupMsg({ text: "That doesn't look like a link. Paste the full address, starting with https://.", tone: "warn" });
       } else {
         set("job_url", link.trim());
         setLookupMsg({

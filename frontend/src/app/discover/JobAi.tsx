@@ -36,6 +36,7 @@ export default function JobAi({ jobId }: { jobId: string }) {
       </div>
 
       {result && !result.ok && <p role="alert" className="text-sm text-red-600">{result.error}</p>}
+      {match.isError && <p role="alert" className="text-sm text-red-600">Couldn&apos;t reach the AI tools. Try again.</p>}
       {result?.ok && (
         <div className="space-y-2 text-sm text-slate-700">
           <p>
@@ -72,6 +73,7 @@ export default function JobAi({ jobId }: { jobId: string }) {
           {ask.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Ask
         </button>
       </form>
+      {ask.isError && <p role="alert" className="text-sm text-red-600">Couldn&apos;t reach the AI tools. Try again.</p>}
       {ask.data && (
         <p role={ask.data.ok ? undefined : "alert"} className={`text-sm ${ask.data.ok ? "text-slate-700" : "text-red-600"}`}>
           {ask.data.ok ? ask.data.data.answer : ask.data.error}

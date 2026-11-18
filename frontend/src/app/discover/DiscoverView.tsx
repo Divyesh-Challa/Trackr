@@ -23,6 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
+import { PulseLine } from "@/components/PulseLine";
 import { createApplication, hideJob, reportJob, unhideJob, type ReportReason } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -84,13 +85,6 @@ function postedAgo(iso: string | null) {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-function minutesAgo(iso: string, now: number) {
-  const mins = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 60_000));
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins} min ago`;
-  const hrs = Math.floor(mins / 60);
-  return hrs < 24 ? `${hrs}h ago` : `${Math.floor(hrs / 24)}d ago`;
-}
 
 const isNew = (iso: string | null) => Boolean(iso) && Date.now() - new Date(iso!).getTime() < 2 * 86_400_000;
 
@@ -219,46 +213,6 @@ function Menu({
   );
 }
 
-/** "● Live · updated 12 min ago · 24 new today …": tells the visitor the feed is fresh. */
-function PulseLine({ pulse }: { pulse: FeedPulse }) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 30_000);
-    return () => clearInterval(id);
-  }, []);
-
-  const parts = [
-    pulse.lastRefresh && `Updated ${minutesAgo(pulse.lastRefresh, now)}`,
-    pulse.newToday > 0 && `${pulse.newToday.toLocaleString()} new today`,
-    // A handful of students reads as an empty room, so only show it once it's a crowd.
-    pulse.trackersWeek >= 5 && `${pulse.trackersWeek.toLocaleString()} students tracked roles this week`,
-  ].filter(Boolean);
-
-  return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-slate-600">
-      <span className="inline-flex items-center gap-1.5 font-medium text-emerald-700">
-        <span className="relative flex h-2 w-2" aria-hidden>
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-        </span>
-        Live
-      </span>
-      {parts.map((p) => (
-        <React.Fragment key={String(p)}>
-          <span aria-hidden className="text-slate-300">
-            ·
-          </span>
-          <span>{p}</span>
-        </React.Fragment>
-      ))}
-      {pulse.newSinceVisit != null && pulse.newSinceVisit > 0 && (
-        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-          {pulse.newSinceVisit.toLocaleString()} new since your last visit
-        </span>
-      )}
-    </div>
-  );
-}
 
 function ReportDialog({ job, open, onClose }: { job: DiscoveredJob; open: boolean; onClose: () => void }) {
   const toast = useToast();
@@ -621,7 +575,7 @@ function JobCard({
               <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span>
             )}
             {(job.trackers_week ?? 0) >= 2 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
                 <Flame className="h-3 w-3" aria-hidden /> {job.trackers_week} tracking
               </span>
             )}
@@ -680,6 +634,32 @@ export default function DiscoverView({
   const [query, setQuery] = useState(filters.q);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const backRef = useRef<HTMLButtonElement>(null);
+  const toolbarRef = useRef<HTMLElement>(null);
+  const [toolbarHeight, setToolbarHeight] = useState(136);
+
+  // The detail panel sticks just below the toolbar, which grows with active filter chips.
+  useEffect(() => {
+    const el = toolbarRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setToolbarHeight(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // On phones the detail is a full-screen sheet: Escape closes it, focus moves in, the page behind stops scrolling.
+  useEffect(() => {
+    if (!mobileDetailOpen || !window.matchMedia("(max-width: 1023px)").matches) return;
+    backRef.current?.focus();
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMobileDetailOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [mobileDetailOpen]);
   const [tracked, setTracked] = useState(() => new Set(trackedJobIds));
   // Cards hidden (or restored, in the Hidden view) since the server rendered this page.
   const [removed, setRemoved] = useState<Set<string>>(() => new Set());
@@ -809,6 +789,7 @@ export default function DiscoverView({
       </header>
 
       <section
+        ref={toolbarRef}
         aria-label="Search and filters"
         className="sticky top-14 z-20 -mx-1 space-y-3 rounded-2xl border border-slate-200 bg-surface/90 p-3 shadow-simplify-card backdrop-blur-md"
       >
@@ -1097,11 +1078,16 @@ export default function DiscoverView({
         {selected && (
           <div
             data-lenis-prevent
-            className={`lg:col-span-7 lg:sticky lg:top-44 lg:block ${
+            role={mobileDetailOpen ? "dialog" : undefined}
+            aria-modal={mobileDetailOpen || undefined}
+            aria-label={mobileDetailOpen ? `${selected.role_title} at ${selected.company_name}` : undefined}
+            style={{ "--sticky-top": `${toolbarHeight + 72}px` } as React.CSSProperties}
+            className={`lg:col-span-7 lg:sticky lg:top-[var(--sticky-top)] lg:block ${
               mobileDetailOpen ? "fixed inset-0 z-50 overflow-y-auto bg-surface p-4" : "hidden"
-            } lg:inset-auto lg:z-auto lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-slate-200 lg:p-6 lg:shadow-simplify-card`}
+            } lg:inset-auto lg:z-auto lg:max-h-[calc(100vh-var(--sticky-top)-1rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-slate-200 lg:p-6 lg:shadow-simplify-card`}
           >
             <button
+              ref={backRef}
               type="button"
               onClick={() => setMobileDetailOpen(false)}
               className="mb-3 inline-flex items-center gap-1 text-sm font-medium text-slate-600 lg:hidden"

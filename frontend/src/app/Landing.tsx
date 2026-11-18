@@ -13,6 +13,8 @@ import { useGSAPStagger } from "@/lib/useGSAPStagger";
 import { termLabel } from "@/lib/feed";
 import { springs } from "@/lib/motion-tokens";
 import type { DiscoveredJob } from "@/types";
+import type { FeedPulse } from "@/lib/feed";
+import { PulseLine } from "@/components/PulseLine";
 
 function Rise({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const reduce = useReducedMotion();
@@ -33,11 +35,13 @@ export default function Landing({
   smallerCompanyRoles,
   companyCount,
   latest,
+  pulse,
 }: {
   totalRoles: number;
   smallerCompanyRoles: number;
   companyCount: number;
   latest: DiscoveredJob[];
+  pulse: FeedPulse;
 }) {
   const listRef = useGSAPStagger({ selector: "[data-stagger]", triggerDeps: [latest.length], stagger: 0.06 });
 
@@ -106,9 +110,12 @@ export default function Landing({
 
       <section aria-labelledby="latest-title" className="mx-auto max-w-5xl">
         <div className="mb-5 flex items-end justify-between gap-4">
-          <h2 id="latest-title" className="font-serif text-3xl font-semibold tracking-tight text-slate-900">
-            Just posted
-          </h2>
+          <div className="space-y-1.5">
+            <h2 id="latest-title" className="font-serif text-3xl font-semibold tracking-tight text-slate-900">
+              Just posted
+            </h2>
+            <PulseLine pulse={pulse} />
+          </div>
           <Link href="/discover" className="inline-flex items-center gap-1 text-sm font-medium text-[#0066FF] hover:underline">
             See all roles <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
