@@ -133,6 +133,12 @@ isOneToOne: false
       foreignKeyName: "applications_job_id_fkey"
       columns: ["job_id"]
 isOneToOne: false
+      referencedRelation: "job_feed"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "applications_job_id_fkey"
+      columns: ["job_id"]
+isOneToOne: false
       referencedRelation: "jobs"
       referencedColumns: ["id"]
     }
@@ -165,16 +171,68 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
-                },"jobs": {
+                },"job_hides": {
                   Row: {
-                    "city": string | null,"company_domain": string | null,"company_name": string,"company_size": string | null,"created_at": string,"deadline_at": string | null,"description_md": string | null,"disciplines": (string)[],"first_seen_at": string,"id": string,"is_active": boolean,"job_type": Database["public"]['Enums']["job_type"] | null,"job_url": string,"job_url_canonical": string,"last_seen_at": string,"locations": (string)[],"missed_runs": number,"posted_at": string | null,"province": string | null,"salary_currency": string,"salary_max": number | null,"salary_min": number | null,"salary_period": string | null,"salary_source": string | null,"search": unknown,"source": string,"source_id": string | null,"term": string | null,"terms": (string)[],"title": string,"updated_at": string,"work_model": Database["public"]['Enums']["work_model"] | null
+                    "created_at": string,"job_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "city"?: string | null,"company_domain"?: string | null,"company_name": string,"company_size"?: string | null,"created_at"?: string,"deadline_at"?: string | null,"description_md"?: string | null,"disciplines"?: (string)[],"first_seen_at"?: string,"id"?: string,"is_active"?: boolean,"job_type"?: Database["public"]['Enums']["job_type"] | null,"job_url": string,"job_url_canonical": string,"last_seen_at"?: string,"locations"?: (string)[],"missed_runs"?: number,"posted_at"?: string | null,"province"?: string | null,"salary_currency"?: string,"salary_max"?: number | null,"salary_min"?: number | null,"salary_period"?: string | null,"salary_source"?: string | null,"search"?: never,"source": string,"source_id"?: string | null,"term"?: string | null,"terms"?: (string)[],"title": string,"updated_at"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
+                    "created_at"?: string,"job_id": string,"user_id"?: string
                   }
                   Update: {
-                    "city"?: string | null,"company_domain"?: string | null,"company_name"?: string,"company_size"?: string | null,"created_at"?: string,"deadline_at"?: string | null,"description_md"?: string | null,"disciplines"?: (string)[],"first_seen_at"?: string,"id"?: string,"is_active"?: boolean,"job_type"?: Database["public"]['Enums']["job_type"] | null,"job_url"?: string,"job_url_canonical"?: string,"last_seen_at"?: string,"locations"?: (string)[],"missed_runs"?: number,"posted_at"?: string | null,"province"?: string | null,"salary_currency"?: string,"salary_max"?: number | null,"salary_min"?: number | null,"salary_period"?: string | null,"salary_source"?: string | null,"search"?: never,"source"?: string,"source_id"?: string | null,"term"?: string | null,"terms"?: (string)[],"title"?: string,"updated_at"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
+                    "created_at"?: string,"job_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "job_hides_job_id_fkey"
+      columns: ["job_id"]
+isOneToOne: false
+      referencedRelation: "job_feed"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "job_hides_job_id_fkey"
+      columns: ["job_id"]
+isOneToOne: false
+      referencedRelation: "jobs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"job_reports": {
+                  Row: {
+                    "created_at": string,"id": string,"job_id": string,"note": string | null,"reason": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"job_id": string,"note"?: string | null,"reason": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"job_id"?: string,"note"?: string | null,"reason"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "job_reports_job_id_fkey"
+      columns: ["job_id"]
+isOneToOne: false
+      referencedRelation: "job_feed"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "job_reports_job_id_fkey"
+      columns: ["job_id"]
+isOneToOne: false
+      referencedRelation: "jobs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"jobs": {
+                  Row: {
+                    "citizenship_required": boolean,"city": string | null,"clearance_required": boolean,"company_domain": string | null,"company_name": string,"company_size": string | null,"created_at": string,"deadline_at": string | null,"description_md": string | null,"disciplines": (string)[],"first_seen_at": string,"id": string,"is_active": boolean,"is_repost": boolean,"job_type": Database["public"]['Enums']["job_type"] | null,"job_url": string,"job_url_canonical": string,"last_seen_at": string,"locations": (string)[],"min_gpa": number | null,"missed_runs": number,"posted_at": string | null,"province": string | null,"salary_currency": string,"salary_max": number | null,"salary_min": number | null,"salary_period": string | null,"salary_source": string | null,"search": unknown,"source": string,"source_id": string | null,"term": string | null,"terms": (string)[],"title": string,"updated_at": string,"work_model": Database["public"]['Enums']["work_model"] | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "citizenship_required"?: boolean,"city"?: string | null,"clearance_required"?: boolean,"company_domain"?: string | null,"company_name": string,"company_size"?: string | null,"created_at"?: string,"deadline_at"?: string | null,"description_md"?: string | null,"disciplines"?: (string)[],"first_seen_at"?: string,"id"?: string,"is_active"?: boolean,"is_repost"?: boolean,"job_type"?: Database["public"]['Enums']["job_type"] | null,"job_url": string,"job_url_canonical": string,"last_seen_at"?: string,"locations"?: (string)[],"min_gpa"?: number | null,"missed_runs"?: number,"posted_at"?: string | null,"province"?: string | null,"salary_currency"?: string,"salary_max"?: number | null,"salary_min"?: number | null,"salary_period"?: string | null,"salary_source"?: string | null,"search"?: never,"source": string,"source_id"?: string | null,"term"?: string | null,"terms"?: (string)[],"title": string,"updated_at"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
+                  }
+                  Update: {
+                    "citizenship_required"?: boolean,"city"?: string | null,"clearance_required"?: boolean,"company_domain"?: string | null,"company_name"?: string,"company_size"?: string | null,"created_at"?: string,"deadline_at"?: string | null,"description_md"?: string | null,"disciplines"?: (string)[],"first_seen_at"?: string,"id"?: string,"is_active"?: boolean,"is_repost"?: boolean,"job_type"?: Database["public"]['Enums']["job_type"] | null,"job_url"?: string,"job_url_canonical"?: string,"last_seen_at"?: string,"locations"?: (string)[],"min_gpa"?: number | null,"missed_runs"?: number,"posted_at"?: string | null,"province"?: string | null,"salary_currency"?: string,"salary_max"?: number | null,"salary_min"?: number | null,"salary_period"?: string | null,"salary_source"?: string | null,"search"?: never,"source"?: string,"source_id"?: string | null,"term"?: string | null,"terms"?: (string)[],"title"?: string,"updated_at"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
                   }
                   Relationships: [
                     
@@ -258,7 +316,15 @@ isOneToOne: false
                 }
           }
           Views: {
-            [_ in never]: never
+            "job_feed": {
+                  Row: {
+                    "citizenship_required": boolean,"city": string | null,"clearance_required": boolean,"company_domain": string | null,"company_name": string,"company_size": string | null,"created_at": string,"deadline_at": string | null,"description_md": string | null,"disciplines": (string)[],"first_seen_at": string,"hidden": boolean | null,"id": string,"is_active": boolean,"is_repost": boolean,"job_type": Database["public"]['Enums']["job_type"] | null,"job_url": string,"job_url_canonical": string,"last_seen_at": string,"locations": (string)[],"min_gpa": number | null,"missed_runs": number,"posted_at": string | null,"posted_sort": string | null,"province": string | null,"rank_score": number | null,"salary_currency": string,"salary_max": number | null,"salary_min": number | null,"salary_period": string | null,"salary_source": string | null,"search": unknown,"source": string,"source_id": string | null,"term": string | null,"terms": (string)[],"title": string,"trackers_week": number | null,"updated_at": string,"work_model": Database["public"]['Enums']["work_model"] | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Functions: {
             "ai_check":
@@ -280,6 +346,11 @@ isOneToOne: false
                            },
 "delete_my_account":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"feed_pulse":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "last_refresh": string,"new_today": number,"trackers_week": number
+            }[]
                            },
 "ingest_active_ats_postings":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -310,6 +381,9 @@ isOneToOne: false
                            },
 "is_pro":
 { Args: { "p_user"?: string }; Returns: boolean
+                           },
+"job_trackers_week":
+{ Args: { "p_job_id": string }; Returns: number
                            },
 "term_start":
 { Args: { "p_term": string }; Returns: string

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { parseFeedParams, queryFeed } from "@/lib/feed";
+import { feedPulse, parseFeedParams, queryFeed, SEEN_COOKIE } from "@/lib/feed";
 import DiscoverView from "./DiscoverView";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +19,11 @@ export default async function DiscoverPage({
 }) {
   const filters = parseFeedParams(await searchParams);
   const supabase = await createClient();
-  const [{ jobs, total }, { data: auth }] = await Promise.all([
+  const seenAt = (await cookies()).get(SEEN_COOKIE)?.value ?? null;
+  const [{ jobs, total }, { data: auth }, pulse] = await Promise.all([
     queryFeed(supabase, filters),
     supabase.auth.getUser(),
+    feedPulse(supabase, seenAt),
   ]);
 
   let trackedJobIds: string[] = [];
@@ -39,6 +42,7 @@ export default async function DiscoverPage({
       filters={filters}
       signedIn={Boolean(auth.user)}
       trackedJobIds={trackedJobIds}
+      pulse={pulse}
     />
   );
 }

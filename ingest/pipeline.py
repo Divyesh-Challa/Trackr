@@ -7,7 +7,9 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
-from .classify import disciplines, extract_terms, is_tracked_role, job_type, term_sort_key, upcoming_terms
+from .classify import (
+    disciplines, extract_terms, is_tracked_role, job_type, requirements, term_sort_key, upcoming_terms,
+)
 from .locations import Location, parse_locations, work_model
 from .models import SOURCE_PRIORITY, RawPosting
 from .normalize import canonical_key, clean_url, html_to_markdown, parse_stated_pay
@@ -82,6 +84,7 @@ def to_record(p: RawPosting, today: date) -> dict | None:
         "salary_source": "posted" if salary else None,
         "posted_at": p.posted_at.isoformat() if p.posted_at else None,
         "deadline_at": None,
+        **requirements(description or ""),
     }
 
 
@@ -98,6 +101,7 @@ def merge(records: list[dict]) -> dict:
     best["term"] = terms[0] if terms else None
     for key in ("description_md", "company_size", "company_domain", "work_model"):
         best[key] = best[key] or next((r[key] for r in records if r[key]), None)
+    best.update(requirements(best["description_md"] or ""))  # the description may come from another source
     if not best["salary_source"]:
         paid = next((r for r in records if r["salary_source"] == "posted"), None)
         if paid:

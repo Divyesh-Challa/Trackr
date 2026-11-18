@@ -26,5 +26,10 @@ select * from public.ingest_upsert_jobs('[
   {"source":"workable","source_id":"FX6","company_name":"Fixture Cloud","title":"DevOps Intern (Summer 2027)",
    "locations":["Calgary, AB"],"city":"Calgary","province":"AB","work_model":"hybrid","job_type":"internship",
    "term":"S2027","terms":["S2027"],"disciplines":["software"],"job_url":"https://apply.workable.com/fixturecloud/j/FX6",
-   "job_url_canonical":"workable:FX6","posted_at":"2026-10-15T00:00:00Z"}
+   "job_url_canonical":"workable:FX6","posted_at":"2026-10-15T00:00:00Z"},
+  {"source":"greenhouse","source_id":"9000007","company_name":"Fixture Defence","title":"Embedded Systems Intern (Summer 2027)",
+   "locations":["Ottawa, ON"],"city":"Ottawa","province":"ON","work_model":"onsite","job_type":"internship",
+   "term":"S2027","terms":["S2027"],"disciplines":["hardware"],"job_url":"https://boards.greenhouse.io/fixturedefence/jobs/9000007",
+   "job_url_canonical":"greenhouse:9000007","description_md":"Canadian citizens only. Minimum GPA of 3.0.",
+   "citizenship_required":true,"min_gpa":3.0,"posted_at":"2026-10-14T00:00:00Z"}
 ]'::jsonb);

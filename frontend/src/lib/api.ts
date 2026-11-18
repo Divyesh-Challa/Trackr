@@ -331,6 +331,26 @@ export async function fetchDiscoveredJobs(): Promise<DiscoveredJob[]> {
   return rows.map(toDiscoveredJob);
 }
 
+export async function hideJob(jobId: string): Promise<void> {
+  const { error } = await supabase().from("job_hides").upsert({ job_id: jobId }, { ignoreDuplicates: true });
+  if (error) throw new Error(`Couldn't hide this job: ${error.message}`);
+}
+
+export async function unhideJob(jobId: string): Promise<void> {
+  const { error } = await supabase().from("job_hides").delete().eq("job_id", jobId);
+  if (error) throw new Error(`Couldn't restore this job: ${error.message}`);
+}
+
+export type ReportReason = "expired" | "wrong_info" | "not_canada" | "not_student" | "duplicate" | "other";
+
+export async function reportJob(jobId: string, reason: ReportReason, note: string): Promise<void> {
+  const { error } = await supabase()
+    .from("job_reports")
+    .insert({ job_id: jobId, reason, note: note.trim() || null });
+  if (error?.code === "23505") return; // already reported by this user
+  if (error) throw new Error(`Couldn't send the report: ${error.message}`);
+}
+
 // -----------------------------------------------------------------------------
 // Your data (PIPEDA: access and deletion)
 // -----------------------------------------------------------------------------
@@ -342,7 +362,7 @@ export async function exportMyData() {
     data: { user },
   } = await client.auth.getUser();
   if (!user) throw new Error("Not signed in");
-  const [profile, applications, tasks, contacts, notes, history, feedback] = await Promise.all([
+  const [profile, applications, tasks, contacts, notes, history, feedback, hiddenJobs, jobReports] = await Promise.all([
     client.from("profiles").select("*").maybeSingle(),
     client.from("applications").select("*").order("created_at"),
     client.from("application_tasks").select("*").order("created_at"),
@@ -350,8 +370,10 @@ export async function exportMyData() {
     client.from("application_notes").select("*").order("created_at"),
     client.from("application_state_transitions").select("*").order("transitioned_at"),
     client.from("feedback").select("*").order("created_at"),
+    client.from("job_hides").select("*").order("created_at"),
+    client.from("job_reports").select("*").order("created_at"),
   ]);
-  for (const r of [profile, applications, tasks, contacts, notes, history, feedback]) {
+  for (const r of [profile, applications, tasks, contacts, notes, history, feedback, hiddenJobs, jobReports]) {
     if (r.error) throw new Error(`Export failed: ${r.error.message}`);
   }
   return {
@@ -364,6 +386,8 @@ export async function exportMyData() {
     notes: notes.data,
     status_history: history.data,
     feedback: feedback.data,
+    hidden_jobs: hiddenJobs.data,
+    job_reports: jobReports.data,
   };
 }
 

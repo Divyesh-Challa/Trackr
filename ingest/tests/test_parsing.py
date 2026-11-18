@@ -3,7 +3,9 @@ from datetime import date, datetime, timezone
 import pytest
 
 from ingest.boards import board_from_url
-from ingest.classify import disciplines, extract_terms, is_new_grad_role, is_student_role, job_type, upcoming_terms
+from ingest.classify import (
+    disciplines, extract_terms, is_new_grad_role, is_student_role, job_type, requirements, upcoming_terms,
+)
 from ingest.locations import parse_locations, work_model
 from ingest.models import RawPosting
 from ingest.normalize import canonical_key, clean_url, html_to_markdown, parse_stated_pay
@@ -106,6 +108,21 @@ def test_job_type_and_disciplines():
     assert "data_ml" in disciplines("Machine Learning Intern")
     assert disciplines("Something Intern", "Software") == ["software"]
     assert disciplines("Intern") == ["other"]
+
+
+@pytest.mark.parametrize("text, citizen, clearance, gpa", [
+    ("Applicants must be Canadian citizens.", True, False, None),
+    ("Open to Canadian citizens or permanent residents only.", True, False, None),
+    ("Canadian citizens or permanent residents only", True, False, None),
+    ("You must obtain Enhanced Reliability Status.", False, True, None),
+    ("Ability to obtain a Secret security clearance", False, True, None),
+    ("Minimum cumulative GPA of 3.0 required.", False, False, 3.0),
+    ("3.3/4.0 GPA or higher", False, False, 3.3),
+    ("Minimum GPA of 75 percent", False, False, None),
+    ("We value citizenship in our community. Our average GPA doesn't matter.", False, False, None),
+])
+def test_requirements(text, citizen, clearance, gpa):
+    assert requirements(text) == {"citizenship_required": citizen, "clearance_required": clearance, "min_gpa": gpa}
 
 
 # --- URLs, descriptions, pay -----------------------------------------------

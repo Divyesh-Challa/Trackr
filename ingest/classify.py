@@ -155,3 +155,40 @@ def disciplines(title: str, category_hint: str | None = None) -> list[str]:
     if hinted and hinted not in tags:
         tags.insert(0, hinted)
     return tags or ["other"]
+
+
+# Eligibility limits stated in a posting. Narrow patterns: a false "citizens only" flag hides a
+# real opportunity, so a miss is the cheaper mistake.
+CITIZENSHIP = re.compile(
+    r"\b(must be (?:a )?(?:canadian |u\.?s\.? )?citizens?|"
+    r"(?:canadian |u\.?s\.? )?citizens? (?:or|and/or) (?:a )?permanent residents? (?:only|of canada)|"
+    r"(?:open|available|restricted|limited) (?:only )?to (?:canadian )?citizens?|"
+    r"(?:canadian |u\.?s\.? )?citizenship (?:is )?(?:required|mandatory)|"
+    r"citoyen(?:ne)?s? canadien(?:ne)?s?)\b",
+    re.I,
+)
+CLEARANCE = re.compile(
+    r"\b((?:top )?secret (?:level )?(?:security )?clearance|security clearance|"
+    r"(?:enhanced )?reliability (?:status|clearance)|controlled goods program|cote de (?:fiabilité|sécurité))\b",
+    re.I,
+)
+GPA = re.compile(
+    r"(?:minimum|min\.?|at least|above)\s+(?:an?\s+|the\s+)?(?:cumulative\s+|overall\s+)?"
+    r"(?:gpa|grade point average)\s+(?:of\s+)?(\d(?:\.\d{1,2})?)"
+    r"|(\d\.\d{1,2})\s*(?:/\s*4(?:\.0)?\s*)?(?:cumulative\s+|overall\s+)?gpa\s+(?:or\s+(?:higher|above|better)|minimum)",
+    re.I,
+)
+
+
+def requirements(description: str) -> dict:
+    """Citizenship, clearance and minimum-GPA limits the posting states."""
+    text = description[:20000]
+    gpa = None
+    if m := GPA.search(text):
+        value = float(m.group(1) or m.group(2))
+        gpa = value if 2.0 <= value <= 4.33 else None  # other scales (percent, /12) aren't comparable
+    return {
+        "citizenship_required": bool(CITIZENSHIP.search(text)),
+        "clearance_required": bool(CLEARANCE.search(text)),
+        "min_gpa": gpa,
+    }

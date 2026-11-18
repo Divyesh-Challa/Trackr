@@ -84,7 +84,7 @@ test.describe("tracker", () => {
     }
     const drawer = page.getByRole("dialog");
     await drawer.getByRole("tab", { name: "Tasks" }).click();
-    const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+    const tomorrow = new Date(Date.now() + 86_400_000).toLocaleDateString("en-CA"); // local YYYY-MM-DD, like the date input
     await drawer.getByLabel("New task").fill("Finish the OA");
     await drawer.getByLabel("Due date").fill(tomorrow);
     await drawer.getByRole("button", { name: "Add", exact: true }).click();

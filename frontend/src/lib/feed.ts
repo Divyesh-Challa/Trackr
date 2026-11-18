@@ -1,7 +1,7 @@
 // Jobs-feed filters: parsed from (and written back to) the URL so any view is shareable.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./supabase/database.types";
-import { formatPostedSalary, toDiscoveredJob } from "./mappers";
+import { formatPostedSalary, toDiscoveredJob, type FeedJobRow } from "./mappers";
 import type { DiscoveredJob } from "../types";
 
 export const PAGE_SIZE = 40;
@@ -56,6 +56,13 @@ export const POSTED_WITHIN = [
   { days: 30, label: "Last month" },
 ] as const;
 
+export const SORTS = [
+  { code: "recommended", label: "Recommended", hint: "Fresh postings first, nudged up by company size, stated pay and how many students are tracking them." },
+  { code: "recent", label: "Most recent", hint: "Newest postings first." },
+  { code: "trending", label: "Trending", hint: "Most tracked by Trackr users this week." },
+] as const;
+export type Sort = (typeof SORTS)[number]["code"];
+
 const SEASON_LABEL = { W: "Winter", S: "Summer", F: "Fall" } as const;
 
 export function termLabel(term: string): string {
@@ -84,6 +91,9 @@ export type FeedFilters = {
   smallCompanies: boolean;
   bigTech: boolean;
   postedWithin: number | null;
+  sort: Sort;
+  /** Show the listings the viewer hid instead of the feed. */
+  hidden: boolean;
   page: number;
 };
 
@@ -113,6 +123,8 @@ export function parseFeedParams(params: Params): FeedFilters {
     smallCompanies: params.size === "small",
     bigTech: params.top === "1",
     postedWithin: POSTED_WITHIN.some((p) => p.days === days) ? days : null,
+    sort: SORTS.find((s) => s.code === params.sort)?.code ?? "recommended",
+    hidden: params.view === "hidden",
     page: Number.isInteger(page) && page > 1 ? Math.min(page, 50) : 1,
   };
 }
@@ -128,21 +140,24 @@ export function feedSearchParams(f: FeedFilters): URLSearchParams {
   if (f.smallCompanies) p.set("size", "small");
   if (f.bigTech) p.set("top", "1");
   if (f.postedWithin) p.set("posted", String(f.postedWithin));
+  if (f.sort !== "recommended") p.set("sort", f.sort);
+  if (f.hidden) p.set("view", "hidden");
   if (f.page > 1) p.set("page", String(f.page));
   return p;
 }
 
-const FEED_COLUMNS =
-  "id, source, company_name, company_domain, company_size, title, locations, city, province, work_model, job_type, term, terms, disciplines, job_url, salary_min, salary_max, salary_currency, salary_period, salary_source, posted_at, deadline_at, first_seen_at, created_at";
+const JOB_COLUMNS =
+  "id, source, company_name, company_domain, company_size, title, locations, city, province, work_model, job_type, term, terms, disciplines, job_url, salary_min, salary_max, salary_currency, salary_period, salary_source, posted_at, deadline_at, first_seen_at, created_at, is_repost, citizenship_required, clearance_required, min_gpa";
 
 export async function queryFeed(
   supabase: SupabaseClient<Database>,
   f: FeedFilters
 ): Promise<{ jobs: DiscoveredJob[]; total: number }> {
   let query = supabase
-    .from("jobs")
-    .select(FEED_COLUMNS, { count: "exact" })
-    .eq("is_active", true);
+    .from("job_feed")
+    .select(`${JOB_COLUMNS}, trackers_week`, { count: "exact" })
+    .eq("is_active", true)
+    .eq("hidden", f.hidden);
 
   if (f.q) query = query.textSearch("search", f.q, { type: "websearch", config: "english" });
   if (f.provinces.length) {
@@ -160,16 +175,42 @@ export async function queryFeed(
     query = query.or(`posted_at.gte.${since},and(posted_at.is.null,first_seen_at.gte.${since})`);
   }
 
+  if (f.sort === "recommended") query = query.order("rank_score", { ascending: false });
+  if (f.sort === "trending") query = query.order("trackers_week", { ascending: false });
   const from = (f.page - 1) * PAGE_SIZE;
   const { data, error, count } = await query
-    .order("posted_at", { ascending: false, nullsFirst: false })
-    .order("first_seen_at", { ascending: false })
+    .order("posted_sort", { ascending: false })
+    .order("id")
     .range(from, from + PAGE_SIZE - 1);
   if (error) throw new Error(`Failed to load jobs: ${error.message}`);
 
   return {
-    jobs: (data ?? []).map(toDiscoveredJob),
+    // The view's columns are all nullable in the generated types; these rows come from jobs.
+    jobs: ((data ?? []) as FeedJobRow[]).map(toDiscoveredJob),
     total: count ?? 0,
+  };
+}
+
+/** When the viewer last opened Discover, so the next visit can say what's new. */
+export const SEEN_COOKIE = "discover_seen_at";
+
+export type FeedPulse = { lastRefresh: string | null; newToday: number; trackersWeek: number; newSinceVisit: number | null };
+
+/** The live line above the feed. `since` is the viewer's previous visit, if we know it. */
+export async function feedPulse(supabase: SupabaseClient<Database>, since: string | null): Promise<FeedPulse> {
+  const validSince = since && !Number.isNaN(Date.parse(since)) ? new Date(since).toISOString() : null;
+  const [pulse, fresh] = await Promise.all([
+    supabase.rpc("feed_pulse").single(),
+    validSince
+      ? supabase.from("jobs").select("id", { count: "exact", head: true }).eq("is_active", true).gt("first_seen_at", validSince)
+      : null,
+  ]);
+  // The live line is decoration; a failure here shouldn't break the feed.
+  return {
+    lastRefresh: pulse.data?.last_refresh ?? null,
+    newToday: pulse.data?.new_today ?? 0,
+    trackersWeek: pulse.data?.trackers_week ?? 0,
+    newSinceVisit: fresh?.count ?? null,
   };
 }
 
@@ -181,7 +222,7 @@ export async function getJob(
   if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) return null;
   const { data, error } = await supabase
     .from("jobs")
-    .select(`${FEED_COLUMNS}, description_md, is_active`)
+    .select(`${JOB_COLUMNS}, description_md, is_active`)
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`Failed to load job: ${error.message}`);

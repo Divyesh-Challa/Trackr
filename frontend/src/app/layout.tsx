@@ -44,11 +44,11 @@ export default function RootLayout({
         {/* Applies the saved or system theme before first paint, so dark mode never flashes white. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body className="min-h-screen bg-background text-slate-900 antialiased flex flex-col selection:bg-blue-500/20 selection:text-blue-600 font-sans overflow-x-hidden">
+      <body className="min-h-screen bg-background text-slate-900 antialiased flex flex-col selection:bg-blue-500/20 selection:text-blue-600 font-sans overflow-x-clip">
         <SmoothScroll>
           <Providers>
             <Navbar />
-            <main className="flex-1 max-w-[1720px] w-full mx-auto px-4 sm:px-6 py-6 overflow-x-hidden">
+            <main className="flex-1 max-w-[1720px] w-full mx-auto px-4 sm:px-6 py-6 overflow-x-clip">
               <PageTransition>{children}</PageTransition>
             </main>
             <SiteFooter />
