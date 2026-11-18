@@ -33,7 +33,7 @@ export async function BrowsePage({ collection }: { collection: Collection }) {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <header className="space-y-3">
-        <p className="text-sm font-medium text-[#0066FF]">{total.toLocaleString()} open roles · updated every 6 hours</p>
+        <p className="text-sm font-medium text-accent">{total.toLocaleString()} open roles · updated every 6 hours</p>
         <h1 className="font-serif text-4xl font-semibold tracking-tight text-slate-900">{collection.title}</h1>
         <p className="max-w-2xl text-lg text-slate-600">{collection.intro}</p>
       </header>
@@ -52,7 +52,7 @@ export async function BrowsePage({ collection }: { collection: Collection }) {
       <section aria-labelledby="roles" className="space-y-3">
         <div className="flex items-end justify-between gap-4">
           <h2 id="roles" className="text-xl font-semibold text-slate-900">Newest roles</h2>
-          <Link href={discoverHref} className="inline-flex items-center gap-1 text-sm font-medium text-[#0066FF] hover:underline">
+          <Link href={discoverHref} className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
             Filter and sort all {total.toLocaleString()} <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
@@ -60,7 +60,7 @@ export async function BrowsePage({ collection }: { collection: Collection }) {
           <JobRows jobs={jobs.slice(0, 25)} />
         ) : (
           <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-slate-600">
-            Nothing open here right now. New roles land every few hours, or <Link href="/discover" className="text-[#0066FF] hover:underline">browse every role</Link>.
+            Nothing open here right now. New roles land every few hours, or <Link href="/discover" className="text-accent hover:underline">browse every role</Link>.
           </p>
         )}
       </section>
@@ -82,7 +82,7 @@ export async function BrowsePage({ collection }: { collection: Collection }) {
             <li key={c.slug}>
               <Link
                 href={CITIES.includes(c) ? `/internships/${c.slug}` : `/roles/${c.slug}`}
-                className="inline-block rounded-full bg-slate-100 px-3 py-1 text-[13px] text-slate-700 transition hover:bg-blue-50 hover:text-[#0066FF]"
+                className="inline-block rounded-full bg-slate-100 px-3 py-1 text-[13px] text-slate-700 transition hover:bg-blue-50 hover:text-accent"
               >
                 {c.name}
               </Link>

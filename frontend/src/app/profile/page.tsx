@@ -101,7 +101,7 @@ export default function ProfilePage() {
 
   const currentYear = new Date().getFullYear();
   const inputClass =
-    "w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20";
+    "w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20";
 
   return (
     <div className="space-y-6">
@@ -216,7 +216,7 @@ export default function ProfilePage() {
                 key={p.code}
                 className={`cursor-pointer rounded-xl border px-3 py-1.5 text-sm ${
                   checked
-                    ? "border-[#0066FF] bg-blue-50 text-[#0066FF]"
+                    ? "border-accent bg-blue-50 text-accent"
                     : "border-slate-300 text-slate-700 hover:bg-slate-50"
                 }`}
               >
@@ -244,7 +244,7 @@ export default function ProfilePage() {
         <button
           type="submit"
           disabled={saveMutation.isPending}
-          className="flex items-center gap-2 rounded-xl bg-[#0066FF] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0052cc] disabled:opacity-60"
+          className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-60"
         >
           {saveMutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -265,14 +265,14 @@ export default function ProfilePage() {
       href="/resume"
       className="group mx-auto flex max-w-xl items-center gap-4 rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm transition hover:border-blue-200 hover:shadow-md"
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0066FF]">
+      <span className="flex shrink-0 items-center text-slate-600">
         <FileText className="h-5 w-5" aria-hidden />
       </span>
       <span className="flex-1">
         <span className="block text-base font-semibold text-slate-900">Your resume</span>
         <span className="block text-sm text-slate-600">Education, experience, projects and skills, in Jake&apos;s one-page template. The AI tools only use what&apos;s there.</span>
       </span>
-      <ArrowRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[#0066FF]" aria-hidden />
+      <ArrowRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-accent" aria-hidden />
     </Link>
     <AccountSection />
     </div>

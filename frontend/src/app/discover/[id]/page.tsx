@@ -89,7 +89,7 @@ export default async function JobDetailPage({ params }: Props) {
           This posting has closed or been filled. It&apos;s kept here for reference.
         </p>
       )}
-      <div className="rounded-2xl border border-slate-200 bg-surface p-6 shadow-simplify-card">
+      <div className="rounded-2xl border border-slate-200 bg-surface p-6">
         <JobPage job={job} signedIn={Boolean(auth.user)} initiallyTracked={Boolean(tracked?.length)} />
       </div>
       {related.sameCompany.length > 0 && (

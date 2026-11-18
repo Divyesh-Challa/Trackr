@@ -3,10 +3,10 @@ import { serviceGet, signIn } from "./helpers";
 
 test("signed-out visitors get the landing page with live numbers", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Every Canadian internship");
-  await expect(page.getByText(/\d[\d,]* open roles at \d[\d,]* companies/)).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Just posted" })).toBeVisible();
-  await page.getByRole("link", { name: "Browse internships" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Every Canadian co");
+  await expect(page.getByText(/from \d[\d,]* company job boards/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Fresh every six hours" })).toBeVisible();
+  await page.getByRole("link", { name: /^Browse \d[\d,]* roles/ }).click();
   await expect(page).toHaveURL(/\/discover$/);
 });
 

@@ -62,7 +62,7 @@ function ActionButton({ onClick, icon: Icon, children, primary }: { onClick: () 
       type="button"
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[13px] font-medium transition ${
-        primary ? "bg-[#0066FF] text-white shadow-sm hover:bg-[#0052cc]" : "border border-slate-300 bg-surface text-slate-700 hover:bg-slate-50"
+        primary ? "bg-accent text-accent-ink shadow-sm hover:bg-accent-hover" : "border border-slate-300 bg-surface text-slate-700 hover:bg-slate-50"
       }`}
     >
       <Icon className="h-4 w-4" aria-hidden />

@@ -235,7 +235,7 @@ function EntrySection({ section, data, m, draft }: { section: (typeof SECTIONS)[
       id={`${section.id}-title`}
       title={section.title}
       action={
-        <button type="button" onClick={add} disabled={m.addEntry.isPending} className="inline-flex items-center gap-1 rounded-xl bg-[#0066FF] px-3 py-1.5 text-[13px] font-medium text-white shadow-sm hover:bg-[#0052cc] disabled:opacity-60">
+        <button type="button" onClick={add} disabled={m.addEntry.isPending} className="inline-flex items-center gap-1 rounded-md border border-slate-300 px-3 py-1.5 text-[13px] font-medium text-slate-800 transition hover:bg-slate-100 disabled:opacity-60">
           {m.addEntry.isPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}
           Add {section.noun}
         </button>

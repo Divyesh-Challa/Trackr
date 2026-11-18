@@ -12,7 +12,7 @@ function postedAgo(job: DiscoveredJob) {
 /** Plain, crawlable rows that open each job's own page. */
 export function JobRows({ jobs }: { jobs: DiscoveredJob[] }) {
   return (
-    <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-surface shadow-simplify-card">
+    <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-surface">
       {jobs.map((job) => (
         <li key={job.id}>
           <Link href={`/discover/${job.id}`} className="flex items-center gap-3 px-4 py-3 transition hover:bg-slate-50">
@@ -25,7 +25,7 @@ export function JobRows({ jobs }: { jobs: DiscoveredJob[] }) {
                   <MapPin className="h-3 w-3" aria-hidden />
                   {job.locations[0] ?? "Canada"}
                 </span>
-                {job.terms.length > 0 && <span className="text-[#0066FF]">{job.terms.map(termLabel).join(" · ")}</span>}
+                {job.terms.length > 0 && <span className="text-accent">{job.terms.map(termLabel).join(" · ")}</span>}
               </p>
             </div>
             <div className="hidden shrink-0 text-right text-[13px] sm:block">

@@ -74,7 +74,7 @@ function Column({
   return (
     <section
       aria-label={`${title} column, ${ids.length} applications`}
-      className={`flex w-[280px] shrink-0 flex-col rounded-2xl border bg-slate-50/80 ${isOver ? "border-[#0066FF]/50" : "border-slate-200"}`}
+      className={`flex w-[280px] shrink-0 flex-col rounded-2xl border bg-slate-50/80 ${isOver ? "border-accent/50" : "border-slate-200"}`}
     >
       <header className="flex items-center justify-between px-3 py-2.5">
         <h2 className="flex items-center gap-2 text-[13px] font-semibold text-slate-800">
@@ -339,7 +339,7 @@ export default function TrackerBoard() {
           <button
             type="button"
             onClick={() => setAddStatus("APPLIED")}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-3.5 py-2 text-[13px] font-medium text-white hover:bg-[#0052cc]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-[13px] font-medium text-accent-ink hover:bg-accent-hover"
           >
             <Plus className="h-4 w-4" aria-hidden /> Add application
           </button>
@@ -359,7 +359,7 @@ export default function TrackerBoard() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search company, role, city"
-              className="w-full rounded-xl border border-slate-300 bg-surface py-2 pl-9 pr-3 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20"
+              className="w-full rounded-xl border border-slate-300 bg-surface py-2 pl-9 pr-3 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
             />
           </div>
           <label className="sr-only" htmlFor="work-model">
@@ -385,7 +385,7 @@ export default function TrackerBoard() {
           <div>
             <p className="font-medium text-rose-700">Couldn&apos;t load your applications.</p>
             <p className="mt-0.5 text-slate-600">{(error as Error).message}</p>
-            <button type="button" onClick={() => refetch()} className="mt-3 font-medium text-[#0066FF] hover:underline">
+            <button type="button" onClick={() => refetch()} className="mt-3 font-medium text-accent hover:underline">
               Try again
             </button>
           </div>
@@ -403,7 +403,7 @@ export default function TrackerBoard() {
             Save roles from the jobs feed, paste a posting link, or import the spreadsheet you&apos;ve been using.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
-            <Link href="/discover" className="rounded-xl bg-[#0066FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#0052cc]">
+            <Link href="/discover" className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-accent-ink hover:bg-accent-hover">
               Browse jobs
             </Link>
             <button type="button" onClick={() => setAddStatus("APPLIED")} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
@@ -425,7 +425,7 @@ export default function TrackerBoard() {
               setSearch("");
               setWorkModel("ALL");
             }}
-            className="font-medium text-[#0066FF] underline"
+            className="font-medium text-accent underline"
           >
             Clear filters
           </button>
@@ -469,7 +469,7 @@ export default function TrackerBoard() {
                 aria-selected={mobileColumn === c.id}
                 onClick={() => setMobileColumn(c.id)}
                 className={`shrink-0 rounded-xl border px-3 py-1.5 text-[13px] font-medium ${
-                  mobileColumn === c.id ? "border-[#0066FF] bg-blue-50 text-[#0066FF]" : "border-slate-200 bg-surface text-slate-700"
+                  mobileColumn === c.id ? "border-accent bg-blue-50 text-accent" : "border-slate-200 bg-surface text-slate-700"
                 }`}
               >
                 {c.title} <span className="text-slate-500">{columns[c.id].length}</span>

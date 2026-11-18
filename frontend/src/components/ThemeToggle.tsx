@@ -50,7 +50,7 @@ export default function ThemeToggle() {
       onClick={next}
       aria-label={`${LABEL[theme]}. Click to change.`}
       title={LABEL[theme]}
-      className="rounded-xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+      className="rounded-md border border-slate-300 p-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
     >
       <Icon className="h-4 w-4" aria-hidden />
     </button>

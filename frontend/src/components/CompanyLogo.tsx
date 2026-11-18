@@ -34,7 +34,7 @@ export function CompanyLogo({ name, domain, className = "h-9 w-9" }: { name: str
   return (
     <span
       aria-hidden
-      className={`${className} flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-slate-100 text-xs font-semibold text-slate-600`}
+      className={`${className} flex shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xs font-semibold text-slate-600`}
     >
       {initials}
     </span>

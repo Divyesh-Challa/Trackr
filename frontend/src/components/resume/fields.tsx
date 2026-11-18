@@ -3,7 +3,7 @@
 import React, { useId, useRef, useState } from "react";
 
 export const inputClass =
-  "w-full rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20";
+  "w-full rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20";
 
 type FieldProps = {
   label: string;

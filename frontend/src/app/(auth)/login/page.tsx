@@ -93,12 +93,12 @@ function LoginForm() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
             />
             <button
               type="submit"
               disabled={status === "sending"}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0066FF] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0052cc] disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-60"
             >
               {status === "sending" ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />

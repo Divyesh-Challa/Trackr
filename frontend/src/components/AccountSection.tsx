@@ -47,7 +47,7 @@ export default function AccountSection() {
         <h2 id="your-data" className="text-lg font-semibold text-slate-900">Your data</h2>
         <p className="mt-1 text-sm text-slate-600">
           Download everything Trackr stores about you, or delete your account. See the{" "}
-          <a href="/privacy" className="text-[#0066FF] underline">privacy policy</a>.
+          <a href="/privacy" className="text-accent underline">privacy policy</a>.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
