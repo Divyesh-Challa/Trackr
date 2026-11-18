@@ -416,6 +416,20 @@ export default function TrackerBoard() {
         </div>
       ) : view === "insights" ? (
         <InsightsView apps={apps} />
+      ) : !visible.length ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 p-10 text-center text-sm text-slate-600">
+          No applications match your search.{" "}
+          <button
+            type="button"
+            onClick={() => {
+              setSearch("");
+              setWorkModel("ALL");
+            }}
+            className="font-medium text-[#0066FF] underline"
+          >
+            Clear filters
+          </button>
+        </div>
       ) : view === "list" ? (
         <ListView apps={visible} onOpen={setOpenId} />
       ) : desktop ? (
