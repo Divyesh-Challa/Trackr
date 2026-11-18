@@ -2,7 +2,7 @@ name: Ingest jobs
 
 on:
   schedule:
-    - cron: "17 */3 * * *"   # GitHub drops about half of scheduled runs, so ask every 3h to land roughly every 6h
+    - cron: "47 11 * * *"   # daily fallback; Supabase pg_cron (ingest-jobs) starts the 6-hourly runs
   workflow_dispatch:
 
 permissions:
