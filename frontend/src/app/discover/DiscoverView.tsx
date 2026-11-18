@@ -108,6 +108,22 @@ function eligibilityFlags(job: DiscoveredJob): string[] {
   ].filter((f): f is string => Boolean(f));
 }
 
+/** "72% skill match" with a small ring; green, amber or grey by how much of the job's stack the resume covers. */
+function MatchBadge({ percent }: { percent: number }) {
+  const tone = percent >= 70 ? "text-emerald-700 bg-emerald-50" : percent >= 40 ? "text-amber-800 bg-amber-50" : "text-slate-600 bg-slate-100";
+  const r = 5;
+  const c = 2 * Math.PI * r;
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${tone}`} title="Share of this job's skills that appear on your resume">
+      <svg viewBox="0 0 14 14" className="h-3.5 w-3.5 -rotate-90" aria-hidden>
+        <circle cx="7" cy="7" r={r} fill="none" stroke="currentColor" strokeOpacity=".2" strokeWidth="2.5" />
+        <circle cx="7" cy="7" r={r} fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray={c} strokeDashoffset={c * (1 - percent / 100)} strokeLinecap="round" />
+      </svg>
+      {percent}% skill match
+    </span>
+  );
+}
+
 function Chip({
   active,
   onClick,
@@ -426,6 +442,20 @@ function JobDetail({
           </ul>
         )}
 
+        {(job.skills?.length ?? 0) > 0 && (
+          <div className="space-y-1.5">
+            <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+              Skills mentioned
+              {job.match_percent != null && <MatchBadge percent={job.match_percent} />}
+            </p>
+            <ul className="flex flex-wrap gap-1.5" aria-label="Skills mentioned">
+              {job.skills!.map((sk) => (
+                <li key={sk} className="rounded-md border border-slate-200 px-2 py-0.5 text-xs text-slate-700">{sk}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center gap-2">
           {tracked ? (
             <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3.5 py-2 text-sm font-medium text-emerald-700">
@@ -586,6 +616,7 @@ function JobCard({
             )}
           </p>
           <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {job.match_percent != null && <MatchBadge percent={job.match_percent} />}
             {isNew(job.posted_at) && (
               <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span>
             )}
@@ -930,7 +961,7 @@ export default function DiscoverView({
             <Menu label={sort.label} align="right" icon={<ArrowUpDown className="h-3.5 w-3.5" aria-hidden />}>
               {(close) => (
                 <div className="flex w-72 max-w-full flex-col gap-1">
-                  {SORTS.map((s) => (
+                  {SORTS.filter((s) => signedIn || s.code !== "match").map((s) => (
                     <button
                       key={s.code}
                       type="button"
@@ -989,6 +1020,14 @@ export default function DiscoverView({
         {isPending ? "Updating…" : `${total.toLocaleString()} ${filters.hidden ? "hidden" : "open"} role${total === 1 ? "" : "s"}`}
         {filters.page > 1 ? ` · page ${filters.page} of ${pages}` : ""}
       </p>
+
+      {signedIn && !filters.hidden && visible.length > 0 && visible.every((j) => j.match_percent == null) && (
+        <p className="rounded-xl border border-dashed border-slate-300 bg-surface px-4 py-2.5 text-[13px] text-slate-600">
+          Want skill match scores and a feed ranked for you? Add a skills line to your{" "}
+          <Link href="/resume" className="font-medium text-[#0066FF] hover:underline">resume</Link> and set target roles and provinces in your{" "}
+          <Link href="/profile" className="font-medium text-[#0066FF] hover:underline">profile</Link>.
+        </p>
+      )}
 
       <div className={`grid grid-cols-1 items-start gap-4 transition-opacity lg:grid-cols-12 ${isPending ? "opacity-60" : ""}`}>
         <ul ref={resultsRef} className="space-y-2.5 lg:col-span-5" aria-label="Job results">
