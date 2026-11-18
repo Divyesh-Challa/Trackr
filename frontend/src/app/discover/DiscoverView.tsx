@@ -22,6 +22,7 @@ import {
   ShieldAlert,
   X,
 } from "lucide-react";
+import { CompanyLogo } from "@/components/CompanyLogo";
 import { createApplication, hideJob, reportJob, unhideJob, type ReportReason } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -105,35 +106,6 @@ function eligibilityFlags(job: DiscoveredJob): string[] {
     job.clearance_required && "Security clearance",
     job.min_gpa != null && `GPA ${job.min_gpa.toFixed(2).replace(/0$/, "")}+`,
   ].filter((f): f is string => Boolean(f));
-}
-
-function CompanyMark({ job, size = "h-9 w-9" }: { job: DiscoveredJob; size?: string }) {
-  const [failed, setFailed] = useState(false);
-  const initials = job.company_name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase();
-  if (job.company_domain && !failed) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(job.company_domain)}&sz=64`}
-        alt=""
-        onError={() => setFailed(true)}
-        className={`${size} shrink-0 rounded-xl border border-slate-200 bg-surface object-contain p-1`}
-      />
-    );
-  }
-  return (
-    <span
-      aria-hidden
-      className={`${size} flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-slate-100 text-xs font-semibold text-slate-600`}
-    >
-      {initials}
-    </span>
-  );
 }
 
 function Chip({
@@ -425,7 +397,7 @@ function JobDetail({
     <article className="space-y-5">
       <header className="space-y-3 border-b border-slate-100 pb-5">
         <div className="flex items-center gap-3">
-          <CompanyMark job={job} size="h-11 w-11" />
+          <CompanyLogo name={job.company_name} domain={job.company_domain} className="h-11 w-11" />
           <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-900">{job.company_name}</p>
             <p className="flex items-center gap-1 text-[13px] text-slate-600">
@@ -597,7 +569,7 @@ function JobCard({
       }`}
     >
       <div className="flex items-start gap-3">
-        <CompanyMark job={job} size="h-11 w-11" />
+        <CompanyLogo name={job.company_name} domain={job.company_domain} className="h-11 w-11" />
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2 pr-7">
             <span className="truncate text-[13px] font-medium text-slate-600">{job.company_name}</span>

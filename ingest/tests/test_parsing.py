@@ -8,7 +8,7 @@ from ingest.classify import (
 )
 from ingest.locations import parse_locations, work_model
 from ingest.models import RawPosting
-from ingest.normalize import canonical_key, clean_url, html_to_markdown, parse_stated_pay
+from ingest.normalize import canonical_key, clean_url, domain_from_url, html_to_markdown, parse_stated_pay
 from ingest.pipeline import normalize
 from ingest.sources.lists import parse_markdown_table, parse_simplify
 
@@ -267,3 +267,25 @@ def test_known_sizes_override_by_company_name():
     sizes = known_sizes()
     assert sizes[company_key("Tenstorrent")] == "mid"
     assert sizes[company_key("Bosch Group")] == "large"
+
+
+@pytest.mark.parametrize("url, domain", [
+    ("https://careers.qualcomm.com/careers/job/1", "qualcomm.com"),
+    ("https://www.google.com/about/careers/applications/jobs/results/1", "google.com"),
+    ("https://rbc.wd3.myworkdayjobs.com/RBCGLOBAL1/job/1", "rbc.com"),
+    ("https://jobs.example.co.uk/1", "example.co.uk"),
+    ("https://job-boards.greenhouse.io/acme/jobs/1", None),
+    ("https://qualcomm.eightfold.ai/careers?pid=1", None),
+    ("https://jobs.lever.co/acme/1", None),
+    ("not a url", None),
+])
+def test_domain_from_url(url, domain):
+    assert domain_from_url(url) == domain
+
+
+def test_company_domain_is_shared_across_a_companys_postings():
+    rows = normalize([
+        _p(title="SWE Intern (Summer 2027)", job_url="https://boards.greenhouse.io/acme/jobs/1"),
+        _p(title="Data Intern (Summer 2027)", job_url="https://careers.acme.ca/jobs/2"),
+    ], TODAY).records
+    assert {r["company_domain"] for r in rows} == {"acme.ca"}

@@ -35,6 +35,7 @@ export interface Application {
   user_id: string;
   job_id?: string | null;
   company_name: string;
+  company_domain?: string;
   role_title: string;
   job_location?: string;
   work_model?: "REMOTE" | "HYBRID" | "ONSITE";
