@@ -53,6 +53,7 @@ export function workModelToDb(model: string | null | undefined): DbWorkModel | n
 export type DbApplicationWithCounts = DbApplication & {
   application_tasks?: { is_completed: boolean; due_date?: string | null }[];
   application_contacts?: { count: number }[];
+  jobs?: { company_domain: string | null } | null;
   application_notes?: { count: number }[];
 };
 
@@ -68,6 +69,7 @@ export function toApplication(row: DbApplicationWithCounts): Application {
     user_id: row.user_id,
     job_id: row.job_id,
     company_name: row.company_name,
+    company_domain: row.jobs?.company_domain ?? undefined,
     role_title: row.role_title,
     job_location: row.location ?? undefined,
     work_model: workModelToUi(row.work_model),

@@ -60,6 +60,44 @@ def canonical_key(url: str) -> str:
     return f"{host}{path}" + (f"?{urlencode(kept)}" if kept else "")
 
 
+# Hosts that serve many companies' job boards, so they say nothing about the employer.
+SHARED_HOSTS = (
+    "greenhouse.io", "lever.co", "ashbyhq.com", "smartrecruiters.com", "workable.com", "recruitee.com",
+    "eightfold.ai", "icims.com", "bamboohr.com", "avature.net", "rippling.com", "careerpuck.com",
+    "jobvite.com", "taleo.net", "successfactors.com", "oraclecloud.com", "breezy.hr", "linkedin.com",
+    "indeed.com", "github.com", "forms.gle", "notion.site", "wellfound.com",
+)
+# Second-level labels under a country code (careers.example.co.uk -> example.co.uk).
+_SLD = {"co", "com", "org", "net", "gc", "on", "qc", "bc", "ab"}
+
+
+def domain_from_url(url: str | None) -> str | None:
+    """The employer's own domain from an apply link, for its logo: careers.qualcomm.com ->
+    qualcomm.com, rbc.wd3.myworkdayjobs.com -> rbc.com. None for shared job-board hosts."""
+    if not url:
+        return None
+    host = urlsplit(url).netloc.lower().split(":")[0].removeprefix("www.")
+    if not host or "." not in host:
+        return None
+    if host.endswith(".myworkdayjobs.com"):
+        return f"{host.split('.')[0]}.com"  # Workday tenants are named after the company
+    if any(host == h or host.endswith("." + h) for h in SHARED_HOSTS):
+        return None
+    labels = host.split(".")
+    keep = 3 if len(labels) >= 3 and len(labels[-1]) == 2 and labels[-2] in _SLD else 2
+    return ".".join(labels[-keep:])
+
+
+def fill_company_domains(records: list[dict]) -> None:
+    """Give every posting from a company the domain any of its postings revealed."""
+    known: dict[str, str] = {}
+    for r in records:
+        if r["company_domain"]:
+            known.setdefault(r["company_name"].lower(), r["company_domain"])
+    for r in records:
+        r["company_domain"] = r["company_domain"] or known.get(r["company_name"].lower())
+
+
 def html_to_markdown(raw: str | None, max_len: int = 30_000) -> str | None:
     if not raw or not raw.strip():
         return None

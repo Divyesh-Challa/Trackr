@@ -29,7 +29,7 @@ function unwrap<T>(result: { data: T; error: { message: string } | null }, what:
 }
 
 const APPLICATION_SELECT =
-  "*, application_tasks(is_completed, due_date), application_contacts(count), application_notes(count)";
+  "*, application_tasks(is_completed, due_date), application_contacts(count), application_notes(count), jobs(company_domain)";
 
 // -----------------------------------------------------------------------------
 // Applications

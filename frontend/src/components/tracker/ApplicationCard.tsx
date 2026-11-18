@@ -4,6 +4,7 @@ import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CalendarClock, CheckSquare, FileText, GripVertical, MapPin, Users } from "lucide-react";
+import { CompanyLogo } from "@/components/CompanyLogo";
 import { COLUMNS, nextDue } from "@/lib/board";
 import type { Application, ApplicationStatus } from "@/types";
 
@@ -11,7 +12,8 @@ function CardBody({ app, dragHandle }: { app: Application; dragHandle?: React.Re
   const due = nextDue(app);
   return (
     <>
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-2.5">
+        <CompanyLogo name={app.company_name} domain={app.company_domain} className="h-8 w-8" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] font-medium text-slate-600">{app.company_name}</p>
           <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900">{app.role_title}</h3>

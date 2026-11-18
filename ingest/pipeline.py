@@ -12,7 +12,9 @@ from .classify import (
 )
 from .locations import Location, parse_locations, work_model
 from .models import SOURCE_PRIORITY, RawPosting
-from .normalize import canonical_key, clean_url, html_to_markdown, parse_stated_pay
+from .normalize import (
+    canonical_key, clean_url, domain_from_url, fill_company_domains, html_to_markdown, parse_stated_pay,
+)
 
 # Postings without a stated term are dropped once they're this old.
 MAX_AGE_DAYS = 120
@@ -63,7 +65,7 @@ def to_record(p: RawPosting, today: date) -> dict | None:
         "source": p.source,
         "source_id": p.source_id,
         "company_name": p.company_name.strip(),
-        "company_domain": p.company_domain,
+        "company_domain": p.company_domain or domain_from_url(p.job_url),
         "company_size": p.company_size,
         "title": p.title.strip(),
         "locations": list(dict.fromkeys(_format_location(l) for l in locs)),
@@ -143,6 +145,7 @@ def normalize(postings: list[RawPosting], today: date | None = None) -> Normaliz
             groups.setdefault(record["job_url_canonical"], []).append(record)
 
     merged = collapse_reposts([merge(g) for g in groups.values()])
+    fill_company_domains(merged)
     kept: dict[str, int] = {}
     for r in merged:
         kept[r["source"]] = kept.get(r["source"], 0) + 1
