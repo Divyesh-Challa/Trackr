@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { feedPulse, parseFeedParams, queryFeed, SEEN_COOKIE } from "@/lib/feed";
+import { feedPulse, feedSearchParams, parseFeedParams, queryFeed, SEEN_COOKIE } from "@/lib/feed";
 import DiscoverView from "./DiscoverView";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   title: "Discover Canadian internships, co-ops & new grad jobs | Trackr",
   description:
     "Tech internships, co-ops and new grad roles across Canada, pulled from company career sites and community lists, refreshed every 6 hours.",
+  alternates: { canonical: "/discover" },
 };
 
 export default async function DiscoverPage({
@@ -25,6 +27,8 @@ export default async function DiscoverPage({
     supabase.auth.getUser(),
     feedPulse(supabase, seenAt),
   ]);
+
+  if (!jobs.length && filters.page > 1) redirect(`/discover?${feedSearchParams({ ...filters, page: 1 })}`);
 
   let trackedJobIds: string[] = [];
   if (auth.user && jobs.length) {

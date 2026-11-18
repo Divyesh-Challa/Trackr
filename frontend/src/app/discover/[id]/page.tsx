@@ -19,8 +19,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${job.role_title} at ${job.company_name} | Trackr`,
     description: `${job.role_title} at ${job.company_name} in ${place}${job.salary ? `, ${job.salary}` : ""}. Apply on the employer's site and track it in Trackr.`,
     alternates: { canonical: `/discover/${job.id}` },
+    openGraph: { title: `${job.role_title} at ${job.company_name}`, url: `/discover/${job.id}`, type: "website" },
     robots: job.is_active ? undefined : { index: false },
   };
+}
+
+/** Markdown to plain text: Google wants HTML or text in JobPosting.description, not markdown. */
+function plainText(md?: string | null) {
+  if (!md) return undefined;
+  return md
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^\s*[-*+]\s+/gm, "• ")
+    .replace(/[*_`]{1,3}([^*_`]+)[*_`]{1,3}/g, "$1")
+    .trim();
 }
 
 /** schema.org JobPosting, so the listing is eligible for Google's job search. */
@@ -30,9 +42,9 @@ function jobPostingLd(job: NonNullable<Awaited<ReturnType<typeof loadJob>>>) {
     "@context": "https://schema.org",
     "@type": "JobPosting",
     title: job.role_title,
-    description: job.description,
+    description: plainText(job.description),
     datePosted: job.posted_at ?? job.created_at,
-    validThrough: job.deadline_at,
+    validThrough: job.deadline_at ?? undefined,
     employmentType: job.job_type === "new_grad" || job.job_type === "full_time" ? "FULL_TIME" : "INTERN",
     directApply: false,
     url: job.job_url,

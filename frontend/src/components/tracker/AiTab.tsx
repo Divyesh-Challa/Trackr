@@ -86,7 +86,7 @@ export default function AiTab({ appId, label }: { appId: string; label: string }
   const run = <T,>(fn: () => Promise<{ ok: true; data: T } | { ok: false; error: string }>, onData: (d: T) => void) =>
     start(async () => {
       setError(null);
-      const r = await fn();
+      const r = await fn().catch(() => ({ ok: false as const, error: "Couldn't reach the AI tools. Try again." }));
       if (r.ok) onData(r.data);
       else setError(r.error);
       refetch();

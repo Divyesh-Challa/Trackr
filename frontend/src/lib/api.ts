@@ -28,6 +28,9 @@ function unwrap<T>(result: { data: T; error: { message: string } | null }, what:
   return result.data;
 }
 
+/** Today in the user's own timezone as YYYY-MM-DD (toISOString would give UTC, i.e. tomorrow on Canadian evenings). */
+const localToday = () => new Date().toLocaleDateString("en-CA");
+
 const APPLICATION_SELECT =
   "*, application_tasks(is_completed, due_date), application_contacts(count), application_notes(count), jobs(company_domain)";
 
@@ -82,7 +85,7 @@ export async function createApplication(payload: {
         work_model: workModelToDb(payload.work_model),
         job_id: payload.job_id ?? null,
         job_url: payload.job_url ?? null,
-        applied_at: status === "wishlist" ? null : new Date().toISOString().slice(0, 10),
+        applied_at: status === "wishlist" ? null : localToday(),
         deadline_at: payload.deadline_at || null,
         follow_up_at: payload.follow_up_at || null,
         description: payload.description || null,
@@ -118,7 +121,7 @@ export async function moveApplication(
   );
   // First move out of the wishlist records when you applied, unless you set it yourself.
   if (status !== "wishlist" && !row.applied_at) {
-    return updateApplication(id, { applied_at: new Date().toISOString().slice(0, 10) });
+    return updateApplication(id, { applied_at: localToday() });
   }
   return toApplication(row);
 }
@@ -163,7 +166,7 @@ export async function importApplications(rows: ImportRow[]): Promise<number> {
       status: statusToDb(r.status),
       location: r.job_location ?? null,
       work_model: workModelToDb(r.work_model),
-      applied_at: r.applied_at ?? (r.status === "WISHLIST" ? null : new Date().toISOString().slice(0, 10)),
+      applied_at: r.applied_at ?? (r.status === "WISHLIST" ? null : localToday()),
       deadline_at: r.deadline_at ?? null,
       follow_up_at: r.follow_up_at ?? null,
       salary_text: r.salary_range ?? null,

@@ -15,6 +15,11 @@ export const PROVINCES = [
   { code: "SK", label: "Saskatchewan" },
   { code: "NS", label: "Nova Scotia" },
   { code: "NB", label: "New Brunswick" },
+  { code: "NL", label: "Newfoundland and Labrador" },
+  { code: "PE", label: "Prince Edward Island" },
+  { code: "YT", label: "Yukon" },
+  { code: "NT", label: "Northwest Territories" },
+  { code: "NU", label: "Nunavut" },
 ] as const;
 
 export const DISCIPLINES = [
@@ -184,6 +189,7 @@ export async function queryFeed(
     .order("posted_sort", { ascending: false })
     .order("id")
     .range(from, from + PAGE_SIZE - 1);
+  if (error?.code === "PGRST103") return { jobs: [], total: 0 }; // page past the end (stale link)
   if (error) throw new Error(`Failed to load jobs: ${error.message}`);
 
   return {

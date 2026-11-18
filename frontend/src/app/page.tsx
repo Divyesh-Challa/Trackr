@@ -12,7 +12,7 @@ export default async function HomePage() {
 
   const [{ jobs }, all, smaller, companies] = await Promise.all([
     // Lead with tech roles; the full feed is one click away.
-    queryFeed(supabase, parseFeedParams({ discipline: "software,data_ml,hardware" })),
+    queryFeed(supabase, parseFeedParams({ discipline: "software,data_ml,hardware", sort: "recent" })),
     supabase.from("jobs").select("id", { count: "exact", head: true }).eq("is_active", true),
     supabase.from("jobs").select("id", { count: "exact", head: true }).eq("is_active", true).in("company_size", ["startup", "mid"]),
     supabase.from("jobs").select("company_name").eq("is_active", true).limit(5000),

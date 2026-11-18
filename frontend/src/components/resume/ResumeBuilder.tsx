@@ -32,7 +32,7 @@ function readTailoring(): StoredTailoring | null {
 }
 
 function slug(name: string) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "resume";
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "my";
 }
 
 /** Scales the true-size sheet to fit its column, and reports when it runs past one page. */

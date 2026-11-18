@@ -475,7 +475,7 @@ export default function TrackerBoard() {
                   key={id}
                   app={app}
                   onOpen={setOpenId}
-                  onMove={(status) => move.mutate({ id, status, position: positionBetween(undefined, byId.get(columns[status][0])?.position) })}
+                  onMove={(status) => move.mutate({ id, status, position: positionBetween(undefined, byId.get(groupIds(apps)[status][0] ?? "")?.position) })}
                 />
               );
             })}

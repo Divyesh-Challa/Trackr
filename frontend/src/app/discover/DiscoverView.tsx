@@ -621,7 +621,7 @@ function JobCard({
               <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span>
             )}
             {(job.trackers_week ?? 0) >= 2 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
                 <Flame className="h-3 w-3" aria-hidden /> {job.trackers_week} tracking
               </span>
             )}
@@ -680,6 +680,32 @@ export default function DiscoverView({
   const [query, setQuery] = useState(filters.q);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const backRef = useRef<HTMLButtonElement>(null);
+  const toolbarRef = useRef<HTMLElement>(null);
+  const [toolbarHeight, setToolbarHeight] = useState(136);
+
+  // The detail panel sticks just below the toolbar, which grows with active filter chips.
+  useEffect(() => {
+    const el = toolbarRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setToolbarHeight(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // On phones the detail is a full-screen sheet: Escape closes it, focus moves in, the page behind stops scrolling.
+  useEffect(() => {
+    if (!mobileDetailOpen || !window.matchMedia("(max-width: 1023px)").matches) return;
+    backRef.current?.focus();
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMobileDetailOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [mobileDetailOpen]);
   const [tracked, setTracked] = useState(() => new Set(trackedJobIds));
   // Cards hidden (or restored, in the Hidden view) since the server rendered this page.
   const [removed, setRemoved] = useState<Set<string>>(() => new Set());
@@ -809,6 +835,7 @@ export default function DiscoverView({
       </header>
 
       <section
+        ref={toolbarRef}
         aria-label="Search and filters"
         className="sticky top-14 z-20 -mx-1 space-y-3 rounded-2xl border border-slate-200 bg-surface/90 p-3 shadow-simplify-card backdrop-blur-md"
       >
@@ -1097,11 +1124,16 @@ export default function DiscoverView({
         {selected && (
           <div
             data-lenis-prevent
-            className={`lg:col-span-7 lg:sticky lg:top-44 lg:block ${
+            role={mobileDetailOpen ? "dialog" : undefined}
+            aria-modal={mobileDetailOpen || undefined}
+            aria-label={mobileDetailOpen ? `${selected.role_title} at ${selected.company_name}` : undefined}
+            style={{ "--sticky-top": `${toolbarHeight + 72}px` } as React.CSSProperties}
+            className={`lg:col-span-7 lg:sticky lg:top-[var(--sticky-top)] lg:block ${
               mobileDetailOpen ? "fixed inset-0 z-50 overflow-y-auto bg-surface p-4" : "hidden"
-            } lg:inset-auto lg:z-auto lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-slate-200 lg:p-6 lg:shadow-simplify-card`}
+            } lg:inset-auto lg:z-auto lg:max-h-[calc(100vh-var(--sticky-top)-1rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-slate-200 lg:p-6 lg:shadow-simplify-card`}
           >
             <button
+              ref={backRef}
               type="button"
               onClick={() => setMobileDetailOpen(false)}
               className="mb-3 inline-flex items-center gap-1 text-sm font-medium text-slate-600 lg:hidden"

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, FileText, Loader2, Save } from "lucide-react";
 import { fetchProfile, updateProfile } from "../../lib/api";
+import { PROVINCES } from "../../lib/feed";
 import { Profile } from "../../types";
 import AccountSection from "../../components/AccountSection";
 import Link from "next/link";
@@ -20,16 +21,6 @@ const CANADIAN_UNIVERSITIES = [
   "McMaster University",
 ];
 
-const PROVINCES: { code: string; label: string }[] = [
-  { code: "BC", label: "British Columbia" },
-  { code: "AB", label: "Alberta" },
-  { code: "SK", label: "Saskatchewan" },
-  { code: "MB", label: "Manitoba" },
-  { code: "ON", label: "Ontario" },
-  { code: "QC", label: "Quebec" },
-  { code: "NS", label: "Nova Scotia" },
-  { code: "NB", label: "New Brunswick" },
-];
 
 const TERMS = [
   { code: "W", label: "Winter" },
