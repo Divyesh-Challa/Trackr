@@ -43,7 +43,10 @@ test("hide with undo, restore from Hidden, and report a listing", async ({ page 
   await expect(results(page)).not.toContainText(label);
   await page.getByRole("group", { name: "Which listings" }).getByRole("button", { name: "Hidden" }).click();
   await expect(results(page)).toContainText(label);
+  // Wait for the delete to land, or the Feed tab can refetch before the job is unhidden.
+  const restored = page.waitForResponse((r) => r.url().includes("/job_hides") && r.request().method() === "DELETE");
   await results(page).getByRole("button", { name: /^Restore Gameplay Programmer Co-op/ }).click();
+  await restored;
   await expect(results(page)).not.toContainText(label);
   await page.getByRole("group", { name: "Which listings" }).getByRole("button", { name: "Feed" }).click();
   await expect(results(page)).toContainText(label);
