@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "./providers";
 import Navbar from "../components/Navbar";
 import SiteFooter from "../components/SiteFooter";
+import { Assistant } from "../components/Assistant";
 import PageTransition from "../components/PageTransition";
 import SmoothScroll from "../components/providers/SmoothScroll";
 import { Analytics } from "@vercel/analytics/react";
@@ -59,6 +60,7 @@ export default function RootLayout({
               <PageTransition>{children}</PageTransition>
             </main>
             <SiteFooter />
+            <Assistant />
           </Providers>
         </SmoothScroll>
         <Analytics />

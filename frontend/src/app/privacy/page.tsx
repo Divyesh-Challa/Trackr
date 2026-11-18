@@ -7,7 +7,7 @@ const CONTACT = "divyeshchallavgr@gmail.com";
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy policy" updated="November 16, 2026">
+    <LegalPage title="Privacy policy" updated="November 18, 2026">
       <p>
         Trackr is run by Divyesh Challa, an individual based in Canada. This policy explains what personal
         information Trackr collects, why, and the choices you have. It is written to meet Canada&apos;s
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
         <li><strong>Account details:</strong> your email address, and your name and profile picture if you sign in with Google or GitHub.</li>
         <li><strong>What you put in Trackr:</strong> your profile (school, graduation term, target roles and provinces), the applications you track, and their tasks, contacts, notes and status history.</li>
         <li><strong>Payment status</strong> if you subscribe to Pro. Card details go directly to Stripe; Trackr never sees or stores them.</li>
-        <li><strong>Text you send to the AI tools</strong>, such as a job description, your resume bullets and questions you ask about a job. The AI tools are optional.</li>
+        <li><strong>Text you send to the AI tools</strong>, such as a job description, your resume bullets and questions you ask about a job. The &quot;Ask Trackr&quot; assistant also sends the skills from your resume, your target roles and provinces, a summary of your tracked applications (company, role, stage and dates) and a list of open jobs along with each message. The AI tools are optional.</li>
         <li><strong>Feedback</strong> you choose to send us.</li>
         <li><strong>Technical data:</strong> anonymous page-view and performance statistics, and error reports when something breaks.</li>
       </ul>

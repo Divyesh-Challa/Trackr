@@ -17,7 +17,7 @@ const MODELS: Record<Provider, { model: string; price: { input: number; output: 
 };
 
 export type AiFeature =
-  | "tailor" | "cover_letter" | "interview_question" | "interview_feedback" | "job_match" | "job_question";
+  | "tailor" | "cover_letter" | "interview_question" | "interview_feedback" | "job_match" | "job_question" | "assistant";
 
 /** Monthly calls included with Pro, per feature. */
 export const MONTHLY_LIMITS: Record<AiFeature, number> = {
@@ -27,6 +27,7 @@ export const MONTHLY_LIMITS: Record<AiFeature, number> = {
   interview_feedback: 150,
   job_match: 300,
   job_question: 300,
+  assistant: 300,
 };
 
 /** Monthly calls for free accounts while AI_FREE_TIER is on. Kept low: every user shares one free API quota. */
@@ -37,6 +38,7 @@ const FREE_MONTHLY_LIMITS: Record<AiFeature, number> = {
   interview_feedback: 20,
   job_match: 30,
   job_question: 30,
+  assistant: 40,
 };
 
 /**

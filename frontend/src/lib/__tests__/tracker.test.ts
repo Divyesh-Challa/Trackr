@@ -1,3 +1,4 @@
+import { CITIES, ROLES } from "../collections";
 import { describe, expect, it } from "vitest";
 import { parseJobUrl } from "../job-url";
 import { importCsv, parseCsv, toCsv } from "../csv";
@@ -111,6 +112,18 @@ describe("feed params", () => {
     expect(parseFeedParams({ remote: "1" }).workModels).toEqual(["remote"]);
     expect(f).toMatchObject({ provinces: ["BC"], terms: ["S2027"], disciplines: ["software"], smallCompanies: true, page: 3 });
     expect(parseFeedParams(Object.fromEntries(feedSearchParams(f)))).toEqual(f);
+  });
+
+  it("keeps browse-page cities and skills, and every collection parses cleanly", () => {
+    const f = parseFeedParams({ city: "Montréal,Richmond Hill,x),a.in.(b", skill: "C++,CI/CD,.NET,a{b}" });
+    expect(f.cities).toEqual(["Montréal", "Richmond Hill"]);
+    expect(f.skills).toEqual(["C++", "CI/CD", ".NET"]);
+    expect(parseFeedParams(Object.fromEntries(feedSearchParams(f)))).toEqual(f);
+    for (const c of [...CITIES, ...ROLES]) {
+      const parsed = parseFeedParams(c.params);
+      expect(feedSearchParams(parsed).toString(), c.slug).not.toBe("");
+      expect(parsed.cities.length + parsed.skills.length, c.slug).toBe((c.params.city ?? "").split(",").filter(Boolean).length + (c.params.skill ?? "").split(",").filter(Boolean).length);
+    }
   });
 
   it("defaults to the recommended sort and round-trips sort and the hidden view", () => {

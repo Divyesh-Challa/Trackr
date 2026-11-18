@@ -90,6 +90,10 @@ export function upcomingTerms(today = new Date(), count = 4): string[] {
 export type FeedFilters = {
   q: string;
   provinces: string[];
+  /** Exact city names (a metro is several). */
+  cities: string[];
+  /** Jobs tagged with any of these skills. */
+  skills: string[];
   terms: string[];
   disciplines: string[];
   workModels: WorkModel[];
@@ -121,6 +125,8 @@ export function parseFeedParams(params: Params): FeedFilters {
   return {
     q: (typeof params.q === "string" ? params.q : "").slice(0, 120),
     provinces: list(params.province).map((p) => p.toUpperCase()).filter((p) => provinceCodes.has(p)),
+    cities: list(params.city).filter((c) => /^[\p{L} .'-]{2,40}$/u.test(c)).slice(0, 12),
+    skills: list(params.skill).filter((k) => /^[\w .+#/-]{1,30}$/.test(k)).slice(0, 12),
     terms: list(params.term).map((t) => t.toUpperCase()).filter((t) => /^(W|S|F)\d{4}$/.test(t)),
     disciplines: list(params.discipline).filter((d) => disciplineCodes.has(d)),
     // `remote=1` is the old spelling of `mode=remote`; shared links still use it.
@@ -139,6 +145,8 @@ export function feedSearchParams(f: FeedFilters): URLSearchParams {
   const p = new URLSearchParams();
   if (f.q) p.set("q", f.q);
   if (f.provinces.length) p.set("province", f.provinces.join(","));
+  if (f.cities.length) p.set("city", f.cities.join(","));
+  if (f.skills.length) p.set("skill", f.skills.join(","));
   if (f.terms.length) p.set("term", f.terms.join(","));
   if (f.disciplines.length) p.set("discipline", f.disciplines.join(","));
   if (f.workModels.length) p.set("mode", f.workModels.join(","));
@@ -170,6 +178,8 @@ export async function queryFeed(
     // Remote-in-Canada postings have no province; keep them unless the user filters to onsite.
     query = query.or(`province.in.(${f.provinces.join(",")}),and(province.is.null,work_model.eq.remote)`);
   }
+  if (f.cities.length) query = query.in("city", f.cities);
+  if (f.skills.length) query = query.overlaps("skills", f.skills);
   if (f.workModels.length) query = query.in("work_model", f.workModels);
   if (f.jobTypes.length) query = query.in("job_type", f.jobTypes);
   if (f.terms.length) query = query.overlaps("terms", f.terms);
@@ -235,6 +245,26 @@ export async function getJob(
     .maybeSingle();
   if (error) throw new Error(`Failed to load job: ${error.message}`);
   return data ? { ...toDiscoveredJob(data), is_active: data.is_active } : null;
+}
+
+/** Open roles at the same company, and others in the same field that ask for the same skills. */
+export async function relatedJobs(
+  supabase: SupabaseClient<Database>,
+  job: DiscoveredJob
+): Promise<{ sameCompany: DiscoveredJob[]; similar: DiscoveredJob[] }> {
+  const open = () => supabase.from("jobs").select(JOB_COLUMNS).eq("is_active", true).neq("id", job.id);
+  let similar = open().neq("company_name", job.company_name);
+  if (job.disciplines.length) similar = similar.overlaps("disciplines", job.disciplines);
+  if (job.skills?.length) similar = similar.overlaps("skills", job.skills);
+  const [company, alike] = await Promise.all([
+    open().eq("company_name", job.company_name).order("posted_at", { ascending: false, nullsFirst: false }).limit(5),
+    similar.order("posted_at", { ascending: false, nullsFirst: false }).limit(6),
+  ]);
+  // Related links are extras; a failed lookup shouldn't take the job page down with it.
+  return {
+    sameCompany: (company.data ?? []).map(toDiscoveredJob),
+    similar: (alike.data ?? []).map(toDiscoveredJob),
+  };
 }
 
 export { formatPostedSalary };
