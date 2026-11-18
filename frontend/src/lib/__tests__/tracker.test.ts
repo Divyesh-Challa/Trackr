@@ -113,6 +113,14 @@ describe("feed params", () => {
     expect(parseFeedParams(Object.fromEntries(feedSearchParams(f)))).toEqual(f);
   });
 
+  it("defaults to the recommended sort and round-trips sort and the hidden view", () => {
+    expect(parseFeedParams({ sort: "bogus" })).toMatchObject({ sort: "recommended", hidden: false });
+    const f = parseFeedParams({ sort: "trending", view: "hidden" });
+    expect(f).toMatchObject({ sort: "trending", hidden: true });
+    expect(parseFeedParams(Object.fromEntries(feedSearchParams(f)))).toEqual(f);
+    expect(feedSearchParams(parseFeedParams({})).toString()).toBe("");
+  });
+
   it("lists terms that haven't started", () => {
     expect(upcomingTerms(new Date(2026, 9, 27))).toEqual(["W2027", "S2027", "F2027", "W2028"]);
   });

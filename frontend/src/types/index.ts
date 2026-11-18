@@ -149,6 +149,13 @@ export interface DiscoveredJob {
   posted_at: string | null;
   deadline_at?: string;
   created_at: string;
+  /** Same company and title was listed under another URL at least a week earlier. */
+  is_repost: boolean;
+  citizenship_required: boolean;
+  clearance_required: boolean;
+  min_gpa: number | null;
+  /** People who tracked this job in the last 7 days; only on feed rows. */
+  trackers_week?: number;
 }
 
 /** Row of the `profiles` table (one per signed-in user). */
