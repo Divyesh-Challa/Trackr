@@ -725,14 +725,20 @@ export default function DiscoverView({
       setRemovedFlag(job.id, false);
       toast(err.message, "error");
     },
-    onSuccess: (_data, { job, restore }) =>
+    onSuccess: (_data, { job, restore }) => {
+      // Drop cached Feed/Hidden pages so switching views shows the change.
+      router.refresh();
       toast(restore ? "Back in your feed" : "Hidden from your feed", "success", {
         label: "Undo",
         run: () =>
           (restore ? hideJob(job.id) : unhideJob(job.id))
-            .then(() => setRemovedFlag(job.id, false))
+            .then(() => {
+              setRemovedFlag(job.id, false);
+              router.refresh();
+            })
             .catch((e: Error) => toast(e.message, "error")),
-      }),
+      });
+    },
   });
 
   const otherFilterCount =
