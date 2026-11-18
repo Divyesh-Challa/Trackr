@@ -6,9 +6,9 @@ import DiscoverView from "./DiscoverView";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Discover Canadian internships & co-ops | Trackr",
+  title: "Discover Canadian internships, co-ops & new grad jobs | Trackr",
   description:
-    "Tech internships and co-ops across Canada, pulled from company career sites and community lists, refreshed every 6 hours.",
+    "Tech internships, co-ops and new grad roles across Canada, pulled from company career sites and community lists, refreshed every 6 hours.",
 };
 
 export default async function DiscoverPage({

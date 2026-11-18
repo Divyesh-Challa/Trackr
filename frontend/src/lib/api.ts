@@ -342,15 +342,16 @@ export async function exportMyData() {
     data: { user },
   } = await client.auth.getUser();
   if (!user) throw new Error("Not signed in");
-  const [profile, applications, tasks, contacts, notes, history] = await Promise.all([
+  const [profile, applications, tasks, contacts, notes, history, feedback] = await Promise.all([
     client.from("profiles").select("*").maybeSingle(),
     client.from("applications").select("*").order("created_at"),
     client.from("application_tasks").select("*").order("created_at"),
     client.from("application_contacts").select("*").order("created_at"),
     client.from("application_notes").select("*").order("created_at"),
     client.from("application_state_transitions").select("*").order("transitioned_at"),
+    client.from("feedback").select("*").order("created_at"),
   ]);
-  for (const r of [profile, applications, tasks, contacts, notes, history]) {
+  for (const r of [profile, applications, tasks, contacts, notes, history, feedback]) {
     if (r.error) throw new Error(`Export failed: ${r.error.message}`);
   }
   return {
@@ -362,6 +363,7 @@ export async function exportMyData() {
     contacts: contacts.data,
     notes: notes.data,
     status_history: history.data,
+    feedback: feedback.data,
   };
 }
 

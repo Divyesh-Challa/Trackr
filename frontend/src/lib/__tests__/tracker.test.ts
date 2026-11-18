@@ -105,7 +105,7 @@ describe("mappers", () => {
 
 describe("feed params", () => {
   it("round-trips and drops invalid values", () => {
-    const f = parseFeedParams({ province: "bc,ZZ", term: "s2027,bogus", discipline: "software,nope", size: "small", mode: "hybrid,remote,bogus", type: "coop,new_grad", page: "3" });
+    const f = parseFeedParams({ province: "bc,ZZ", term: "s2027,bogus", discipline: "software,nope", size: "small", mode: "hybrid,remote,bogus", type: "coop,full_time", top: "1", page: "3" });
     expect(f.workModels).toEqual(["remote", "hybrid"]);
     expect(f.jobTypes).toEqual(["coop"]);
     expect(parseFeedParams({ remote: "1" }).workModels).toEqual(["remote"]);

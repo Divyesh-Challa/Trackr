@@ -23,6 +23,13 @@ NOT_STUDENT = re.compile(
 # Only disqualifying without an explicit intern/co-op word ("Student Success Manager"),
 # since "Product Manager Intern" is a real internship.
 NOT_STUDENT_WEAK = re.compile(r"\b(manager|lead|coordinator|advisor|counsellor)\b", re.I)
+# Entry-level full-time roles. Kept narrow: a missed posting is better than a feed full of
+# mid-level jobs.
+NEW_GRAD = re.compile(
+    r"\b(new[- ]grad(?:uate)?s?|recent grad(?:uate)?s?|university grad(?:uate)?s?|"
+    r"graduate program(?:me)?|early[- ]career|entry[- ]level|junior|jr)\b",
+    re.I,
+)
 COOP = re.compile(r"\b(co-?op|coop|work[- ]term|stagiaire)\b", re.I)
 
 SEASONS = {
@@ -57,7 +64,18 @@ def is_student_role(title: str) -> bool:
     return True
 
 
+def is_new_grad_role(title: str) -> bool:
+    return bool(NEW_GRAD.search(title)) and not NOT_STUDENT.search(title) and not NOT_STUDENT_WEAK.search(title)
+
+
+def is_tracked_role(title: str) -> bool:
+    """Roles the feed carries: student roles and entry-level full-time ones."""
+    return is_student_role(title) or is_new_grad_role(title)
+
+
 def job_type(title: str, description: str = "") -> str:
+    if not is_student_role(title):
+        return "new_grad"
     return "coop" if COOP.search(title) or COOP.search(description[:1500]) else "internship"
 
 

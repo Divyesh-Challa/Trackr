@@ -11,7 +11,7 @@ from collections import Counter
 from datetime import date
 from urllib.parse import urlsplit
 
-from .classify import is_student_role
+from .classify import is_tracked_role
 from .locations import parse_locations
 from .boards import boards_from_postings, company_key, known_sizes, load_boards, merge_boards, size_from_openings
 from .http import NotFound, PoliteClient
@@ -45,7 +45,7 @@ async def collect(known_postings: list[dict], max_boards: int | None) -> tuple[l
         # Some lists hide employer links behind a shortener; resolve the ones we'd keep so
         # they dedupe against the real posting and reveal the company's board.
         shortened = [p for p in postings if urlsplit(p.job_url).netloc in SHORTENERS
-                     and p.active and is_student_role(p.title) and parse_locations(p.locations)]
+                     and p.active and is_tracked_role(p.title) and parse_locations(p.locations)]
         resolved = await asyncio.gather(*(client.resolve(p.job_url) for p in shortened))
         for p, url in zip(shortened, resolved):
             p.job_url = url

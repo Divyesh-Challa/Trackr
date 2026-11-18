@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
-from .classify import disciplines, extract_terms, is_student_role, job_type, term_sort_key, upcoming_terms
+from .classify import disciplines, extract_terms, is_tracked_role, job_type, term_sort_key, upcoming_terms
 from .locations import Location, parse_locations, work_model
 from .models import SOURCE_PRIORITY, RawPosting
 from .normalize import canonical_key, clean_url, html_to_markdown, parse_stated_pay
@@ -31,10 +31,10 @@ def _format_location(loc: Location) -> str:
 
 
 def to_record(p: RawPosting, today: date) -> dict | None:
-    """The `jobs` row for a posting, or None if it isn't an open Canadian student role."""
+    """The `jobs` row for a posting, or None if it isn't an open Canadian student or new-grad role."""
     p.title = html.unescape(p.title).strip()
     p.company_name = html.unescape(p.company_name).strip()
-    if not p.title or not p.job_url or not is_student_role(p.title):
+    if not p.title or not p.job_url or not is_tracked_role(p.title):
         return None
     locs = parse_locations(p.locations, p.country_hint)
     if not locs:

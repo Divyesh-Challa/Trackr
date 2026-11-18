@@ -45,6 +45,16 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+/** Shown wherever AI runs on a free model tier, before the user sends anything. */
+export function AiFreeTierNotice() {
+  return (
+    <p className="text-xs text-slate-500">
+      Free during early access. These tools run on Google&apos;s Gemini free tier, and Google may use what you send
+      (job text, your resume bullets and your questions) to improve its products. <Link href="/privacy" className="underline">Details</Link>
+    </p>
+  );
+}
+
 export default function AiTab({ appId, label }: { appId: string; label: string }) {
   const router = useRouter();
   const { data: status, refetch } = useQuery({ queryKey: ["ai-status"], queryFn: () => getAiStatus() });
@@ -63,7 +73,7 @@ export default function AiTab({ appId, label }: { appId: string; label: string }
   if (!status.enabled) {
     return <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">AI tools are coming soon.</p>;
   }
-  if (!status.pro) {
+  if (!status.allowed) {
     return (
       <div className="rounded-xl bg-blue-50 p-4 text-sm text-blue-900">
         <p className="font-medium">AI tools are part of Pro.</p>
@@ -90,6 +100,7 @@ export default function AiTab({ appId, label }: { appId: string; label: string }
 
   return (
     <div className="space-y-4">
+      {status.freeTier && <AiFreeTierNotice />}
       {status.bulletCount === 0 && (
         <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
           Add your experience to your <Link href="/resume" className="underline">Resume</Link> first. The AI only works from what you&apos;ve written.
