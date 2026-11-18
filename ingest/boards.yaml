@@ -197,6 +197,11 @@ boards:
   slug: provision
   size: startup
   domain: provision.com
+- company: Questrade
+  ats: greenhouse
+  slug: questrade
+  size: mid
+  domain: questrade.com
 - company: Ritual
   ats: greenhouse
   slug: ritual
