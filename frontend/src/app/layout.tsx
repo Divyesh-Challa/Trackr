@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Newsreader, Inter } from "next/font/google";
+import { Zilla_Slab, Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import Navbar from "../components/Navbar";
@@ -11,9 +11,8 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SITE_URL } from "@/lib/site";
 
-const newsreader = Newsreader({
+const zilla = Zilla_Slab({
   subsets: ["latin"],
-  style: ["normal", "italic"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-serif",
   display: "swap",
@@ -47,12 +46,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${zilla.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
         {/* Applies the saved or system theme before first paint, so dark mode never flashes white. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body className="min-h-screen bg-background text-slate-900 antialiased flex flex-col selection:bg-blue-500/20 selection:text-blue-600 font-sans overflow-x-clip">
+      <body className="min-h-screen bg-background text-slate-900 antialiased flex flex-col selection:bg-accent selection:text-accent-ink font-sans overflow-x-clip">
         <SmoothScroll>
           <Providers>
             <Navbar />

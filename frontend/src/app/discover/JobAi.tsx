@@ -67,7 +67,7 @@ export default function JobAi({ jobId }: { jobId: string }) {
           onChange={(e) => setQuestion(e.target.value)}
           maxLength={500}
           placeholder="Ask about this job (e.g. what languages does it need?)"
-          className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20"
+          className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
         />
         <button type="submit" className={btn} disabled={ask.isPending || !question.trim() || status.remaining.job_question === 0}>
           {ask.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Ask

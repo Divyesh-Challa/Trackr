@@ -8,8 +8,6 @@ import { BookOpen, Compass, FileText, Layers, LogIn, LogOut, Menu, Sparkles, Use
 import type { User as AuthUser } from "@supabase/supabase-js";
 import { createClient } from "../lib/supabase/client";
 import { springs } from "../lib/motion-tokens";
-import DecryptedText from "./ui/DecryptedText";
-import Magnet from "./ui/Magnet";
 import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
@@ -57,57 +55,51 @@ export default function Navbar() {
       <button
         type="submit"
         title={user.email ?? undefined}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-surface px-3.5 py-2 text-[13px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+        className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 transition hover:bg-slate-100 active:scale-[0.98]"
       >
         <LogOut className="h-4 w-4" aria-hidden /> Sign out
       </button>
     </form>
   ) : (
-    <Magnet>
-      <Link
+    <Link
         href="/login"
-        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-3.5 py-2 text-[13px] font-medium text-white shadow-sm transition hover:bg-[#0052cc]"
+        className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-1.5 text-sm font-medium text-accent-ink transition hover:bg-accent-hover active:scale-[0.98]"
       >
         <LogIn className="h-4 w-4" aria-hidden /> Sign in
       </Link>
-    </Magnet>
   );
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-surface/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-[1720px] items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-background">
+      <div className="mx-auto flex h-14 max-w-[1720px] items-center justify-between gap-4 px-4 sm:px-6">
         <div className="flex items-center gap-8">
-          <Link href={user ? "/board" : "/"} className="group flex items-center gap-2.5" aria-label="Trackr home">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0066FF] text-sm font-black text-white shadow-sm transition-transform group-hover:scale-105">
-              Tr.
-            </span>
-            <DecryptedText
-              text="trackr"
-              animateOn="hover"
-              className="text-base font-bold tracking-tight text-slate-900 transition-colors group-hover:text-[#0066FF]"
-            />
+          <Link
+            href={user ? "/board" : "/"}
+            aria-label="Trackr home"
+            className="font-serif text-2xl font-semibold leading-none text-slate-900 transition-colors hover:text-accent"
+          >
+            trackr
           </Link>
 
           <nav aria-label="Main" className="relative hidden items-center gap-1 md:flex">
-            {navItems.map(({ href, label, icon: Icon }) => {
+            {navItems.map(({ href, label }) => {
               const active = isActive(href);
               return (
                 <Link
                   key={href}
                   href={href}
                   aria-current={active ? "page" : undefined}
-                  className={`relative flex items-center gap-2 rounded-xl px-3.5 py-2 text-[13px] font-medium transition-colors ${
-                    active ? "text-[#0066FF]" : "text-slate-600 hover:bg-slate-100/70 hover:text-slate-900"
+                  className={`relative flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    active ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   {active && (
                     <motion.span
                       layoutId="nav-pill"
-                      className="absolute inset-0 -z-10 rounded-xl border border-blue-200/70 bg-blue-50/80"
+                      className="absolute inset-0 -z-10 rounded-md bg-slate-200/70"
                       transition={springs.glide}
                     />
                   )}
-                  <Icon className="h-4 w-4" aria-hidden />
                   {label}
                 </Link>
               );
@@ -126,7 +118,7 @@ export default function Navbar() {
           aria-expanded={menuOpen}
           aria-controls="mobile-menu"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
-          className="rounded-xl p-2 text-slate-700 hover:bg-slate-100 md:hidden"
+          className="rounded-md p-2 text-slate-700 hover:bg-slate-100 md:hidden"
         >
           {menuOpen ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
         </button>
@@ -141,7 +133,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: reduce ? 0 : -8 }}
             transition={springs.snappy}
-            className="border-t border-slate-100 bg-surface px-4 pb-4 pt-2 md:hidden"
+            className="border-t border-slate-200 bg-background px-4 pb-4 pt-2 md:hidden"
           >
             <ul className="space-y-1">
               {navItems.map(({ href, label, icon: Icon }) => (
@@ -150,7 +142,7 @@ export default function Navbar() {
                     href={href}
                     aria-current={isActive(href) ? "page" : undefined}
                     className={`flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-medium ${
-                      isActive(href) ? "bg-blue-50 text-[#0066FF]" : "text-slate-700 hover:bg-slate-50"
+                      isActive(href) ? "bg-slate-200/70 text-slate-900" : "text-slate-700 hover:bg-slate-100"
                     }`}
                   >
                     <Icon className="h-5 w-5" aria-hidden />
@@ -159,7 +151,7 @@ export default function Navbar() {
                 </li>
               ))}
             </ul>
-            <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3">
+            <div className="mt-3 flex items-center gap-2 border-t border-slate-200 pt-3">
               <ThemeToggle />
               {authControl}
             </div>

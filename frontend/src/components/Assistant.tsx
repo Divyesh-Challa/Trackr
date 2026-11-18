@@ -74,7 +74,7 @@ export function Assistant() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open the Trackr assistant"
-          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[#0066FF] px-4 py-3 text-sm font-medium text-white shadow-[0_10px_30px_-10px_rgba(0,102,255,0.7)] transition hover:-translate-y-0.5 hover:bg-[#0052cc]"
+          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-accent-ink shadow-[0_10px_30px_-10px_rgba(0,102,255,0.7)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
         >
           <MessageCircle className="h-4 w-4" aria-hidden /> Ask Trackr
         </button>
@@ -112,7 +112,7 @@ export function Assistant() {
                 <p
                   className={
                     t.role === "user"
-                      ? "max-w-[85%] whitespace-pre-line rounded-2xl rounded-br-md bg-[#0066FF] px-3 py-2 text-sm text-white"
+                      ? "max-w-[85%] whitespace-pre-line rounded-2xl rounded-br-md bg-accent px-3 py-2 text-sm text-accent-ink"
                       : `whitespace-pre-line text-sm ${t.error ? "text-red-700" : "text-slate-800"}`
                   }
                   role={t.error ? "alert" : undefined}
@@ -162,9 +162,9 @@ export function Assistant() {
                 }}
                 placeholder={left === 0 ? "You've used this month's messages" : "Ask anything about your search"}
                 disabled={left === 0}
-                className="max-h-32 min-h-[40px] flex-1 resize-none rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm text-slate-900 focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-blue-100"
+                className="max-h-32 min-h-[40px] flex-1 resize-none rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm text-slate-900 focus:border-accent focus:outline-none focus:ring-2 focus:ring-blue-100"
               />
-              <button type="submit" disabled={busy || !draft.trim() || left === 0} aria-label="Send" className="rounded-xl bg-[#0066FF] p-2.5 text-white transition hover:bg-[#0052cc] disabled:opacity-50">
+              <button type="submit" disabled={busy || !draft.trim() || left === 0} aria-label="Send" className="rounded-xl bg-accent p-2.5 text-accent-ink transition hover:bg-accent-hover disabled:opacity-50">
                 <Send className="h-4 w-4" aria-hidden />
               </button>
             </div>

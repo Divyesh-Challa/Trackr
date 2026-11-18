@@ -51,7 +51,7 @@ export default function ListView({ apps, onOpen }: { apps: Application[]; onOpen
               <tr key={a.id} className="hover:bg-slate-50">
                 <td className="px-3 py-2.5">
                   <button type="button" onClick={() => onOpen(a.id)} className="text-left">
-                    <span className="block font-medium text-slate-900 hover:text-[#0066FF]">{a.role_title}</span>
+                    <span className="block font-medium text-slate-900 hover:text-accent">{a.role_title}</span>
                     <span className="text-[13px] text-slate-600">{a.company_name}</span>
                   </button>
                 </td>

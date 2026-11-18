@@ -21,7 +21,7 @@ import { TAILORING_KEY, type StoredTailoring } from "@/lib/resume";
 type Tool = "tailor" | "letter" | "interview";
 
 const btn =
-  "inline-flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#0052cc] disabled:opacity-60";
+  "inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-60";
 
 function Busy({ busy, children }: { busy: boolean; children: React.ReactNode }) {
   return (
@@ -72,7 +72,7 @@ export default function AiTab({ appId, label }: { appId: string; label: string }
       <div className="rounded-xl bg-blue-50 p-4 text-sm text-blue-900">
         <p className="font-medium">AI tools are part of Pro.</p>
         <p className="mt-1">Tailor your resume to this posting, draft a cover letter from your own experience, and practise interview answers with feedback.</p>
-        <Link href="/pricing" className="mt-3 inline-block font-medium text-[#0066FF] underline">See Pro</Link>
+        <Link href="/pricing" className="mt-3 inline-block font-medium text-accent underline">See Pro</Link>
       </div>
     );
   }
@@ -111,7 +111,7 @@ export default function AiTab({ appId, label }: { appId: string; label: string }
               setTool(t.id);
               setError(null);
             }}
-            className={`rounded-xl border px-3 py-1.5 text-[13px] font-medium ${tool === t.id ? "border-[#0066FF] bg-blue-50 text-[#0066FF]" : "border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+            className={`rounded-xl border px-3 py-1.5 text-[13px] font-medium ${tool === t.id ? "border-accent bg-blue-50 text-accent" : "border-slate-200 text-slate-700 hover:bg-slate-50"}`}
           >
             {t.label} <span className="text-slate-500">· {t.left} left</span>
           </button>

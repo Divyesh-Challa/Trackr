@@ -176,7 +176,7 @@ function DetailsTab({ app, onDeleted }: { app: Application; onDeleted: () => voi
           <button
             type="submit"
             disabled={update.isPending}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#0052cc] disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-60"
           >
             {update.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
             Save changes
@@ -205,7 +205,7 @@ function TasksTab({ appId }: { appId: string }) {
         <input id="task-title" required maxLength={300} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Finish the OA" className={`${inputClass} min-w-0 flex-1`} />
         <label htmlFor="task-due" className="sr-only">Due date</label>
         <input id="task-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} className={`${inputClass} w-40`} />
-        <button type="submit" disabled={m.add.isPending} className="rounded-xl bg-[#0066FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#0052cc] disabled:opacity-60">Add</button>
+        <button type="submit" disabled={m.add.isPending} className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-60">Add</button>
       </form>
       <ListState loading={isLoading} error={error} empty={!tasks.length} emptyText="No tasks yet." />
       <ul className="divide-y divide-slate-100">
@@ -246,9 +246,9 @@ function ContactsTab({ appId }: { appId: string }) {
             <div className="min-w-0">
               <p className="font-medium text-slate-900">{p.name}{p.role_title && <span className="font-normal text-slate-600"> · {p.role_title}</span>}</p>
               <p className="mt-0.5 space-x-3 text-[13px]">
-                {p.email && <a className="text-[#0066FF] hover:underline" href={`mailto:${p.email}`}>{p.email}</a>}
+                {p.email && <a className="text-accent hover:underline" href={`mailto:${p.email}`}>{p.email}</a>}
                 {p.linkedin_url && /^https?:\/\//.test(p.linkedin_url) && (
-                  <a className="text-[#0066FF] hover:underline" href={p.linkedin_url} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                  <a className="text-accent hover:underline" href={p.linkedin_url} target="_blank" rel="noopener noreferrer">LinkedIn</a>
                 )}
               </p>
               {p.notes && <p className="mt-1 whitespace-pre-wrap text-[13px] text-slate-600">{p.notes}</p>}
@@ -278,7 +278,7 @@ function ContactsTab({ appId }: { appId: string }) {
         </div>
         <Field label="Notes" htmlFor="c-notes"><textarea id="c-notes" rows={2} maxLength={10000} value={c.notes} onChange={(e) => setC({ ...c, notes: e.target.value })} className={inputClass} /></Field>
         <div className="flex justify-end">
-          <button type="submit" disabled={m.add.isPending} className="rounded-xl bg-[#0066FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#0052cc] disabled:opacity-60">Add contact</button>
+          <button type="submit" disabled={m.add.isPending} className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-60">Add contact</button>
         </div>
       </form>
     </div>
@@ -304,7 +304,7 @@ function NotesTab({ appId }: { appId: string }) {
         <label htmlFor="note-body" className="sr-only">Note</label>
         <textarea id="note-body" required rows={4} maxLength={50000} value={content} onChange={(e) => setContent(e.target.value)} placeholder="Interview questions, what you talked about, salary notes…" className={inputClass} />
         <div className="flex justify-end">
-          <button type="submit" disabled={m.add.isPending} className="rounded-xl bg-[#0066FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#0052cc] disabled:opacity-60">Add note</button>
+          <button type="submit" disabled={m.add.isPending} className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-60">Add note</button>
         </div>
       </form>
       <ListState loading={isLoading} error={error} empty={!notes.length} emptyText="No notes yet." />
@@ -333,7 +333,7 @@ function HistoryTab({ appId }: { appId: string }) {
       <ol className="space-y-3 border-l border-slate-200 pl-4">
         {[...history].reverse().map((h) => (
           <li key={h.id} className="relative text-sm">
-            <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-[#0066FF]" aria-hidden />
+            <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-accent" aria-hidden />
             <p className="text-slate-900">
               {h.from_status
                 ? <>Moved from {STATUS_LABEL[h.from_status as ApplicationStatus]} to <strong>{STATUS_LABEL[h.to_status as ApplicationStatus]}</strong></>
@@ -380,7 +380,7 @@ export default function ApplicationDrawer({ id, onClose }: { id: string | null; 
                 aria-selected={tab === t.id}
                 onClick={() => setTab(t.id)}
                 className={`shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-medium ${
-                  tab === t.id ? "bg-blue-50 text-[#0066FF]" : "text-slate-600 hover:bg-slate-50"
+                  tab === t.id ? "bg-blue-50 text-accent" : "text-slate-600 hover:bg-slate-50"
                 }`}
               >
                 {t.label}

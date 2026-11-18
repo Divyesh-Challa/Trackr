@@ -95,7 +95,7 @@ export function SortableCard({ app, onOpen }: { app: Application; onOpen: (id: s
           }
           listeners?.onKeyDown?.(e);
         }}
-        className={`${cardClass} cursor-grab touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] active:cursor-grabbing`}
+        className={`${cardClass} cursor-grab touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-accent active:cursor-grabbing`}
       >
         <CardBody
           app={app}

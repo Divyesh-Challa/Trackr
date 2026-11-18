@@ -44,7 +44,6 @@ import {
 import type { DiscoveredJob } from "@/types";
 import Dialog from "@/components/ui/Dialog";
 import { useToast } from "@/components/ui/Toast";
-import VantaBackground from "@/components/ui/VantaBackground";
 import { useGSAPStagger } from "@/lib/useGSAPStagger";
 import JobAi from "./JobAi";
 
@@ -134,7 +133,7 @@ function Chip({
       onClick={onClick}
       className={`rounded-xl border px-3 py-1.5 text-[13px] font-medium transition ${
         active
-          ? "border-[#0066FF] bg-blue-50 text-[#0066FF]"
+          ? "border-accent bg-blue-50 text-accent"
           : "border-slate-200 bg-surface text-slate-700 hover:bg-slate-50"
       }`}
     >
@@ -183,14 +182,14 @@ function Menu({
         onClick={() => setOpen((o) => !o)}
         className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${
           count > 0 || open
-            ? "border-[#0066FF]/60 bg-blue-50 text-[#0066FF]"
+            ? "border-accent/60 bg-blue-50 text-accent"
             : "border-slate-200 bg-surface text-slate-700 hover:border-slate-300 hover:bg-slate-50"
         }`}
       >
         {icon}
         {label}
         {count > 0 && (
-          <span className="rounded-full bg-[#0066FF] px-1.5 text-[11px] font-semibold leading-4 text-white">{count}</span>
+          <span className="rounded-full bg-accent px-1.5 text-[11px] font-semibold leading-4 text-accent-ink">{count}</span>
         )}
         <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
       </button>
@@ -241,7 +240,7 @@ function ReportDialog({ job, open, onClose }: { job: DiscoveredJob; open: boolea
             <label
               key={r.code}
               className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2 text-sm transition ${
-                reason === r.code ? "border-[#0066FF] bg-blue-50 text-slate-900" : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                reason === r.code ? "border-accent bg-blue-50 text-slate-900" : "border-slate-200 text-slate-700 hover:bg-slate-50"
               }`}
             >
               <input
@@ -250,7 +249,7 @@ function ReportDialog({ job, open, onClose }: { job: DiscoveredJob; open: boolea
                 value={r.code}
                 checked={reason === r.code}
                 onChange={() => setReason(r.code)}
-                className="accent-[#0066FF]"
+                className="accent-accent"
               />
               {r.label}
             </label>
@@ -263,7 +262,7 @@ function ReportDialog({ job, open, onClose }: { job: DiscoveredJob; open: boolea
             onChange={(e) => setNote(e.target.value)}
             maxLength={500}
             rows={3}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20"
+            className="mt-1 w-full rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
         </label>
         {report.isError && (
@@ -278,7 +277,7 @@ function ReportDialog({ job, open, onClose }: { job: DiscoveredJob; open: boolea
           <button
             type="submit"
             disabled={!reason || report.isPending}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-3.5 py-2 text-sm font-medium text-white hover:bg-[#0052cc] disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-sm font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-50"
           >
             {report.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
             Send report
@@ -398,7 +397,7 @@ function JobDetail({
 
         {(job.skills?.length ?? 0) > 0 && (
           <div className="space-y-1.5">
-            <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+            <p className="flex items-center gap-2 text-[13px] text-slate-600">
               Skills mentioned
               {job.match_percent != null && <MatchBadge percent={job.match_percent} />}
             </p>
@@ -429,7 +428,7 @@ function JobDetail({
                 type="button"
                 disabled={tracking}
                 onClick={() => onTrack("APPLIED")}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-3.5 py-2 text-sm font-medium text-white hover:bg-[#0052cc] disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-sm font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-60"
               >
                 {tracking ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}
                 I applied
@@ -459,10 +458,10 @@ function JobDetail({
         )}
       </header>
 
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-4">
         {facts.map((f) => (
-          <div key={f.label} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{f.label}</dt>
+          <div key={f.label} className="bg-surface p-3">
+            <dt className="text-[13px] text-slate-600">{f.label}</dt>
             <dd className={`mt-0.5 text-sm font-medium ${f.label === "Pay" && job.salary ? "text-emerald-700" : "text-slate-900"}`}>
               {f.value}
             </dd>
@@ -486,7 +485,7 @@ function JobDetail({
               ul: (p) => <ul className="mb-3 list-disc space-y-1 pl-5" {...p} />,
               ol: (p) => <ol className="mb-3 list-decimal space-y-1 pl-5" {...p} />,
               a: ({ href, children }) => (
-                <a href={href} target="_blank" rel="noopener noreferrer nofollow" className="text-[#0066FF] underline">
+                <a href={href} target="_blank" rel="noopener noreferrer nofollow" className="text-accent underline">
                   {children}
                 </a>
               ),
@@ -549,7 +548,7 @@ function JobCard({
       onClick={onSelect}
       aria-current={selected ? "true" : undefined}
       className={`w-full rounded-2xl border bg-surface p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md motion-reduce:hover:translate-y-0 ${
-        selected ? "border-[#0066FF] shadow-md ring-2 ring-[#0066FF]/15" : "border-slate-200"
+        selected ? "border-accent shadow-md ring-2 ring-accent/15" : "border-slate-200"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -791,8 +790,7 @@ export default function DiscoverView({
 
   return (
     <div className="space-y-4">
-      <header className="relative overflow-hidden rounded-2xl border border-slate-200 bg-surface p-5 shadow-simplify-card">
-        <VantaBackground className="opacity-50" lines={3} waveHeight={16} />
+      <header className="relative overflow-hidden rounded-2xl border border-slate-200 bg-surface p-5">
         <div className="relative space-y-2">
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-slate-900">
             Internships, co-ops &amp; new grad roles in Canada
@@ -804,7 +802,7 @@ export default function DiscoverView({
       <section
         ref={toolbarRef}
         aria-label="Search and filters"
-        className="sticky top-14 z-20 -mx-1 space-y-3 rounded-2xl border border-slate-200 bg-surface/90 p-3 shadow-simplify-card backdrop-blur-md"
+        className="sticky top-14 z-20 -mx-1 space-y-3 rounded-2xl border border-slate-200 bg-surface p-3"
       >
         <div className="flex flex-col gap-2 sm:flex-row">
           <form
@@ -825,7 +823,7 @@ export default function DiscoverView({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search roles or companies (e.g. firmware, Shopify)"
-              className="w-full rounded-xl border border-slate-300 bg-surface py-2.5 pl-9 pr-3 text-sm focus:border-[#0066FF] focus:outline-none focus:ring-2 focus:ring-[#0066FF]/20"
+              className="w-full rounded-xl border border-slate-300 bg-surface py-2.5 pl-9 pr-3 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
             />
           </form>
           {signedIn && (
@@ -931,7 +929,7 @@ export default function DiscoverView({
                       close();
                     }}
                     className={`flex items-center justify-between gap-6 rounded-lg px-2.5 py-1.5 text-left text-sm ${
-                      filters.postedWithin === p.days ? "bg-blue-50 font-medium text-[#0066FF]" : "text-slate-700 hover:bg-slate-50"
+                      filters.postedWithin === p.days ? "bg-blue-50 font-medium text-accent" : "text-slate-700 hover:bg-slate-50"
                     }`}
                   >
                     {p.label}
@@ -968,7 +966,7 @@ export default function DiscoverView({
                         filters.sort === s.code ? "bg-blue-50" : "hover:bg-slate-50"
                       }`}
                     >
-                      <span className={`flex items-center justify-between text-sm font-medium ${filters.sort === s.code ? "text-[#0066FF]" : "text-slate-900"}`}>
+                      <span className={`flex items-center justify-between text-sm font-medium ${filters.sort === s.code ? "text-accent" : "text-slate-900"}`}>
                         {s.label}
                         {filters.sort === s.code && <Check className="h-4 w-4" aria-hidden />}
                       </span>
@@ -989,7 +987,7 @@ export default function DiscoverView({
                 type="button"
                 onClick={c.remove}
                 aria-label={`Remove filter ${c.label}`}
-                className="inline-flex items-center gap-1 rounded-full bg-blue-50 py-1 pl-2.5 pr-1.5 text-xs font-medium text-[#0066FF] transition hover:bg-blue-100"
+                className="inline-flex items-center gap-1 rounded-full bg-blue-50 py-1 pl-2.5 pr-1.5 text-xs font-medium text-accent transition hover:bg-blue-100"
               >
                 {c.label} <X className="h-3 w-3" aria-hidden />
               </button>
@@ -1018,8 +1016,8 @@ export default function DiscoverView({
       {signedIn && !filters.hidden && visible.length > 0 && visible.every((j) => j.match_percent == null) && (
         <p className="rounded-xl border border-dashed border-slate-300 bg-surface px-4 py-2.5 text-[13px] text-slate-600">
           Want skill match scores and a feed ranked for you? Add a skills line to your{" "}
-          <Link href="/resume" className="font-medium text-[#0066FF] hover:underline">resume</Link> and set target roles and provinces in your{" "}
-          <Link href="/profile" className="font-medium text-[#0066FF] hover:underline">profile</Link>.
+          <Link href="/resume" className="font-medium text-accent hover:underline">resume</Link> and set target roles and provinces in your{" "}
+          <Link href="/profile" className="font-medium text-accent hover:underline">profile</Link>.
         </p>
       )}
 
@@ -1097,7 +1095,7 @@ export default function DiscoverView({
             style={{ "--sticky-top": `${toolbarHeight + 72}px` } as React.CSSProperties}
             className={`lg:col-span-7 lg:sticky lg:top-[var(--sticky-top)] lg:block ${
               mobileDetailOpen ? "fixed inset-0 z-50 overflow-y-auto bg-surface p-4" : "hidden"
-            } lg:inset-auto lg:z-auto lg:max-h-[calc(100vh-var(--sticky-top)-1rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-slate-200 lg:p-6 lg:shadow-simplify-card`}
+            } lg:inset-auto lg:z-auto lg:max-h-[calc(100vh-var(--sticky-top)-1rem)] lg:overflow-y-auto lg:rounded-2xl lg:border lg:border-slate-200 lg:p-6`}
           >
             <button
               ref={backRef}

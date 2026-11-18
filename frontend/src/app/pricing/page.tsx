@@ -33,7 +33,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
 
   const cta = (plan: "monthly" | "yearly", label: string, primary: boolean) => {
     const cls = primary
-      ? "w-full rounded-xl bg-[#0066FF] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0052cc] disabled:opacity-50"
+      ? "w-full rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-accent-ink hover:bg-accent-hover disabled:opacity-50"
       : "w-full rounded-xl border border-slate-300 bg-surface px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-50";
     if (!auth.user) return <Link href="/login?next=/pricing" className={`${cls} block text-center`}>{label}</Link>;
     return (
@@ -77,7 +77,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
           )}
         </section>
 
-        <section aria-labelledby="pro-plan" className="rounded-2xl border-2 border-[#0066FF] bg-surface p-6 shadow-simplify-glow">
+        <section aria-labelledby="pro-plan" className="rounded-2xl border-2 border-accent bg-surface p-6">
           <h2 id="pro-plan" className="text-lg font-semibold text-slate-900">Pro</h2>
           <p className="mt-1 text-3xl font-semibold text-slate-900">
             $15 <span className="text-base font-normal text-slate-500">CAD / month</span>
@@ -85,7 +85,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
           <p className="text-sm text-slate-600">or $144 CAD / year (save 20%)</p>
           <ul className="mt-5 space-y-2 text-sm text-slate-700">
             {PRO.map((f) => (
-              <li key={f} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#0066FF]" aria-hidden />{f}</li>
+              <li key={f} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden />{f}</li>
             ))}
           </ul>
           <div className="mt-6 space-y-2">

@@ -52,7 +52,7 @@ export default function InsightsView({ apps }: { apps: Application[] }) {
               <li key={f.stage} className="grid grid-cols-[9rem_1fr_4.5rem] items-center gap-3 text-sm">
                 <span className="text-slate-700">{f.stage}</span>
                 <span className="h-3 rounded-full bg-slate-100" aria-hidden>
-                  <span className="block h-3 rounded-full bg-[#0066FF]" style={{ width: `${Math.max(pct * 100, f.count ? 2 : 0)}%` }} />
+                  <span className="block h-3 rounded-full bg-accent" style={{ width: `${Math.max(pct * 100, f.count ? 2 : 0)}%` }} />
                 </span>
                 <span className="text-right tabular-nums text-slate-900">
                   {f.count}
@@ -70,7 +70,7 @@ export default function InsightsView({ apps }: { apps: Application[] }) {
           {insights.perWeek.map((w) => (
             <div key={w.weekStart} role="listitem" className="flex flex-1 flex-col items-center gap-1" aria-label={`Week of ${w.weekStart}: ${w.count}`}>
               <span className="text-xs tabular-nums text-slate-600">{w.count || ""}</span>
-              <span className="w-full rounded-t-md bg-[#0066FF]/80" style={{ height: `${(w.count / maxWeek) * 100}px` }} />
+              <span className="w-full rounded-t-md bg-accent/80" style={{ height: `${(w.count / maxWeek) * 100}px` }} />
               <span className="text-[11px] text-slate-500">
                 {new Date(`${w.weekStart}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
               </span>
