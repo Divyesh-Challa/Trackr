@@ -132,7 +132,7 @@ export default function AiTab({ appId, label }: { appId: string; label: string }
                 <button
                   type="button"
                   onClick={() => {
-                    const stored: StoredTailoring = { label, bullets: tailor.bullets.map((b) => ({ bullet_id: b.bullet_id, text: b.text })) };
+                    const stored: StoredTailoring = { label, bullets: tailor.bullets.map((b) => ({ bullet_id: b.bullet_id, text: b.text })), matched: tailor.matched_keywords, gaps: tailor.gaps };
                     try {
                       sessionStorage.setItem(TAILORING_KEY, JSON.stringify(stored));
                     } catch {}

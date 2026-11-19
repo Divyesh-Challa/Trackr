@@ -38,27 +38,41 @@ export function useResume() {
 /**
  * Field edits patch the cached resume in place (`patch`), so an in-flight refetch can't
  * reset what the user is typing elsewhere; structural changes (add, delete) refetch.
+ * `optimistic` applies the patch before the write (drag reorders) and refetches if it fails.
  */
 function useResumeMutation<V>(
   fn: (v: V) => PromiseLike<{ error: { message: string } | null }>,
   failure: string,
-  patch?: (data: ResumeData, v: V) => ResumeData
+  patch?: (data: ResumeData, v: V) => ResumeData,
+  optimistic = false
 ) {
   const qc = useQueryClient();
   const toast = useToast();
+  const apply = (v: V) => patch && qc.setQueryData<ResumeData>(resumeKeys.data, (d) => (d ? patch(d, v) : d));
   return useMutation({
     mutationFn: async (v: V) => {
       const { error } = await fn(v);
       if (error) throw new Error(error.message);
     },
-    onSuccess: (_r, v) => {
-      if (patch) qc.setQueryData<ResumeData>(resumeKeys.data, (d) => (d ? patch(d, v) : d));
-      else qc.invalidateQueries({ queryKey: resumeKeys.data });
+    onMutate: (v: V) => {
+      if (optimistic) apply(v);
     },
-    onError: (err: Error) =>
-      toast(err.message.includes("check constraint") ? `${failure}: check the format (links must start with https://)` : `${failure}: ${err.message}`, "error"),
+    onSuccess: (_r, v) => {
+      if (!patch) qc.invalidateQueries({ queryKey: resumeKeys.data });
+      else if (!optimistic) apply(v);
+    },
+    onError: (err: Error) => {
+      if (optimistic) qc.invalidateQueries({ queryKey: resumeKeys.data });
+      toast(err.message.includes("check constraint") ? `${failure}: check the format (links must start with https://)` : `${failure}: ${err.message}`, "error");
+    },
   });
 }
+
+export type PositionUpdate = { id: string; position: number };
+const withPositions = <T extends { id: string; position: number }>(rows: T[], updates: PositionUpdate[]) => {
+  const next = new Map(updates.map((u) => [u.id, u.position]));
+  return rows.map((r) => (next.has(r.id) ? { ...r, position: next.get(r.id)! } : r));
+};
 
 export type ContactPatch = { full_name?: string } & Partial<Record<"email" | "phone" | "location" | "linkedin_url" | "github_url" | "website_url", string | null>>;
 export type EntryPatch = Partial<Omit<ResumeEntryRow, "id" | "section">>;
@@ -91,6 +105,25 @@ export function useResumeMutations() {
       ({ id, patch }: { id: string; patch: BulletPatch }) => sb.from("resume_bullets").update(patch).eq("id", id),
       "Couldn't save the bullet",
       (d, { id, patch }) => ({ ...d, bullets: d.bullets.map((b) => (b.id === id ? { ...b, ...patch } : b)) })
+    ),
+    // Drag reorders: every moved row's new position, written together and shown at once.
+    reorderEntries: useResumeMutation(
+      async (updates: PositionUpdate[]) => {
+        const results = await Promise.all(updates.map((u) => sb.from("resume_entries").update({ position: u.position }).eq("id", u.id)));
+        return { error: results.find((r) => r.error)?.error ?? null };
+      },
+      "Couldn't reorder",
+      (d, updates) => ({ ...d, entries: withPositions(d.entries, updates) }),
+      true
+    ),
+    reorderBullets: useResumeMutation(
+      async (updates: PositionUpdate[]) => {
+        const results = await Promise.all(updates.map((u) => sb.from("resume_bullets").update({ position: u.position }).eq("id", u.id)));
+        return { error: results.find((r) => r.error)?.error ?? null };
+      },
+      "Couldn't reorder",
+      (d, updates) => ({ ...d, bullets: withPositions(d.bullets, updates) }),
+      true
     ),
     deleteBullet: useResumeMutation((id: string) => sb.from("resume_bullets").delete().eq("id", id), "Couldn't delete the bullet"),
     // Turns a group of older, entry-less bullets (grouped by heading) into an entry.

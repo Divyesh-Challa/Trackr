@@ -283,7 +283,7 @@ export default function ApplyKit({ jobId }: { jobId: string }) {
                   className={btn}
                   onClick={() => {
                     if (tailor && !useOriginal && start) {
-                      const stored: StoredTailoring = { label: `${start.role} at ${start.company}`, bullets: tailor.bullets.map((b) => ({ bullet_id: b.bullet_id, text: b.text })) };
+                      const stored: StoredTailoring = { label: `${start.role} at ${start.company}`, bullets: tailor.bullets.map((b) => ({ bullet_id: b.bullet_id, text: b.text })), matched: tailor.matched_keywords, gaps: tailor.gaps };
                       try {
                         sessionStorage.setItem(TAILORING_KEY, JSON.stringify(stored));
                       } catch {}

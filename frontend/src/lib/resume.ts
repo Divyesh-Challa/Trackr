@@ -35,7 +35,7 @@ export type ResumeBulletRow = {
 };
 
 export type ResumeEntry = ResumeEntryRow & { bullets: { id: string; text: string }[] };
-export type SkillLine = { category: string; items: string };
+export type SkillLine = { id: string; category: string; items: string };
 
 export type ResumeModel = {
   contact: ResumeContact;
@@ -50,7 +50,8 @@ export type Tailoring = { bullets: { bullet_id: string; text: string }[] };
 
 /** Where the AI tab leaves a tailoring (in sessionStorage) for the resume page to show. */
 export const TAILORING_KEY = "trackr:tailoring";
-export type StoredTailoring = Tailoring & { label: string };
+/** `matched` and `gaps` are the posting's requirements the chosen bullets do and don't show. */
+export type StoredTailoring = Tailoring & { label: string; matched?: string[]; gaps?: string[] };
 
 export function dateRange(start: string, end: string): string {
   if (start && end) return `${start} – ${end}`;
@@ -89,7 +90,7 @@ export function buildResume(
     skills: bullets
       .filter((b) => b.section === "skills" && !b.entry_id)
       .sort(byPosition)
-      .map((b) => ({ category: b.heading || "Skills", items: b.content })),
+      .map((b) => ({ id: b.id, category: b.heading || "Skills", items: b.content })),
   };
 }
 

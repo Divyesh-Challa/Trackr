@@ -65,6 +65,18 @@ h1, h2, h3 {
   scrollbar-width: none;
 }
 
+/* Resume preview: each line links to its editor row (see ResumeBuilder). Screen only. */
+@media screen {
+  #resume-sheet [data-ref] {
+    border-radius: 2pt;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+  }
+  #resume-sheet [data-ref]:hover:not(:has([data-ref]:hover)) {
+    box-shadow: 0 0 0 1.5pt rgb(36 86 214 / 0.35);
+  }
+}
+
 /* Printing the resume page (Save as PDF): only the resume sheet, on a US Letter page
    with Jake's half-inch margins. The sheet carries its own spacing, in points. */
 @media print {

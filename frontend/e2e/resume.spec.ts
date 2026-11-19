@@ -9,6 +9,8 @@ async function fill(page: Page, scope: ReturnType<Page["locator"]> | Page, label
   await field.blur();
 }
 
+const openExport = (page: Page) => page.getByRole("button", { name: "More export options" }).click();
+
 const entryCard = (page: Page, title: string) => page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: title, exact: true }) });
 
 test.describe("resume builder", () => {
@@ -56,8 +58,15 @@ test.describe("resume builder", () => {
     await expect(job.getByRole("list", { name: /Bullets for/ }).getByRole("listitem")).toHaveCount(2);
     await expect(newBullet).toHaveValue("");
 
-    // Reorder: the second bullet moves to the top, in the editor and the preview.
-    await job.getByRole("button", { name: "Move bullet 2 up" }).click();
+    // Reorder by dragging with the keyboard (Space, arrow, Space): the second bullet moves
+    // to the top, in the editor and the preview.
+    const grip = job.getByRole("button", { name: "Reorder bullet 2" });
+    await grip.focus();
+    // dnd-kit measures the rows after pick-up, so give each key a beat.
+    for (const key of ["Space", "ArrowUp", "Space"]) {
+      await page.keyboard.press(key);
+      await page.waitForTimeout(150);
+    }
     await expect(job.getByLabel("Bullet 1", { exact: true })).toHaveValue("Cut query time by 50% & more with indexes");
     const items = preview.locator("li");
     await expect(items.first()).toHaveText("Cut query time by 50% & more with indexes");
@@ -77,7 +86,7 @@ test.describe("resume builder", () => {
     await expect(page.getByText("One page")).toBeVisible();
 
     // The .tex download is Jake's template with every special character escaped.
-    const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download .tex" }).click()]);
+    const [download] = await Promise.all([page.waitForEvent("download"), openExport(page).then(() => page.getByRole("menuitem", { name: "Download .tex" }).click())]);
     expect(download.suggestedFilename()).toBe("jake-ryan-resume.tex");
     const tex = readFileSync((await download.path())!, "utf8");
     expect(tex).toContain("\\documentclass[letterpaper,11pt]{article}");
