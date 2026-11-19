@@ -23,7 +23,7 @@ const readAsDataUrl = (file: File) =>
 $("settings").addEventListener("submit", async (e) => {
   e.preventDefault();
   const origin = new URL(baseUrl.value).origin;
-  // Addresses other than trackr-portal and localhost need the user's OK to be contacted.
+  // Addresses other than trackr-portal (localhost included) need the user's OK to be contacted.
   if (!(await chrome.permissions.contains({ origins: [`${origin}/*`] })) && !(await chrome.permissions.request({ origins: [`${origin}/*`] }))) {
     status.textContent = `The extension needs permission to reach ${origin}.`;
     return;
