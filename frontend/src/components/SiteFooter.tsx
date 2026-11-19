@@ -44,6 +44,7 @@ export default function SiteFooter() {
             <h2 className="text-slate-600">Trackr</h2>
             <Link href="/discover" className={`block ${linkClass}`}>All jobs</Link>
             <Link href="/guide" className={`block ${linkClass}`}>Internship guide</Link>
+            <Link href="/mcp" className={`block ${linkClass}`}>Use with AI assistants</Link>
             <Link href="/pricing" className={`block ${linkClass}`}>Pricing</Link>
             <Link href="/feedback" className={`block ${linkClass}`}>Feedback</Link>
             <a href="mailto:divyeshchallavgr@gmail.com" className={`block ${linkClass}`}>Contact</a>
