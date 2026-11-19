@@ -54,3 +54,15 @@ export async function servicePost(path: string, body: unknown) {
   if (!res.ok) throw new Error(`${path}: ${res.status} ${await res.text()}`);
   return res.json();
 }
+
+/** The auth user id for an email; tests run in parallel, so "newest profile" can be someone else's. */
+export async function userIdFor(email: string): Promise<string> {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new Error("Set SUPABASE_SERVICE_ROLE_KEY (from `supabase status`) to run e2e tests");
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?per_page=1000`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+  if (!res.ok) throw new Error(`admin/users: ${res.status} ${await res.text()}`);
+  const { users } = (await res.json()) as { users: { id: string; email: string }[] };
+  const user = users.find((u) => u.email === email);
+  if (!user) throw new Error(`No user ${email}`);
+  return user.id;
+}

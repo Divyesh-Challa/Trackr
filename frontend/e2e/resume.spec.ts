@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
-import { serviceGet, servicePost, signIn } from "./helpers";
+import { serviceGet, servicePost, signIn, userIdFor } from "./helpers";
 
 // Fills a builder field and blurs it, which is when it saves.
 async function fill(page: Page, scope: ReturnType<Page["locator"]> | Page, label: string, value: string) {
@@ -103,7 +103,7 @@ test.describe("resume builder", () => {
     test.skip(info.project.name !== "desktop", "desktop only");
     const email = `resume-tailor-${Date.now()}@test.local`;
     await signIn(page, email);
-    const [user] = await serviceGet(`profiles?select=id&order=created_at.desc&limit=1`);
+    const user = { id: await userIdFor(email) };
     const rows = await servicePost("resume_bullets", [
       { user_id: user.id, section: "experience", heading: "Developer Intern, Acme", content: "Shipped a billing dashboard used by 40 support staff", position: 0 },
       { user_id: user.id, section: "experience", heading: "Developer Intern, Acme", content: "Wrote integration tests for the payments API", position: 1 },

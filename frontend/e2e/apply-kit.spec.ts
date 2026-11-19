@@ -7,6 +7,8 @@ test("apply kit fills the form from the profile, then saves a receipt and marks 
   const email = `e2e-kit-${stamp}@test.local`;
   const letter = `I would like to join the data team. ${stamp}`;
   await signIn(page, email);
+  const matches = page.getByRole("region", { name: "Top matches for you" });
+  await expect(matches.getByRole("link", { name: /Data Analyst Intern/ })).toBeVisible();
   const [job] = (await serviceGet("jobs?select=id&job_url_canonical=eq.careers.example.com/jobs/3")) as { id: string }[];
   await page.goto(`/discover/${job.id}`);
 
@@ -31,6 +33,8 @@ test("apply kit fills the form from the profile, then saves a receipt and marks 
   expect(app.applied_at).not.toBeNull();
 
   await page.goto("/board");
+  // Tracked jobs leave Top matches.
+  await expect(page.getByRole("region", { name: "Top matches for you" }).getByRole("link", { name: /Data Analyst Intern/ })).toHaveCount(0);
   await page.getByRole("button", { name: /Data Analyst Intern/ }).first().click();
   await page.getByRole("tab", { name: "Receipts" }).click();
   await expect(page.getByText(letter)).toBeAttached();
