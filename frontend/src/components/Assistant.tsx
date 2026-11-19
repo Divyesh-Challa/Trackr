@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { Loader2, MessageCircle, Send, X } from "lucide-react";
+import { Loader2, Send, Sparkles, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getAiStatus } from "@/app/actions/ai";
@@ -13,9 +13,9 @@ import type { DiscoveredJob } from "@/types";
 
 type Turn = ChatMessage & { jobs?: DiscoveredJob[]; error?: boolean };
 
-const STARTERS = ["Which open roles fit my skills best?", "What should I follow up on this week?", "Any new grad roles posted recently?"];
+const STARTERS = ["Which open roles fit my skills best?", "What should I follow up on this week?", "Any new grad roles posted recently?", "How do I stand out for a summer co-op?"];
 
-/** Floating chat for signed-in users: finds roles in the feed and answers questions about their applications. */
+/** Scout, the floating chat for signed-in users: finds roles in the feed and answers questions about their applications. */
 export function Assistant() {
   const [signedIn, setSignedIn] = useState(false);
   const [open, setOpen] = useState(false);
@@ -42,6 +42,17 @@ export function Assistant() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  // The job board's Scout bar opens this chat, optionally with its text as the draft.
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      setOpen(true);
+      const text = (e as CustomEvent<string>).detail;
+      if (text) setDraft(text);
+    };
+    window.addEventListener("scout:open", onOpen);
+    return () => window.removeEventListener("scout:open", onOpen);
+  }, []);
+
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [turns, busy]);
@@ -58,7 +69,7 @@ export function Assistant() {
     start(async () => {
       const r = await askAssistant(history.map(({ role, text }) => ({ role, text }))).catch(() => ({
         ok: false as const,
-        error: "Couldn't reach the assistant. Try again.",
+        error: "Couldn't reach Scout. Try again.",
       }));
       setTurns((t) => [...t, r.ok ? { role: "assistant", text: r.data.text, jobs: r.data.jobs } : { role: "assistant", text: r.error, error: true }]);
       refetch();
@@ -73,24 +84,24 @@ export function Assistant() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Open the Trackr assistant"
-          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-accent-ink shadow-[0_10px_30px_-10px_rgba(0,102,255,0.7)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
+          aria-label="Open Scout, the Trackr assistant"
+          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-accent-ink shadow-lg transition hover:bg-accent-hover"
         >
-          <MessageCircle className="h-4 w-4" aria-hidden /> Ask Trackr
+          <Sparkles className="h-4 w-4" aria-hidden /> Ask Scout
         </button>
       )}
       {open && (
         <section
           role="dialog"
-          aria-label="Trackr assistant"
+          aria-label="Scout, the Trackr assistant"
           className="fixed inset-x-3 bottom-3 z-50 flex max-h-[min(640px,calc(100vh-1.5rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-surface shadow-2xl sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-[400px]"
         >
           <header className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div>
-              <h2 className="font-semibold text-slate-900">Ask Trackr</h2>
+              <h2 className="font-semibold text-slate-900">Scout</h2>
               <p className="text-xs text-slate-500">Finds roles and keeps you on top of your applications</p>
             </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close assistant" className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100">
+            <button type="button" onClick={() => setOpen(false)} aria-label="Close Scout" className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100">
               <X className="h-4 w-4" aria-hidden />
             </button>
           </header>
@@ -100,7 +111,7 @@ export function Assistant() {
               <div className="space-y-2">
                 <p className="text-sm text-slate-600">Ask about open roles, your applications or your next step. Try:</p>
                 {STARTERS.map((s) => (
-                  <button key={s} type="button" onClick={() => send(s)} className="block w-full rounded-xl border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 transition hover:border-blue-300 hover:bg-blue-50/50">
+                  <button key={s} type="button" onClick={() => send(s)} className="block w-full rounded-xl border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100">
                     {s}
                   </button>
                 ))}
@@ -133,7 +144,7 @@ export function Assistant() {
             ))}
             {busy && (
               <p className="flex items-center gap-2 text-sm text-slate-500">
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Looking through the feed…
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Scout is looking through the feed…
               </p>
             )}
           </div>
@@ -168,7 +179,7 @@ export function Assistant() {
                 <Send className="h-4 w-4" aria-hidden />
               </button>
             </div>
-            <p className="mt-1.5 text-[11px] text-slate-400">{left} messages left this month · Answers can be wrong, so check the posting</p>
+            <p className="mt-1.5 text-xs text-slate-600">{left} messages left this month · Answers can be wrong, so check the posting</p>
           </form>
         </section>
       )}

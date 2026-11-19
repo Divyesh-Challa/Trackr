@@ -45,6 +45,7 @@ import type { DiscoveredJob } from "@/types";
 import Dialog from "@/components/ui/Dialog";
 import { useToast } from "@/components/ui/Toast";
 import { useGSAPStagger } from "@/lib/useGSAPStagger";
+import { ScoutBar } from "./ScoutBar";
 import JobAi from "./JobAi";
 
 const PROGRAM_LABELS: Record<NonNullable<DiscoveredJob["job_type"]>, string> = {
@@ -797,6 +798,7 @@ export default function DiscoverView({
           </h1>
           <PulseLine pulse={pulse} />
         </div>
+        {signedIn && <div className="mt-4"><ScoutBar /></div>}
       </header>
 
       <section
