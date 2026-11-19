@@ -4,11 +4,12 @@ import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, KeyRound, Loader2, Trash2 } from "lucide-react";
 import { createApiToken, listApiTokens, revokeApiToken } from "@/app/actions/api-tokens";
+import Link from "next/link";
 import { useToast } from "@/components/ui/Toast";
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" }) : "Never");
 
-/** Personal API tokens for the Trackr Chrome extension. */
+/** Personal API tokens for the Trackr Chrome extension and the MCP server. */
 export default function ApiTokensSection() {
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -31,10 +32,11 @@ export default function ApiTokensSection() {
     <section aria-labelledby="api-tokens-heading" className="mx-auto max-w-xl space-y-4 rounded-2xl border border-slate-200 bg-surface p-6 shadow-sm">
       <div>
         <h2 id="api-tokens-heading" className="flex items-center gap-2 text-base font-semibold text-slate-900">
-          <KeyRound className="h-4 w-4" aria-hidden /> Extension tokens
+          <KeyRound className="h-4 w-4" aria-hidden /> Extension &amp; API tokens
         </h2>
         <p className="mt-1 text-sm text-slate-600">
           The Trackr Chrome extension uses a token to fill Greenhouse, Lever and Ashby forms from your profile and apply kit. You still press Submit.
+          The same token connects <Link href="/mcp" className="text-accent underline">AI assistants like Claude</Link>.
         </p>
       </div>
 

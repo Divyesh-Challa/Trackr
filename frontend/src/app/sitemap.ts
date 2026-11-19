@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .order("posted_at", { ascending: false, nullsFirst: false })
     .limit(1000);
   return [
-    ...["", "/discover", "/guide", "/pricing", "/privacy", "/terms"].map((path) => ({ url: `${SITE_URL}${path}` })),
+    ...["", "/discover", "/guide", "/mcp", "/pricing", "/privacy", "/terms"].map((path) => ({ url: `${SITE_URL}${path}` })),
     ...CITIES.map((c) => ({ url: `${SITE_URL}/internships/${c.slug}` })),
     ...ROLES.map((r) => ({ url: `${SITE_URL}/roles/${r.slug}` })),
     ...(data ?? []).map((j) => ({ url: `${SITE_URL}/discover/${j.id}`, lastModified: j.updated_at })),

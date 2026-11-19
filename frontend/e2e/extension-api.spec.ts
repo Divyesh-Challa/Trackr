@@ -11,7 +11,7 @@ test("an extension token reads the kit and records a receipt, until it's revoked
   await signIn(page, email);
 
   await page.goto("/profile");
-  const section = page.getByRole("region", { name: "Extension tokens" });
+  const section = page.getByRole("region", { name: "Extension & API tokens" });
   await section.getByLabel("Token name").fill(`Laptop ${stamp}`);
   await section.getByRole("button", { name: "Create token" }).click();
   const token = (await section.getByLabel("New token").textContent())!.trim();
