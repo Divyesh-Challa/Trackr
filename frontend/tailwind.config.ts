@@ -19,12 +19,11 @@ const config: Config = {
   ],
   darkMode: "class",
   theme: {
-    // No glass: backdrop-blur utilities generate nothing.
-    backdropBlur: {},
     extend: {
       fontFamily: {
-        serif: ["var(--font-serif)", "Zilla Slab", "Georgia", "serif"],
-        sans: ["var(--font-sans)", "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        // Zilla Slab is only the wordmark; everything else is Geist.
+        wordmark: ["var(--font-wordmark)", "Zilla Slab", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
       },
       colors: {
         background: "rgb(var(--background) / <alpha-value>)",
@@ -53,23 +52,28 @@ const config: Config = {
         red: themed("red"),
         amber: themed("amber"),
       },
-      // Surfaces are separated by a tone step or a 1px line; only floating things (menus, dialogs) cast a shadow.
+      // Elevation lives in theme.css so dark mode can swap it. `shadow-sm` is the hairline ring
+      // raised surfaces use in place of a border; the larger steps are for things that float.
       boxShadow: {
-        xs: "none",
-        sm: "none",
-        DEFAULT: "none",
-        md: "none",
-        lg: "0 8px 24px -6px rgb(0 0 0 / 0.16)",
-        xl: "0 12px 32px -8px rgb(0 0 0 / 0.2)",
-        "2xl": "0 20px 48px -12px rgb(0 0 0 / 0.28)",
+        xs: "var(--shadow-xs)",
+        sm: "var(--shadow-sm)",
+        DEFAULT: "var(--shadow)",
+        md: "var(--shadow-md)",
+        lg: "var(--shadow-lg)",
+        xl: "var(--shadow-xl)",
+        "2xl": "var(--shadow-2xl)",
       },
-      // Tight, one radius family: cards 8px, controls 6px, chips 4px; pills stay rounded-full.
+      // Controls 8px, cards 14px, panels 18px, sheets 24px; chips and pills stay rounded-full.
       borderRadius: {
-        md: "6px",
-        lg: "8px",
-        xl: "8px",
-        "2xl": "8px",
-        "3xl": "8px",
+        md: "8px",
+        lg: "10px",
+        xl: "14px",
+        "2xl": "18px",
+        "3xl": "24px",
+      },
+      transitionTimingFunction: {
+        // Ease-out for things arriving; matches the springs' feel when CSS does the work.
+        out: "cubic-bezier(0.23, 1, 0.32, 1)",
       },
     },
   },

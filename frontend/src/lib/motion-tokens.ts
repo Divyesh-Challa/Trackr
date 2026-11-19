@@ -45,6 +45,14 @@ export const springs = {
   release: { type: "spring", stiffness: 260, damping: 22, restDelta: 0.001 },
   /** Fluid glides for shared element layoutId transitions */
   glide: { type: "spring", stiffness: 450, damping: 32 },
+  /** Dialogs and the command palette opening from scale .96 (see artifacts/tsenta-ui-study.md) */
+  modal: { type: "spring", stiffness: 260, damping: 32, mass: 1 },
+  /** Sheets and panels sliding in from an edge */
+  sheet: { type: "spring", stiffness: 320, damping: 30 },
+  /** List items entering, leaving and reflowing (with `layout`) */
+  list: { type: "spring", stiffness: 320, damping: 28 },
+  /** whileTap press on tab-bar buttons and chips */
+  tap: { type: "spring", stiffness: 400, damping: 18 },
 } as const satisfies Record<string, Transition>;
 
 /**

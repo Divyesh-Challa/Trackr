@@ -25,7 +25,7 @@ export default function SiteFooter() {
     <footer className="mt-24 overflow-hidden bg-surface">
       <div className="mx-auto max-w-[1720px] px-4 pt-14 text-sm text-slate-600 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
-          <p className="max-w-[32ch] font-serif text-xl leading-snug text-slate-900">
+          <p className="max-w-[32ch] text-xl leading-snug text-slate-900">
             Every Canadian tech internship and co-op, with a tracker for each application.
           </p>
           <nav aria-label="Jobs by city" className="space-y-2">
@@ -61,7 +61,7 @@ export default function SiteFooter() {
         {/* The name closes the page at full width. */}
         <p
           aria-hidden
-          className="wordmark-settle mt-6 select-none pb-[0.04em] font-serif text-[22vw] font-semibold leading-[0.85] tracking-[-0.045em] text-slate-900 sm:text-[19vw] 2xl:text-[320px]"
+          className="wordmark-settle mt-6 select-none pb-[0.04em] font-wordmark text-[22vw] font-semibold leading-[0.85] tracking-[-0.045em] text-slate-900 sm:text-[19vw] 2xl:text-[320px]"
         >
           trackr
         </p>

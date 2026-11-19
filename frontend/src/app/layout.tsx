@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Zilla_Slab, Inter } from "next/font/google";
+import { Zilla_Slab, Geist } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import Navbar from "../components/Navbar";
@@ -13,12 +13,12 @@ import { SITE_URL } from "@/lib/site";
 
 const zilla = Zilla_Slab({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-serif",
+  weight: ["600"],
+  variable: "--font-wordmark",
   display: "swap",
 });
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
@@ -46,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${zilla.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${zilla.variable} ${geist.variable}`} suppressHydrationWarning>
       <head>
         {/* Applies the saved or system theme before first paint, so dark mode never flashes white. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />

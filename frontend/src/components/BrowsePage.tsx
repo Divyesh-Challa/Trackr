@@ -34,7 +34,7 @@ export async function BrowsePage({ collection }: { collection: Collection }) {
     <div className="mx-auto max-w-4xl space-y-8">
       <header className="space-y-3">
         <p className="text-sm font-medium text-accent">{total.toLocaleString()} open roles · updated every hour</p>
-        <h1 className="font-serif text-4xl font-semibold tracking-tight text-slate-900">{collection.title}</h1>
+        <h1 className="text-4xl font-semibold tracking-tight text-slate-900">{collection.title}</h1>
         <p className="max-w-2xl text-lg text-slate-600">{collection.intro}</p>
       </header>
 

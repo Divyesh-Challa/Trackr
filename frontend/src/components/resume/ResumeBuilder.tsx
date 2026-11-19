@@ -133,7 +133,7 @@ export default function ResumeBuilder() {
     <div className="mx-auto max-w-[1400px]">
       <div data-print-hidden="true" className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-slate-900">Resume</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Resume</h1>
           <p className="mt-1 max-w-xl text-sm text-slate-600">
             Built on Jake&apos;s Resume, the one-page LaTeX template recruiters know. Changes save as you go. The AI tools only work from what you write here.
           </p>

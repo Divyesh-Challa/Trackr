@@ -297,7 +297,7 @@ export default function TrackerBoard({ initialOpenId = null }: { initialOpenId?:
     <div className="space-y-4">
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-slate-900">Applications</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Applications</h1>
           <p className="text-sm text-slate-600">
             {apps.length} tracked · {apps.filter((a) => a.status !== "WISHLIST").length} applied
           </p>

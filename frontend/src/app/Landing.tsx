@@ -77,7 +77,7 @@ function Stage({ jobs, current, id }: { jobs: DiscoveredJob[]; current: StageId;
   return (
     <div data-ui className="flex h-full flex-col justify-center bg-stage px-4 py-10 sm:px-8 lg:px-10">
       <div className="mb-5 flex items-baseline justify-between text-stage-muted">
-        <p className="font-serif text-xl font-semibold text-stage-ink">Your board</p>
+        <p className="text-xl font-semibold text-stage-ink">Your board</p>
         <p className="text-xs">{termLabel(upcomingTerms()[0])} search</p>
       </div>
       <LayoutGroup id={id}>
@@ -209,7 +209,7 @@ export default function Landing({
 
           <div ref={column} className="px-4 sm:px-10 lg:px-16 xl:px-20">
             <section data-stage="WISHLIST" className="flex flex-col justify-center pb-16 pt-12 lg:min-h-[calc(100svh-3.5rem)] lg:py-16">
-              <h1 className="enter max-w-[14ch] font-serif text-[clamp(2.75rem,4.6vw,4.5rem)] font-semibold leading-[1.0] text-slate-900">
+              <h1 className="enter max-w-[14ch] text-[clamp(2.75rem,4.6vw,4.5rem)] font-semibold leading-[1.0] text-slate-900">
                 Every Canadian co‑op, tracked.
               </h1>
               <p className="enter mt-8 max-w-[46ch] text-lg leading-relaxed text-slate-800 [--d:80ms] md:text-xl">
@@ -238,7 +238,7 @@ export default function Landing({
             </section>
 
             <section data-stage="WISHLIST" aria-labelledby="fresh-title" className="py-20">
-              <h2 id="fresh-title" className="rise font-serif text-4xl font-semibold leading-tight text-slate-900">
+              <h2 id="fresh-title" className="rise text-4xl font-semibold leading-tight text-slate-900">
                 Fresh every hour
               </h2>
               <p className="rise rise-2 mt-6 max-w-[46ch] text-lg leading-relaxed text-slate-800">
@@ -267,7 +267,7 @@ export default function Landing({
             </section>
 
             <section data-stage="APPLIED" aria-labelledby="source-title" className="py-20">
-              <h2 id="source-title" className="rise font-serif text-4xl font-semibold leading-tight text-slate-900">
+              <h2 id="source-title" className="rise text-4xl font-semibold leading-tight text-slate-900">
                 Apply where the company hires
               </h2>
               <p className="rise rise-2 mt-6 max-w-[46ch] text-lg leading-relaxed text-slate-800">
@@ -288,7 +288,7 @@ export default function Landing({
             </section>
 
             <section data-stage="INTERVIEWING" aria-labelledby="slip-title" className="py-20">
-              <h2 id="slip-title" className="rise font-serif text-4xl font-semibold leading-tight text-slate-900">
+              <h2 id="slip-title" className="rise text-4xl font-semibold leading-tight text-slate-900">
                 Nothing slips past a deadline
               </h2>
               <p className="rise rise-2 mt-6 max-w-[46ch] text-lg leading-relaxed text-slate-800">
@@ -308,7 +308,7 @@ export default function Landing({
             </section>
 
             <section data-stage="OFFER" aria-labelledby="offer-title" className="py-20 lg:pb-[30svh]">
-              <h2 id="offer-title" className="rise font-serif text-4xl font-semibold leading-tight text-slate-900">
+              <h2 id="offer-title" className="rise text-4xl font-semibold leading-tight text-slate-900">
                 From wishlist to offer
               </h2>
               <p className="rise rise-2 mt-6 max-w-[46ch] text-lg leading-relaxed text-slate-800">
@@ -331,12 +331,12 @@ export default function Landing({
         <section aria-labelledby="pricing-title" className="grid lg:grid-cols-[5fr_7fr]">
           <h2 id="pricing-title" className="sr-only">Pricing</h2>
           <div className="flex min-h-[70svh] flex-col bg-surface p-6 sm:p-10">
-            <h3 className="rise font-serif text-5xl font-semibold text-slate-900">Free</h3>
+            <h3 className="rise text-5xl font-semibold text-slate-900">Free</h3>
             <p className="rise rise-2 mt-4 max-w-[30ch] text-lg leading-relaxed text-slate-800">
               The whole feed, skill match on every role, and a board for up to 50 active applications.
             </p>
             <div className="mt-auto flex flex-wrap items-end justify-between gap-6 pt-16">
-              <p className="font-serif text-[clamp(4.5rem,9vw,8rem)] font-semibold leading-none text-slate-900">$0</p>
+              <p className="text-[clamp(4.5rem,9vw,8rem)] font-semibold leading-none text-slate-900">$0</p>
               <Link
                 href="/login?next=/board"
                 className="rounded-md border border-slate-900 px-6 py-3 font-medium text-slate-900 transition hover:bg-slate-900 hover:text-background"
@@ -346,13 +346,13 @@ export default function Landing({
             </div>
           </div>
           <div className="flex min-h-[70svh] flex-col bg-accent p-6 pt-16 text-accent-ink sm:p-10">
-            <h3 className="rise font-serif text-5xl font-semibold">Pro</h3>
+            <h3 className="rise text-5xl font-semibold">Pro</h3>
             <p className="rise rise-2 mt-4 max-w-[34ch] text-lg leading-relaxed">
               Unlimited applications, plus AI resume tailoring, cover letters, job match and interview practice at the
               highest limits.
             </p>
             <div className="mt-auto flex flex-wrap items-end justify-between gap-6 pt-16">
-              <p className="font-serif text-[clamp(4.5rem,9vw,8rem)] font-semibold leading-none">
+              <p className="text-[clamp(4.5rem,9vw,8rem)] font-semibold leading-none">
                 $15<span className="ml-2 text-xl font-normal">CAD a month</span>
               </p>
               <Link href="/pricing" className="rounded-md bg-accent-ink px-6 py-3 font-medium text-accent transition hover:opacity-90">
@@ -363,7 +363,7 @@ export default function Landing({
         </section>
 
         <section aria-labelledby="faq-title" className="mx-auto grid max-w-[1400px] gap-10 px-4 py-28 sm:px-10 lg:grid-cols-12">
-          <h2 id="faq-title" className="rise font-serif text-4xl font-semibold leading-tight text-slate-900 lg:col-span-3">
+          <h2 id="faq-title" className="rise text-4xl font-semibold leading-tight text-slate-900 lg:col-span-3">
             Good to know
           </h2>
           <div className="text-[17px] leading-[1.6] text-slate-800 lg:col-span-8 lg:col-start-5 lg:columns-2 lg:gap-14">
@@ -377,7 +377,7 @@ export default function Landing({
 
         <section aria-labelledby="cta-title" className="grid min-h-[80svh] items-center gap-12 bg-stage px-4 py-20 sm:px-10 lg:grid-cols-12">
           <div className="lg:col-span-5 lg:self-end">
-            <h2 id="cta-title" className="rise font-serif text-[clamp(3rem,6.5vw,6.5rem)] font-semibold leading-[0.95] text-stage-ink">
+            <h2 id="cta-title" className="rise text-[clamp(3rem,6.5vw,6.5rem)] font-semibold leading-[0.95] text-stage-ink">
               Find your co&#8209;op.
             </h2>
             <p className="rise rise-2 mt-6 max-w-[40ch] text-lg text-stage-muted">

@@ -1,9 +1,10 @@
-/* Stone and blueprint. Light: stone ground, warm near-black ink, one blueprint-blue accent.
+/* Paper and blueprint. Light: a warm off-white ground with white raised surfaces, warm near-black ink,
+ * one blueprint-blue accent. Surfaces are lifted by a hairline ring shadow rather than boxed in by borders.
  * Dark: true neutral (no navy), and the text tiers stay bright instead of mirroring the light scale,
  * so secondary text keeps ~7:1 contrast. Status hues (emerald/rose/red/amber) are mirrored. */
 :root {
-  --background: 231 230 226;
-  --surface: 247 246 243;
+  --background: 246 245 241;
+  --surface: 255 255 255;
   --accent: 36 86 214;
   --accent-hover: 28 69 176;
   --accent-ink: 255 255 255;
@@ -13,10 +14,10 @@
   --stage-line: 70 69 61;
   --stage-ink: 245 245 243;
   --stage-muted: 189 186 176;
-  --c-slate-50: 239 238 233;
-  --c-slate-100: 230 229 224;
-  --c-slate-200: 217 215 209;
-  --c-slate-300: 196 194 187;
+  --c-slate-50: 248 247 244;
+  --c-slate-100: 241 240 236;
+  --c-slate-200: 229 228 223;
+  --c-slate-300: 210 208 202;
   --c-slate-400: 102 99 90;
   --c-slate-500: 87 85 78;
   --c-slate-600: 74 72 66;
@@ -79,12 +80,19 @@
   --c-amber-800: 146 64 14;
   --c-amber-900: 120 53 15;
   --c-amber-950: 69 26 3;
+  --shadow-xs: 0 1px 2px rgb(20 20 19 / 0.05);
+  --shadow-sm: 0 0 0 1px rgb(20 20 19 / 0.06), 0 1px 2px rgb(20 20 19 / 0.04), 0 2px 4px rgb(20 20 19 / 0.04);
+  --shadow: 0 0 0 1px rgb(20 20 19 / 0.06), 0 2px 4px rgb(20 20 19 / 0.04), 0 6px 16px -4px rgb(20 20 19 / 0.08);
+  --shadow-md: 0 0 0 1px rgb(20 20 19 / 0.05), 0 4px 8px -2px rgb(20 20 19 / 0.06), 0 12px 28px -8px rgb(20 20 19 / 0.12);
+  --shadow-lg: 0 0 0 1px rgb(20 20 19 / 0.05), 0 8px 32px rgb(20 20 19 / 0.12);
+  --shadow-xl: 0 0 0 1px rgb(20 20 19 / 0.04), 0 3px 10px rgb(20 20 19 / 0.05), 0 18px 44px rgb(20 20 19 / 0.12);
+  --shadow-2xl: 0 0 0 1px rgb(20 20 19 / 0.04), 0 24px 64px -12px rgb(20 20 19 / 0.3);
 }
 
 html.dark {
   color-scheme: dark;
-  --background: 15 15 14;
-  --surface: 24 24 22;
+  --background: 12 12 11;
+  --surface: 23 23 21;
   --accent: 123 156 255;
   --accent-hover: 155 180 255;
   --accent-ink: 15 15 14;
@@ -159,4 +167,12 @@ html.dark {
   --c-amber-800: 253 230 138;
   --c-amber-900: 254 243 199;
   --c-amber-950: 255 251 235;
+  /* On dark grounds a light hairline does the ring's job; the drop shadows only deepen. */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 0 0 1px rgb(255 255 255 / 0.08), 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 4px 12px -2px rgb(0 0 0 / 0.5);
+  --shadow-md: 0 0 0 1px rgb(255 255 255 / 0.09), 0 12px 28px -8px rgb(0 0 0 / 0.6);
+  --shadow-lg: 0 0 0 1px rgb(255 255 255 / 0.1), 0 8px 32px rgb(0 0 0 / 0.6);
+  --shadow-xl: 0 0 0 1px rgb(255 255 255 / 0.1), 0 18px 44px rgb(0 0 0 / 0.65);
+  --shadow-2xl: 0 0 0 1px rgb(255 255 255 / 0.1), 0 24px 64px -12px rgb(0 0 0 / 0.75);
 }

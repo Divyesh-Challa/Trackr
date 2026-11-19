@@ -28,7 +28,7 @@ export default function FeedbackPage() {
   if (send.isSuccess) {
     return (
       <div className="mx-auto max-w-xl py-12 text-center">
-        <h1 className="font-serif text-3xl font-semibold text-slate-900">Thank you</h1>
+        <h1 className="text-3xl font-semibold text-slate-900">Thank you</h1>
         <p className="mt-2 text-slate-600">Your feedback was sent. {wantsReply ? "You'll get a reply at your account email." : ""}</p>
         <button type="button" onClick={() => { setMessage(""); send.reset(); }} className="mt-6 text-sm font-medium text-accent underline">
           Send another
@@ -46,7 +46,7 @@ export default function FeedbackPage() {
       }}
     >
       <header>
-        <h1 className="font-serif text-3xl font-semibold tracking-tight text-slate-900">Share feedback</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Share feedback</h1>
         <p className="mt-1 text-sm text-slate-600">Found a bug, a wrong listing, or something missing? Tell us.</p>
       </header>
       <fieldset>
