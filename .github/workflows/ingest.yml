@@ -2,7 +2,7 @@ name: Ingest jobs
 
 on:
   schedule:
-    - cron: "47 11 * * *"   # daily fallback; Supabase pg_cron (ingest-jobs) starts the 6-hourly runs
+    - cron: "47 11 * * *"   # daily fallback; Supabase pg_cron (ingest-jobs) starts the hourly runs
   workflow_dispatch:
 
 permissions:

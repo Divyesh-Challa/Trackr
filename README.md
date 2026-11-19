@@ -10,7 +10,7 @@
 ## Why
 
 Applying to dozens of co-ops a term means juggling a spreadsheet, stale job lists and
-missed follow-ups. Trackr pulls open Canadian roles from company job boards every 6 hours,
+missed follow-ups. Trackr pulls open Canadian roles from company job boards every hour,
 and lets you track each application from wishlist to offer.
 
 ## Features
@@ -38,7 +38,7 @@ and lets you track each application from wishlist to offer.
 |---|---|
 | App | Next.js 15 (App Router), React 19, Tailwind, TanStack Query, dnd-kit, framer-motion + GSAP |
 | Data & auth | Supabase (Postgres, RLS, Auth); migrations in `supabase/migrations`, pgTAP tests in `supabase/tests` |
-| Jobs pipeline | Python (`ingest/`), every 6 hours in GitHub Actions, as a restricted `trackr_ingest` DB role |
+| Jobs pipeline | Python (`ingest/`), hourly in GitHub Actions, as a restricted `trackr_ingest` DB role |
 | Billing & AI | Stripe Checkout + customer portal; Anthropic API (Claude Sonnet 5.5) or Gemini, with quotas in Postgres |
 | Ops | Vercel, Sentry, nightly encrypted `pg_dump` backups, CI with Playwright end-to-end tests |
 

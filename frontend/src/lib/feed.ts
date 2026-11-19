@@ -238,13 +238,17 @@ export async function getJob(
   id: string
 ): Promise<(DiscoveredJob & { is_active: boolean }) | null> {
   if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) return null;
+  // job_feed, not jobs, so the page gets the viewer's match_percent too.
   const { data, error } = await supabase
-    .from("jobs")
-    .select(`${JOB_COLUMNS}, description_md, is_active`)
+    .from("job_feed")
+    .select(`${JOB_COLUMNS}, description_md, is_active, last_seen_at, match_percent`)
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`Failed to load job: ${error.message}`);
-  return data ? { ...toDiscoveredJob(data), is_active: data.is_active } : null;
+  if (!data) return null;
+  // The view's columns are all nullable in the generated types; this row comes from jobs.
+  const row = data as FeedJobRow & { is_active: boolean; last_seen_at: string };
+  return { ...toDiscoveredJob(row), is_active: row.is_active, last_seen_at: row.is_active ? row.last_seen_at : undefined };
 }
 
 /** Open roles at the same company, and others in the same field that ask for the same skills. */

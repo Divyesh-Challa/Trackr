@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Trackr | Canadian internships & co-ops, tracked",
   description:
-    "Tech internships and co-ops across Canada, refreshed every 6 hours from company job boards, with a tracker for every application.",
+    "Tech internships and co-ops across Canada, refreshed every hour from company job boards, with a tracker for every application.",
   openGraph: {
     siteName: "Trackr",
     type: "website",

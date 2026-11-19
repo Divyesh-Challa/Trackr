@@ -78,8 +78,11 @@ const REPORT_REASONS: { code: ReportReason; label: string }[] = [
 
 function postedAgo(iso: string | null) {
   if (!iso) return null;
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days <= 0) return "today";
+  const ms = Date.now() - new Date(iso).getTime();
+  // The feed refreshes hourly, so same-day postings get hour-level precision.
+  if (ms < 3_600_000) return `${Math.max(1, Math.floor(ms / 60_000))}m ago`;
+  if (ms < 86_400_000) return `${Math.floor(ms / 3_600_000)}h ago`;
+  const days = Math.floor(ms / 86_400_000);
   if (days === 1) return "yesterday";
   if (days < 60) return `${days}d ago`;
   return `${Math.floor(days / 30)}mo ago`;
@@ -360,6 +363,7 @@ function JobDetail({
     { label: "Program", value: job.job_type ? PROGRAM_LABELS[job.job_type] : "Internship / Co-op" },
     { label: "Term", value: job.terms.length ? job.terms.map(termLabel).join(", ") : "Not stated" },
     { label: "Posted", value: postedAgo(job.posted_at) ?? "Unknown" },
+    ...(job.last_seen_at ? [{ label: "Still open", value: `Checked ${postedAgo(job.last_seen_at)}` }] : []),
   ];
   const flags = eligibilityFlags(job);
 
@@ -1139,7 +1143,7 @@ export default function DiscoverView({
         <a className="underline" href="https://github.com/Bobwillrule/Canadian-Internship-List" target="_blank" rel="noopener noreferrer">
           Bobwillrule/Canadian-Internship-List
         </a>
-        . Every listing links to the original posting. Listings refresh every 6 hours.
+        . Every listing links to the original posting. Listings refresh every hour.
       </footer>
     </div>
   );
