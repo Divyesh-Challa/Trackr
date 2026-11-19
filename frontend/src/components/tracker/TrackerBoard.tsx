@@ -103,7 +103,7 @@ function Column({
   );
 }
 
-export default function TrackerBoard() {
+export default function TrackerBoard({ initialOpenId = null }: { initialOpenId?: string | null } = {}) {
   const { data: apps = [], isLoading, isError, error, refetch } = useApplications();
   const move = useMoveApplication();
   const toast = useToast();
@@ -113,7 +113,7 @@ export default function TrackerBoard() {
   const [view, setView] = useState<"board" | "list" | "insights">("board");
   const [search, setSearch] = useState("");
   const [workModel, setWorkModel] = useState<"ALL" | "REMOTE" | "HYBRID" | "ONSITE">("ALL");
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(initialOpenId);
   const [addStatus, setAddStatus] = useState<ApplicationStatus | null>(null);
   const [mobileColumn, setMobileColumn] = useState<ApplicationStatus>("APPLIED");
   const [importing, setImporting] = useState(false);
