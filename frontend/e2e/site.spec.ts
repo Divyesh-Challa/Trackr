@@ -5,7 +5,7 @@ test("signed-out visitors get the landing page with live numbers", async ({ page
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Every Canadian co");
   await expect(page.getByText(/from \d[\d,]* company job boards/)).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Fresh every six hours" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Fresh every hour" })).toBeVisible();
   await page.getByRole("link", { name: /^Browse \d[\d,]* roles/ }).click();
   await expect(page).toHaveURL(/\/discover$/);
 });

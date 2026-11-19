@@ -148,6 +148,8 @@ export interface DiscoveredJob {
   job_url: string;
   description: string;
   posted_at: string | null;
+  /** When the ingest last saw the posting live; only set on the job page for open postings. */
+  last_seen_at?: string;
   deadline_at?: string;
   created_at: string;
   /** Same company and title was listed under another URL at least a week earlier. */

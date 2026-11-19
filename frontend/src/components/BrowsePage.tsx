@@ -8,7 +8,7 @@ import { JobRows } from "@/components/JobRows";
 const faq = (c: Collection, total: number) => [
   {
     q: `How many ${c.name === "Remote" ? "remote" : c.name} roles are open right now?`,
-    a: `${total.toLocaleString()} open ${total === 1 ? "posting" : "postings"} as of the last refresh. Trackr re-checks every employer's job board every 6 hours and drops roles once they close.`,
+    a: `${total.toLocaleString()} open ${total === 1 ? "posting" : "postings"} as of the last refresh. Trackr re-checks every employer's job board every hour and drops roles once they close.`,
   },
   {
     q: "Where do these listings come from?",
@@ -33,7 +33,7 @@ export async function BrowsePage({ collection }: { collection: Collection }) {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <header className="space-y-3">
-        <p className="text-sm font-medium text-accent">{total.toLocaleString()} open roles · updated every 6 hours</p>
+        <p className="text-sm font-medium text-accent">{total.toLocaleString()} open roles · updated every hour</p>
         <h1 className="font-serif text-4xl font-semibold tracking-tight text-slate-900">{collection.title}</h1>
         <p className="max-w-2xl text-lg text-slate-600">{collection.intro}</p>
       </header>
@@ -60,7 +60,7 @@ export async function BrowsePage({ collection }: { collection: Collection }) {
           <JobRows jobs={jobs.slice(0, 25)} />
         ) : (
           <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-slate-600">
-            Nothing open here right now. New roles land every few hours, or <Link href="/discover" className="text-accent hover:underline">browse every role</Link>.
+            Nothing open here right now. New roles land every hour, or <Link href="/discover" className="text-accent hover:underline">browse every role</Link>.
           </p>
         )}
       </section>

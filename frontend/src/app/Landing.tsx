@@ -17,7 +17,7 @@ import { ResumeMatchDemo } from "@/components/landing/ResumeMatchDemo";
 const FAQ = [
   {
     q: "Where do the jobs come from?",
-    a: "Straight from employers' own job boards (Greenhouse, Lever, Ashby, Workday and more) and community-kept internship lists, checked every 6 hours. You always apply on the employer's site.",
+    a: "Straight from employers' own job boards (Greenhouse, Lever, Ashby, Workday and more) and community-kept internship lists, checked every hour. You always apply on the employer's site.",
   },
   {
     q: "Are closed or fake postings filtered out?",
@@ -214,7 +214,7 @@ export default function Landing({
               </h1>
               <p className="enter mt-8 max-w-[46ch] text-lg leading-relaxed text-slate-800 [--d:80ms] md:text-xl">
                 Tech internships, co-ops and new grad roles from {companyCount.toLocaleString()} company job boards, refreshed
-                every six hours. Save one, then follow it all the way to the offer.
+                every hour. Save one, then follow it all the way to the offer.
               </p>
               <div className="enter mt-8 flex flex-wrap items-center gap-x-6 gap-y-4 [--d:160ms]">
                 <Magnet>
@@ -239,7 +239,7 @@ export default function Landing({
 
             <section data-stage="WISHLIST" aria-labelledby="fresh-title" className="py-20">
               <h2 id="fresh-title" className="rise font-serif text-4xl font-semibold leading-tight text-slate-900">
-                Fresh every six hours
+                Fresh every hour
               </h2>
               <p className="rise rise-2 mt-6 max-w-[46ch] text-lg leading-relaxed text-slate-800">
                 Trackr reads company job boards directly, so a role shows up here hours after it goes live, and
