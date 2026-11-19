@@ -63,12 +63,21 @@ async function loadBullets(supabase: Sb): Promise<SourceBullet[]> {
   });
 }
 
+/** The application, with the linked Discover job's description standing in when the user hasn't pasted one. */
+async function loadApplication(supabase: Sb, applicationId: string) {
+  const { data } = await supabase
+    .from("applications")
+    .select("company_name, role_title, description, jobs(description_md)")
+    .eq("id", applicationId)
+    .maybeSingle();
+  if (!data) return null;
+  const { jobs, ...app } = data;
+  return { ...app, description: app.description?.trim() ? app.description : (jobs?.description_md ?? null) };
+}
+
 async function loadContext(applicationId: string) {
   const supabase = await createClient();
-  const [{ data: app }, bullets] = await Promise.all([
-    supabase.from("applications").select("company_name, role_title, description").eq("id", applicationId).maybeSingle(),
-    loadBullets(supabase),
-  ]);
+  const [app, bullets] = await Promise.all([loadApplication(supabase, applicationId), loadBullets(supabase)]);
   return { app, bullets };
 }
 
@@ -156,11 +165,7 @@ export async function interviewQuestion(
   previous: string[]
 ): Promise<AiResult<z.infer<typeof QuestionSchema>>> {
   const supabase = await createClient();
-  const { data: app } = await supabase
-    .from("applications")
-    .select("company_name, role_title, description")
-    .eq("id", applicationId)
-    .maybeSingle();
+  const app = await loadApplication(supabase, applicationId);
   if (!app) return { ok: false, error: "Application not found." };
   return runStructured({
     feature: "interview_question",
