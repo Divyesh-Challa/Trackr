@@ -3,7 +3,7 @@
 import React, { useId, useRef, useState } from "react";
 
 export const inputClass =
-  "w-full rounded-xl border border-slate-300 bg-surface px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20";
+  "w-full rounded-lg border-0 bg-surface px-3 py-2 text-sm text-slate-900 shadow-xs ring-1 ring-slate-900/10 transition-shadow placeholder:text-slate-900/30 hover:ring-slate-900/20 focus:outline-none focus:ring-2 focus:ring-accent/50 max-md:text-[15px]";
 
 type FieldProps = {
   label: string;
@@ -63,7 +63,7 @@ export function Field({ label, value, onDraft, onSave, placeholder, maxLength = 
 
   return (
     <div className={`space-y-1 ${className ?? ""}`}>
-      <label htmlFor={id} className={hideLabel ? "sr-only" : "block text-[13px] font-medium text-slate-700"}>
+      <label htmlFor={id} className={hideLabel ? "sr-only" : "block text-[12px] font-medium text-slate-600"}>
         {label}
       </label>
       {multiline ? <textarea rows={2} {...props} className={`${inputClass} resize-y leading-snug`} /> : <input type={type} {...props} />}

@@ -1,9 +1,11 @@
 import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { dateRange, displayUrl, type ResumeEntry, type ResumeModel } from "@/lib/resume";
 
 // An HTML rendering of Jake's Resume at true size (US Letter, 0.5in margins, 11pt base),
 // so the preview and "Save as PDF" match the LaTeX output closely. Colours are fixed: a
-// resume is black on white whatever the site theme.
+// resume is black on white whatever the site theme. Each line carries the `data-ref` of
+// the editor row it came from, so the builder can light it up and jump between them.
 
 const FONT = `"Latin Modern Roman", "CMU Serif", "Computer Modern Serif", "Times New Roman", Times, serif`;
 
@@ -31,9 +33,21 @@ function Bullets({ entry }: { entry: ResumeEntry }) {
   if (!entry.bullets.length) return null;
   return (
     <ul style={{ listStyle: "disc", margin: "2pt 0 4pt", paddingLeft: "0.3in", fontSize: "10pt", lineHeight: 1.25 }}>
-      {entry.bullets.map((b) => (
-        <li key={b.id} style={{ marginBottom: "1pt" }}>{b.text}</li>
-      ))}
+      <AnimatePresence initial={false}>
+        {entry.bullets.map((b) => (
+          <motion.li
+            key={b.id}
+            data-ref={`b:${b.id}`}
+            initial={{ opacity: 0, x: -6 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+            style={{ marginBottom: "1pt" }}
+          >
+            {b.text}
+          </motion.li>
+        ))}
+      </AnimatePresence>
     </ul>
   );
 }
@@ -62,7 +76,7 @@ export default function ResumePreview({ model }: { model: ResumeModel }) {
       aria-label="Resume preview"
       style={{ width: "8.5in", minHeight: "11in", padding: "0.5in", background: "#fff", color: "#000", fontFamily: FONT, fontSize: "11pt", lineHeight: 1.2, boxSizing: "border-box" }}
     >
-      <div style={{ textAlign: "center", marginBottom: "4pt" }}>
+      <div data-ref="contact" style={{ textAlign: "center", marginBottom: "4pt" }}>
         <h1 style={{ fontSize: "24.88pt", fontWeight: 700, fontVariant: "small-caps", lineHeight: 1.1, margin: 0 }}>
           {c.name || "Your Name"}
         </h1>
@@ -81,7 +95,7 @@ export default function ResumePreview({ model }: { model: ResumeModel }) {
       {model.education.length > 0 && (
         <Section title="Education">
           {model.education.map((e) => (
-            <div key={e.id} style={{ marginBottom: "3pt" }}>
+            <div key={e.id} data-ref={`e:${e.id}`} style={{ marginBottom: "3pt" }}>
               <Row left={<strong>{e.organization}</strong>} right={e.location} />
               <Row
                 style={{ fontSize: "10pt", fontStyle: "italic" }}
@@ -97,7 +111,7 @@ export default function ResumePreview({ model }: { model: ResumeModel }) {
       {model.experience.length > 0 && (
         <Section title="Experience">
           {model.experience.map((e) => (
-            <div key={e.id} style={{ marginBottom: "3pt" }}>
+            <div key={e.id} data-ref={`e:${e.id}`} style={{ marginBottom: "3pt" }}>
               <Row left={<strong>{e.title}</strong>} right={dateRange(e.start_date, e.end_date)} />
               <Row style={{ fontSize: "10pt", fontStyle: "italic" }} left={e.organization} right={e.location} />
               <Bullets entry={e} />
@@ -109,7 +123,7 @@ export default function ResumePreview({ model }: { model: ResumeModel }) {
       {model.projects.length > 0 && (
         <Section title="Projects">
           {model.projects.map((p) => (
-            <div key={p.id} style={{ marginBottom: "3pt" }}>
+            <div key={p.id} data-ref={`e:${p.id}`} style={{ marginBottom: "3pt" }}>
               <Row
                 style={{ fontSize: "10pt" }}
                 left={
@@ -134,8 +148,8 @@ export default function ResumePreview({ model }: { model: ResumeModel }) {
       {model.skills.length > 0 && (
         <Section title="Technical Skills">
           <div style={{ fontSize: "10pt", lineHeight: 1.3 }}>
-            {model.skills.map((s, i) => (
-              <div key={i}>
+            {model.skills.map((s) => (
+              <div key={s.id} data-ref={`s:${s.id}`}>
                 <strong>{s.category}</strong>: {s.items}
               </div>
             ))}
