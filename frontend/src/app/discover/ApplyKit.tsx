@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, ExternalLink, FileText, Loader2, Package, Send } from "lucide-react";
 import { getAiStatus, tailorResume, writeCoverLetter, type LetterResult, type TailorResult } from "@/app/actions/ai";
-import { buildKitForm, recordSubmission, startApplyKit, type KitForm, type KitStart } from "@/app/actions/apply-kit";
+import { buildKitForm, recordSubmission, saveKit, startApplyKit, type KitForm, type KitStart } from "@/app/actions/apply-kit";
 import type { KitAnswer } from "@/lib/apply-kit";
 import { TAILORING_KEY, type StoredTailoring } from "@/lib/resume";
 import { keys } from "@/lib/tracker-hooks";
@@ -90,6 +90,7 @@ export default function ApplyKit({ jobId }: { jobId: string }) {
     set(0, { state: "done" });
     queryClient.invalidateQueries({ queryKey: keys.applications });
 
+    let builtLetter = "";
     if (ai) {
       set(1, { state: "running" });
       const t = await tailorResume(started.applicationId).catch(() => null);
@@ -98,7 +99,10 @@ export default function ApplyKit({ jobId }: { jobId: string }) {
 
       set(2, { state: "running" });
       const l: Awaited<ReturnType<typeof writeCoverLetter>> | null = await writeCoverLetter(started.applicationId, "").catch(() => null);
-      if (l?.ok) setLetter(letterText(l.data));
+      if (l?.ok) {
+        builtLetter = letterText(l.data);
+        setLetter(builtLetter);
+      }
       set(2, { state: l?.ok ? "done" : "skipped", note: l && !l.ok ? l.error : l ? undefined : "Couldn't reach the AI tools" });
     }
 
@@ -107,6 +111,7 @@ export default function ApplyKit({ jobId }: { jobId: string }) {
     if (f?.ok) {
       setForm(f);
       setAnswers(f.answers);
+      saveKit(started.applicationId, f.answers, builtLetter).catch(() => {});
     }
     set(3, { state: f?.ok ? "done" : "skipped", note: f && !f.ok ? f.error : f?.ok ? f.aiError : "Couldn't build the form" });
     refetchStatus();
@@ -310,7 +315,14 @@ export default function ApplyKit({ jobId }: { jobId: string }) {
 
           <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
             {start && (
-              <a href={start.jobUrl} target="_blank" rel="noopener noreferrer" className={btn}>
+              <a
+                href={start.jobUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={btn}
+                // Saves edits so the extension fills the posting with what's shown here.
+                onClick={() => saveKit(start.applicationId, answers, letter).catch(() => {})}
+              >
                 Open the posting <ExternalLink className="h-4 w-4" aria-hidden />
               </a>
             )}

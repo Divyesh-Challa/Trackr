@@ -123,7 +123,7 @@ function rawAnswer(q: KitQuestion, f: ProfileFacts, jobCountry: string): string 
   const eeo = (v: string | null | undefined) =>
     (v && opt(v)) || q.options?.find((o) => /decline|don.?t wish|prefer not|not to (say|answer|disclose)/i.test(o)) || (q.options ? "" : PREFER_NOT);
 
-  if (q.kind === "file") return "";
+  if (q.kind === "file" || /pronounc/.test(l)) return "";
   if (/sponsor/.test(l)) return opt(yesNo(f.work_auth[countryOf(l, jobCountry)]?.needs_sponsorship));
   if (/(authori[sz]ed|eligible|entitled|legally|right) to work|work (authori[sz]ation|permit)/.test(l))
     return opt(yesNo(f.work_auth[countryOf(l, jobCountry)]?.authorized));
@@ -134,7 +134,7 @@ function rawAnswer(q: KitQuestion, f: ProfileFacts, jobCountry: string): string 
   if (/disabilit/.test(l)) return eeo(f.eeo.disability);
   if (/^first name|given name|preferred first/.test(l)) return first ?? "";
   if (/^last name|surname|family name/.test(l)) return rest.join(" ");
-  if (/^(full )?name\b/.test(l)) return f.full_name;
+  if (/^(full |legal )?name\b/.test(l)) return f.full_name;
   if (/e-?mail/.test(l)) return f.email;
   if (/phone|mobile/.test(l)) return f.phone;
   if (/linkedin/.test(l)) return f.linkedin_url;
@@ -151,3 +151,6 @@ function rawAnswer(q: KitQuestion, f: ProfileFacts, jobCountry: string): string 
   if (/country/.test(l)) return opt(f.country);
   return "";
 }
+
+/** Which country's work rules a posting falls under, from its URL. */
+export const jobCountryOf = (jobUrl: string, home: string) => (/united states|\busa?\b/i.test(jobUrl) ? "United States" : home || "Canada");

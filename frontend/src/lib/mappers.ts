@@ -10,7 +10,7 @@ import type {
 type Tables = Database["public"]["Tables"];
 type Enums = Database["public"]["Enums"];
 
-export type DbApplication = Tables["applications"]["Row"];
+export type DbApplication = Omit<Tables["applications"]["Row"], "kit">;
 export type DbJob = Tables["jobs"]["Row"];
 export type DbStatus = Enums["application_status"];
 export type DbWorkModel = Enums["work_model"];
