@@ -12,6 +12,11 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // First sign-in: set up the application profile before anything else.
+      const { data: setup } = await supabase.from("application_profiles").select("onboarded_at").maybeSingle();
+      if (!setup?.onboarded_at && !next.startsWith("/onboarding")) {
+        return NextResponse.redirect(`${origin}/onboarding?next=${encodeURIComponent(next)}`);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

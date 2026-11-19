@@ -19,6 +19,7 @@ import {
   Profile,
 } from "../types";
 import type { ImportRow } from "./csv";
+import type { Database } from "./supabase/database.types";
 
 const supabase = () => createClient();
 
@@ -411,7 +412,8 @@ export async function fetchProfile(): Promise<Profile> {
 }
 
 export async function updateProfile(
-  patch: Partial<Pick<Profile, "full_name" | "school" | "grad_term" | "target_roles" | "target_provinces">>
+  patch: Partial<Pick<Profile, "full_name" | "school" | "grad_term" | "target_roles" | "target_provinces">> &
+    Partial<Record<"email" | "phone" | "linkedin_url" | "github_url", string | null>>
 ): Promise<Profile> {
   const client = supabase();
   const {
@@ -421,5 +423,31 @@ export async function updateProfile(
   return unwrap(
     await client.from("profiles").update(patch).eq("id", user.id).select().single(),
     "Failed to save profile"
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Application profile (answers every application form asks for)
+// -----------------------------------------------------------------------------
+
+export type ApplicationProfile = Database["public"]["Tables"]["application_profiles"]["Row"];
+export type ApplicationProfilePatch = Database["public"]["Tables"]["application_profiles"]["Update"];
+
+/** The signed-in user's application profile, or null before onboarding saved one. */
+export async function fetchApplicationProfile(): Promise<ApplicationProfile | null> {
+  const { data, error } = await supabase().from("application_profiles").select("*").maybeSingle();
+  if (error) throw new Error(`Failed to load application profile: ${error.message}`);
+  return data;
+}
+
+export async function saveApplicationProfile(patch: ApplicationProfilePatch): Promise<ApplicationProfile> {
+  // The row's own bookkeeping columns come back on reads; never write them.
+  const fields = { ...patch };
+  delete fields.user_id;
+  delete fields.created_at;
+  delete fields.updated_at;
+  return unwrap(
+    await supabase().from("application_profiles").upsert(fields).select().single(),
+    "Failed to save"
   );
 }

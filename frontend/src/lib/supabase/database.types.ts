@@ -77,6 +77,20 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
+                },"application_profiles": {
+                  Row: {
+                    "city": string,"country": string,"created_at": string,"disability": string | null,"earliest_start": string,"gender": string | null,"in_person_ok": boolean | null,"indigenous": string | null,"notes": string,"onboarded_at": string | null,"postal_code": string,"race_ethnicity": string | null,"region": string,"street": string,"tailoring": string,"updated_at": string,"user_id": string,"veteran": string | null,"willing_to_relocate": boolean | null,"work_auth": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "city"?: string,"country"?: string,"created_at"?: string,"disability"?: string | null,"earliest_start"?: string,"gender"?: string | null,"in_person_ok"?: boolean | null,"indigenous"?: string | null,"notes"?: string,"onboarded_at"?: string | null,"postal_code"?: string,"race_ethnicity"?: string | null,"region"?: string,"street"?: string,"tailoring"?: string,"updated_at"?: string,"user_id"?: string,"veteran"?: string | null,"willing_to_relocate"?: boolean | null,"work_auth"?: NonNullable<Json>
+                  }
+                  Update: {
+                    "city"?: string,"country"?: string,"created_at"?: string,"disability"?: string | null,"earliest_start"?: string,"gender"?: string | null,"in_person_ok"?: boolean | null,"indigenous"?: string | null,"notes"?: string,"onboarded_at"?: string | null,"postal_code"?: string,"race_ethnicity"?: string | null,"region"?: string,"street"?: string,"tailoring"?: string,"updated_at"?: string,"user_id"?: string,"veteran"?: string | null,"willing_to_relocate"?: boolean | null,"work_auth"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"application_state_transitions": {
                   Row: {
                     "application_id": string,"from_status": Database["public"]['Enums']["application_status"] | null,"id": string,"to_status": Database["public"]['Enums']["application_status"],"transitioned_at": string,"user_id": string
@@ -368,6 +382,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "last_refresh": string,"new_today": number,"trackers_week": number
             }[]
+                           },
+"import_resume":
+{ Args: { "p_replace": boolean,"p_resume": Json }; Returns: number
                            },
 "ingest_active_ats_postings":
 { Args: Record<PropertyKey, never>; Returns: {

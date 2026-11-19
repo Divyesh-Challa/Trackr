@@ -172,6 +172,10 @@ export interface Profile {
   grad_term: string | null;
   target_roles: string[];
   target_provinces: string[];
+  email?: string | null;
+  phone?: string | null;
+  linkedin_url?: string | null;
+  github_url?: string | null;
   created_at: string;
   updated_at: string;
 }

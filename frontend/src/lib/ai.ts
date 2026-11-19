@@ -17,7 +17,11 @@ const MODELS: Record<Provider, { model: string; price: { input: number; output: 
 };
 
 export type AiFeature =
-  | "tailor" | "cover_letter" | "interview_question" | "interview_feedback" | "job_match" | "job_question" | "assistant";
+  | "tailor" | "cover_letter" | "interview_question" | "interview_feedback" | "job_match" | "job_question" | "assistant"
+  | "resume_parse";
+
+/** Features every signed-in user gets even when AI is Pro-only: onboarding can't depend on a plan. */
+const ALWAYS_FREE = new Set<AiFeature>(["resume_parse"]);
 
 /** Monthly calls included with Pro, per feature. */
 export const MONTHLY_LIMITS: Record<AiFeature, number> = {
@@ -28,6 +32,7 @@ export const MONTHLY_LIMITS: Record<AiFeature, number> = {
   job_match: 300,
   job_question: 300,
   assistant: 300,
+  resume_parse: 10,
 };
 
 /** Monthly calls for free accounts while AI_FREE_TIER is on. Kept low: every user shares one free API quota. */
@@ -39,6 +44,7 @@ const FREE_MONTHLY_LIMITS: Record<AiFeature, number> = {
   job_match: 30,
   job_question: 30,
   assistant: 40,
+  resume_parse: 5,
 };
 
 /**
@@ -70,9 +76,13 @@ export function aiConfigured(): boolean {
 
 export type AiResult<T> = { ok: true; data: T } | { ok: false; error: string; code?: "not_pro" | "quota" | "budget" | "off" };
 
+/** A file sent alongside the prompt, base64-encoded. */
+export type AiFile = { mimeType: "application/pdf"; data: string };
+
 type CallOptions<S extends z.ZodType> = {
   system: string;
   prompt: string;
+  files: AiFile[];
   schema: S;
   effort: "low" | "medium" | "high";
   maxTokens: number;
@@ -105,7 +115,15 @@ async function callAnthropic<S extends z.ZodType>(o: CallOptions<S>): Promise<Mo
       fallbacks: "default",
       output_config: { effort: o.effort, format: betaZodOutputFormat(o.schema) },
       system: o.system,
-      messages: [{ role: "user", content: o.prompt }],
+      messages: [
+        {
+          role: "user",
+          content: [
+            ...o.files.map((f) => ({ type: "document" as const, source: { type: "base64" as const, media_type: f.mimeType, data: f.data } })),
+            { type: "text" as const, text: o.prompt },
+          ],
+        },
+      ],
     });
     const { input_tokens, output_tokens } = response.usage;
     const reply = { model: response.model, inputTokens: input_tokens, outputTokens: output_tokens };
@@ -138,7 +156,7 @@ async function callGemini<S extends z.ZodType>(o: CallOptions<S>): Promise<Model
   try {
     const response = await gemini.models.generateContent({
       model: MODELS.gemini.model,
-      contents: o.prompt,
+      contents: [{ role: "user", parts: [...o.files.map((f) => ({ inlineData: f })), { text: o.prompt }] }],
       config: {
         systemInstruction: o.system,
         responseMimeType: "application/json",
@@ -182,6 +200,7 @@ export async function runStructured<S extends z.ZodType>(opts: {
   system: string;
   prompt: string;
   schema: S;
+  files?: AiFile[];
   effort?: "low" | "medium" | "high";
   maxTokens?: number;
 }): Promise<AiResult<z.infer<S>>> {
@@ -198,14 +217,14 @@ export async function runStructured<S extends z.ZodType>(opts: {
     p_feature: opts.feature,
     p_monthly_limit: monthlyLimits(pro)[opts.feature],
     p_daily_budget_usd: DAILY_BUDGET_USD,
-    p_require_pro: !free,
+    p_require_pro: !free && !ALWAYS_FREE.has(opts.feature),
   });
   if (checkError) return { ok: false, error: "Couldn't check your AI allowance. Try again." };
   if (status === "not_pro") return { ok: false, code: "not_pro", error: "AI tools are part of Pro." };
   if (status === "quota") return { ok: false, code: "quota", error: "You've used this month's allowance for this tool. It resets on the 1st." };
   if (status === "budget") return { ok: false, code: "budget", error: "AI tools are busy right now. Please try again tomorrow." };
 
-  const call = { system: opts.system, prompt: opts.prompt, schema: opts.schema, effort: opts.effort ?? "medium", maxTokens: opts.maxTokens ?? 8000 };
+  const call = { system: opts.system, prompt: opts.prompt, files: opts.files ?? [], schema: opts.schema, effort: opts.effort ?? "medium", maxTokens: opts.maxTokens ?? 8000 };
   let reply: ModelReply<z.infer<S>>;
   try {
     reply = which === "gemini" ? await callGemini(call) : await callAnthropic(call);

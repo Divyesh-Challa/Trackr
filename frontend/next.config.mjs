@@ -3,6 +3,8 @@ import { withSentryConfig } from "@sentry/nextjs/config";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Resume PDFs go through a server action (parseResumePdf caps them at 4 MB; Vercel's limit is 4.5 MB).
+  experimental: { serverActions: { bodySizeLimit: "4.5mb" } },
 };
 
 // Source maps upload only when SENTRY_AUTH_TOKEN, SENTRY_ORG and SENTRY_PROJECT are set (CI/Vercel).
