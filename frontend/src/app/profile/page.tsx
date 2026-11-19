@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, FileText, Loader2, Save } from "lucide-react";
+import { ArrowRight, ClipboardList, FileText, Loader2, Save } from "lucide-react";
 import { fetchProfile, updateProfile } from "../../lib/api";
 import { PROVINCES } from "../../lib/feed";
 import { Profile } from "../../types";
@@ -271,6 +271,19 @@ export default function ProfilePage() {
       <span className="flex-1">
         <span className="block text-base font-semibold text-slate-900">Your resume</span>
         <span className="block text-sm text-slate-600">Education, experience, projects and skills, in Jake&apos;s one-page template. The AI tools only use what&apos;s there.</span>
+      </span>
+      <ArrowRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-accent" aria-hidden />
+    </Link>
+    <Link
+      href="/onboarding?next=/profile"
+      className="group mx-auto flex max-w-xl items-center gap-4 rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm transition hover:border-blue-200 hover:shadow-md"
+    >
+      <span className="flex shrink-0 items-center text-slate-600">
+        <ClipboardList className="h-5 w-5" aria-hidden />
+      </span>
+      <span className="flex-1">
+        <span className="block text-base font-semibold text-slate-900">Application answers</span>
+        <span className="block text-sm text-slate-600">Address, work authorization, logistics and optional self-identification, used to fill application forms.</span>
       </span>
       <ArrowRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-accent" aria-hidden />
     </Link>

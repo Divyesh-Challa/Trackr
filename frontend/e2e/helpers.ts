@@ -3,8 +3,11 @@ import { expect, type Page } from "@playwright/test";
 export const SUPABASE_URL = process.env.SUPABASE_URL ?? "http://127.0.0.1:54321";
 const MAILPIT = process.env.MAILPIT_URL ?? "http://127.0.0.1:54324";
 
-/** Signs in through the real magic-link flow, reading the email from local Mailpit. */
-export async function signIn(page: Page, email: string) {
+/**
+ * Signs in through the real magic-link flow, reading the email from local Mailpit.
+ * New accounts land on onboarding first; that's skipped unless `stayOnOnboarding` is set.
+ */
+export async function signIn(page: Page, email: string, { stayOnOnboarding = false } = {}) {
   await page.goto("/login?next=/board");
   await page.getByLabel("Email").fill(email);
   await page.getByRole("button", { name: "Email me a sign-in link" }).click();
@@ -23,6 +26,9 @@ export async function signIn(page: Page, email: string) {
     .toBe(true);
 
   await page.goto(link);
+  await expect(page).toHaveURL(/\/onboarding/);
+  if (stayOnOnboarding) return;
+  await page.getByRole("button", { name: "Skip setup for now" }).click();
   await expect(page.getByRole("heading", { name: "Applications" })).toBeVisible();
 }
 
