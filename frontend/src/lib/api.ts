@@ -32,8 +32,9 @@ function unwrap<T>(result: { data: T; error: { message: string } | null }, what:
 /** Today in the user's own timezone as YYYY-MM-DD (toISOString would give UTC, i.e. tomorrow on Canadian evenings). */
 const localToday = () => new Date().toLocaleDateString("en-CA");
 
+// Every column but kit, which can be large and only the apply kit and the extension read.
 const APPLICATION_SELECT =
-  "*, application_tasks(is_completed, due_date), application_contacts(count), application_notes(count), jobs(company_domain)";
+  "id, user_id, job_id, company_name, role_title, location, work_model, status, position, job_url, salary_text, description, applied_at, deadline_at, follow_up_at, created_at, updated_at, application_tasks(is_completed, due_date), application_contacts(count), application_notes(count), jobs(company_domain)";
 
 // -----------------------------------------------------------------------------
 // Applications

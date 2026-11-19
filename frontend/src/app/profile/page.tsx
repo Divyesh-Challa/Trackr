@@ -7,6 +7,7 @@ import { fetchProfile, updateProfile } from "../../lib/api";
 import { PROVINCES } from "../../lib/feed";
 import { Profile } from "../../types";
 import AccountSection from "../../components/AccountSection";
+import ApiTokensSection from "../../components/ApiTokensSection";
 import Link from "next/link";
 
 const CANADIAN_UNIVERSITIES = [
@@ -287,6 +288,7 @@ export default function ProfilePage() {
       </span>
       <ArrowRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-accent" aria-hidden />
     </Link>
+    <ApiTokensSection />
     <AccountSection />
     </div>
   );

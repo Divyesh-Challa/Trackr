@@ -5,17 +5,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAtsJson } from "@/lib/ats-fetch";
 import { parseJobUrl } from "@/lib/job-url";
-import { termLabel } from "@/lib/feed";
+import { loadProfileFacts } from "@/lib/profile-facts";
+import { saveReceipt, type ReceiptInput } from "@/lib/receipts";
 import { answerScreeners } from "@/app/actions/ai";
 import {
   COMMON_QUESTIONS,
   greenhouseQuestions,
+  jobCountryOf,
   profileAnswer,
   type KitAnswer,
   type KitQuestion,
-  type ProfileFacts,
 } from "@/lib/apply-kit";
-import type { Json } from "@/lib/supabase/database.types";
 
 type Fail = { ok: false; error: string };
 
@@ -74,38 +74,6 @@ export async function startApplyKit(jobId: string): Promise<KitStart | Fail> {
   return { ok: true, applicationId: app.id, company: job.company_name, role: job.title, jobUrl: job.job_url, recentAtCompany: count ?? 0 };
 }
 
-async function loadFacts(): Promise<{ facts: ProfileFacts; hasProfile: boolean } | null> {
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return null;
-  const [{ data: p }, { data: a }] = await Promise.all([
-    supabase.from("profiles").select("full_name, email, phone, linkedin_url, github_url, website_url, school, grad_term").eq("id", auth.user.id).single(),
-    supabase.from("application_profiles").select("*").maybeSingle(),
-  ]);
-  return {
-    hasProfile: Boolean(a),
-    facts: {
-      full_name: p?.full_name ?? "",
-      email: p?.email || auth.user.email || "",
-      phone: p?.phone ?? "",
-      linkedin_url: p?.linkedin_url ?? "",
-      github_url: p?.github_url || p?.website_url || "",
-      school: p?.school ?? "",
-      grad_label: p?.grad_term ? termLabel(p.grad_term) : "",
-      street: a?.street ?? "",
-      city: a?.city ?? "",
-      region: a?.region ?? "",
-      postal_code: a?.postal_code ?? "",
-      country: a?.country ?? "Canada",
-      work_auth: (a?.work_auth ?? {}) as ProfileFacts["work_auth"],
-      willing_to_relocate: a?.willing_to_relocate ?? null,
-      in_person_ok: a?.in_person_ok ?? null,
-      earliest_start: a?.earliest_start ?? "",
-      eeo: { gender: a?.gender, race_ethnicity: a?.race_ethnicity, indigenous: a?.indigenous, veteran: a?.veteran, disability: a?.disability },
-    },
-  };
-}
-
 /** The posting's own form questions when its ATS publishes them, else the questions most forms ask. */
 async function questionsFor(jobUrl: string): Promise<{ questions: KitQuestion[]; fromPosting: boolean }> {
   const ref = parseJobUrl(jobUrl);
@@ -130,11 +98,12 @@ export type KitForm = { ok: true; answers: KitAnswer[]; fromPosting: boolean; ha
  * resume (when `draft`), and anything else left for the user.
  */
 export async function buildKitForm(applicationId: string, jobUrl: string, draft: boolean): Promise<KitForm | Fail> {
-  const loaded = await loadFacts();
-  if (!loaded) return { ok: false, error: "Sign in first." };
-  const { facts, hasProfile } = loaded;
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { ok: false, error: "Sign in first." };
+  const { facts, hasProfile } = await loadProfileFacts(supabase, auth.user.id, auth.user.email);
   const { questions, fromPosting } = await questionsFor(jobUrl);
-  const jobCountry = /united states|\busa?\b/i.test(jobUrl) ? "United States" : facts.country || "Canada";
+  const jobCountry = jobCountryOf(jobUrl, facts.country);
 
   const answers: KitAnswer[] = questions.map((q) => {
     const value = profileAnswer(q, facts, jobCountry);
@@ -155,45 +124,25 @@ export async function buildKitForm(applicationId: string, jobUrl: string, draft:
   return { ok: true, answers, fromPosting, hasProfile, aiError };
 }
 
-export type SubmissionInput = {
-  applicationId: string;
-  answers: { section: string; label: string; value: string; options?: string[] }[];
-  resumeBullets: { bullet_id: string; text: string }[] | null;
-  coverLetter: string | null;
-  jobUrl: string | null;
-};
+export type SubmissionInput = Omit<ReceiptInput, "source">;
 
 /** Saves the receipt and moves the application to Applied. The user has already submitted it themselves. */
 export async function recordSubmission(input: SubmissionInput): Promise<{ ok: true } | Fail> {
   const supabase = await createClient();
-  const answers = input.answers.slice(0, 200).map((a) => ({
-    section: String(a.section).slice(0, 120),
-    label: String(a.label).slice(0, 500),
-    value: String(a.value).slice(0, 5000),
-    ...(Array.isArray(a.options) ? { options: a.options.slice(0, 100).map((o) => String(o).slice(0, 300)) } : {}),
-  }));
-  const bullets = input.resumeBullets?.slice(0, 40).map((b) => ({ bullet_id: String(b.bullet_id), text: String(b.text).slice(0, 600) })) ?? null;
-  const jobUrl = input.jobUrl && /^https?:\/\//i.test(input.jobUrl) ? input.jobUrl.slice(0, 2048) : null;
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { ok: false, error: "Sign in first." };
+  const saved = await saveReceipt(supabase, auth.user.id, { ...input, source: "manual" });
+  return saved ? { ok: true } : { ok: false, error: "Couldn't save the receipt. Try again." };
+}
 
-  const { error } = await supabase.from("application_submissions").insert({
-    application_id: input.applicationId,
-    answers,
-    resume_snapshot: bullets ? ({ bullets } as Json) : null,
-    cover_letter: input.coverLetter?.slice(0, 20000) || null,
-    job_url: jobUrl,
-    ats: jobUrl ? (parseJobUrl(jobUrl)?.ats ?? null) : null,
-    source: "manual",
-  });
-  if (error) return { ok: false, error: "Couldn't save the receipt. Try again." };
-
-  const { data: app } = await supabase.from("applications").select("status, applied_at").eq("id", input.applicationId).single();
-  if (app && (app.status === "wishlist" || !app.applied_at)) {
-    await supabase
-      .from("applications")
-      .update({ ...(app.status === "wishlist" ? { status: "applied" as const } : {}), applied_at: app.applied_at ?? new Date().toISOString().slice(0, 10) })
-      .eq("id", input.applicationId);
-  }
-  return { ok: true };
+/** Keeps the reviewed kit so the extension fills the posting with the same answers. */
+export async function saveKit(applicationId: string, answers: { section: string; label: string; value: string }[], coverLetter: string): Promise<void> {
+  const supabase = await createClient();
+  const kit = {
+    answers: answers.slice(0, 200).map((a) => ({ section: String(a.section).slice(0, 120), label: String(a.label).slice(0, 500), value: String(a.value).slice(0, 5000) })),
+    cover_letter: String(coverLetter).slice(0, 20000),
+  };
+  await supabase.from("applications").update({ kit }).eq("id", applicationId);
 }
 
 export type Receipt = {

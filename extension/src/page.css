@@ -1,0 +1,14 @@
+:root { --bg: #ffffff; --text: #0f172a; --muted: #475569; --border: #cbd5e1; --accent: #2563eb; --accent-ink: #ffffff; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) { :root { --bg: #020617; --text: #f8fafc; --muted: #cbd5e1; --border: #475569; --accent: #60a5fa; --accent-ink: #020617; } }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, sans-serif; }
+main { max-width: 520px; padding: 16px; }
+h1 { font-size: 18px; margin: 0 0 8px; }
+h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 16px 0 6px; }
+label { display: block; font-weight: 600; margin: 12px 0 4px; }
+input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font: inherit; }
+button { margin-top: 12px; padding: 8px 14px; border: 0; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; cursor: pointer; }
+.hint, #status { color: var(--muted); }
+.row { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; }
+.row b { display: block; font-size: 13px; }
+.row p { margin: 2px 0 0; white-space: pre-wrap; word-break: break-word; }
+.row button { margin-top: 6px; padding: 4px 10px; font-size: 13px; }

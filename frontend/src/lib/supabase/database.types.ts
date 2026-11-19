@@ -37,6 +37,20 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"api_tokens": {
+                  Row: {
+                    "created_at": string,"id": string,"last_used_at": string | null,"name": string,"token_hash": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"last_used_at"?: string | null,"name": string,"token_hash": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"last_used_at"?: string | null,"name"?: string,"token_hash"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"application_contacts": {
                   Row: {
                     "application_id": string,"created_at": string,"email": string | null,"id": string,"linkedin_url": string | null,"name": string,"notes": string | null,"phone": string | null,"role_title": string | null,"user_id": string
@@ -153,14 +167,14 @@ isOneToOne: false
                   ]
                 },"applications": {
                   Row: {
-                    "applied_at": string | null,"company_name": string,"created_at": string,"deadline_at": string | null,"description": string | null,"follow_up_at": string | null,"id": string,"job_id": string | null,"job_url": string | null,"location": string | null,"position": number,"role_title": string,"salary_text": string | null,"status": Database["public"]['Enums']["application_status"],"updated_at": string,"user_id": string,"work_model": Database["public"]['Enums']["work_model"] | null
+                    "applied_at": string | null,"company_name": string,"created_at": string,"deadline_at": string | null,"description": string | null,"follow_up_at": string | null,"id": string,"job_id": string | null,"job_url": string | null,"kit": Json | null,"location": string | null,"position": number,"role_title": string,"salary_text": string | null,"status": Database["public"]['Enums']["application_status"],"updated_at": string,"user_id": string,"work_model": Database["public"]['Enums']["work_model"] | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "applied_at"?: string | null,"company_name": string,"created_at"?: string,"deadline_at"?: string | null,"description"?: string | null,"follow_up_at"?: string | null,"id"?: string,"job_id"?: string | null,"job_url"?: string | null,"location"?: string | null,"position"?: number,"role_title": string,"salary_text"?: string | null,"status"?: Database["public"]['Enums']["application_status"],"updated_at"?: string,"user_id"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
+                    "applied_at"?: string | null,"company_name": string,"created_at"?: string,"deadline_at"?: string | null,"description"?: string | null,"follow_up_at"?: string | null,"id"?: string,"job_id"?: string | null,"job_url"?: string | null,"kit"?: Json | null,"location"?: string | null,"position"?: number,"role_title": string,"salary_text"?: string | null,"status"?: Database["public"]['Enums']["application_status"],"updated_at"?: string,"user_id"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
                   }
                   Update: {
-                    "applied_at"?: string | null,"company_name"?: string,"created_at"?: string,"deadline_at"?: string | null,"description"?: string | null,"follow_up_at"?: string | null,"id"?: string,"job_id"?: string | null,"job_url"?: string | null,"location"?: string | null,"position"?: number,"role_title"?: string,"salary_text"?: string | null,"status"?: Database["public"]['Enums']["application_status"],"updated_at"?: string,"user_id"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
+                    "applied_at"?: string | null,"company_name"?: string,"created_at"?: string,"deadline_at"?: string | null,"description"?: string | null,"follow_up_at"?: string | null,"id"?: string,"job_id"?: string | null,"job_url"?: string | null,"kit"?: Json | null,"location"?: string | null,"position"?: number,"role_title"?: string,"salary_text"?: string | null,"status"?: Database["public"]['Enums']["application_status"],"updated_at"?: string,"user_id"?: string,"work_model"?: Database["public"]['Enums']["work_model"] | null
                   }
                   Relationships: [
                     {
@@ -388,6 +402,11 @@ isOneToOne: false
                            },
 "am_i_pro":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"api_authenticate":
+{ Args: { "p_token_hash": string }; Returns: {
+              "allowed": boolean,"uid": string
+            }[]
                            },
 "consume_rate_limit":
 { Args: { "p_bucket": string,"p_limit": number,"p_window_seconds": number }; Returns: boolean

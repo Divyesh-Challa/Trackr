@@ -20,7 +20,8 @@ export function parseJobUrl(raw: string): AtsRef | null {
   const host = url.hostname.toLowerCase().replace(/^www\./, "");
   const segs = url.pathname.split("/").filter(Boolean);
 
-  const ghJid = url.searchParams.get("gh_jid");
+  // Company sites embed Greenhouse with ?gh_jid=; the embedded form itself is /embed/job_app?token=.
+  const ghJid = url.searchParams.get("gh_jid") ?? (host.endsWith("greenhouse.io") ? url.searchParams.get("token") : null);
   if (ghJid && /^\d{4,20}$/.test(ghJid)) {
     const slug = host.endsWith("greenhouse.io") ? (url.searchParams.get("for") ?? segs[0] ?? null) : null;
     return { ats: "greenhouse", slug: slug && SLUG.test(slug) ? slug.toLowerCase() : null, id: ghJid, canonical: `greenhouse:${ghJid}` };
@@ -47,4 +48,19 @@ export function parseJobUrl(raw: string): AtsRef | null {
     }
   }
   return null;
+}
+
+/**
+ * The jobs.job_url_canonical a link would have: the ATS id when we recognize it, else host + path
+ * without an /apply suffix. shortcut: drops the query string, unlike ingest; fine for ATS forms.
+ */
+export function jobCanonical(raw: string): string | null {
+  const ref = parseJobUrl(raw);
+  if (ref) return ref.canonical;
+  try {
+    const url = new URL(raw.trim());
+    return url.hostname.toLowerCase().replace(/^www\./, "") + url.pathname.replace(/\/+$/, "").replace(/\/(apply|application)$/i, "");
+  } catch {
+    return null;
+  }
 }

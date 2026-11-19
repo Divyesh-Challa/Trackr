@@ -56,6 +56,9 @@ const PROGRAM_LABELS: Record<NonNullable<DiscoveredJob["job_type"]>, string> = {
   full_time: "Full-time",
 };
 
+/** Boards the Trackr extension can fill. */
+const AUTOFILL_SOURCES = new Set(["greenhouse", "lever", "ashby"]);
+
 const SOURCE_LABELS: Record<string, string> = {
   greenhouse: "the company's Greenhouse board",
   lever: "the company's Lever board",
@@ -605,6 +608,9 @@ function JobCard({
             ))}
             {job.is_repost && (
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Reposted</span>
+            )}
+            {AUTOFILL_SOURCES.has(job.source) && (
+              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-accent">Autofill supported</span>
             )}
             {tracked && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
