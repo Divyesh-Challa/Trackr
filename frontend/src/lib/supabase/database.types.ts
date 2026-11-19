@@ -111,6 +111,26 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
+                },"application_submissions": {
+                  Row: {
+                    "answers": NonNullable<Json>,"application_id": string,"ats": string | null,"cover_letter": string | null,"id": string,"job_url": string | null,"resume_snapshot": Json | null,"source": string,"submitted_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "answers"?: NonNullable<Json>,"application_id": string,"ats"?: string | null,"cover_letter"?: string | null,"id"?: string,"job_url"?: string | null,"resume_snapshot"?: Json | null,"source"?: string,"submitted_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "answers"?: NonNullable<Json>,"application_id"?: string,"ats"?: string | null,"cover_letter"?: string | null,"id"?: string,"job_url"?: string | null,"resume_snapshot"?: Json | null,"source"?: string,"submitted_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "application_submissions_application_id_user_id_fkey"
+      columns: ["application_id","user_id"]
+isOneToOne: false
+      referencedRelation: "applications"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
                 },"application_tasks": {
                   Row: {
                     "application_id": string,"created_at": string,"due_date": string | null,"id": string,"is_completed": boolean,"title": string,"user_id": string

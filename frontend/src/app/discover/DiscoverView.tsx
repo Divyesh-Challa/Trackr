@@ -47,6 +47,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useGSAPStagger } from "@/lib/useGSAPStagger";
 import { ScoutBar } from "./ScoutBar";
 import JobAi from "./JobAi";
+import ApplyKit from "./ApplyKit";
 
 const PROGRAM_LABELS: Record<NonNullable<DiscoveredJob["job_type"]>, string> = {
   internship: "Internship",
@@ -474,6 +475,7 @@ function JobDetail({
         ))}
       </dl>
 
+      {signedIn && <ApplyKit key={job.id} jobId={job.id} />}
       {signedIn && <JobAi jobId={job.id} />}
 
       <section aria-label="Job description" className="text-sm leading-relaxed text-slate-700">

@@ -5,6 +5,7 @@
 // it can't be used to make the server fetch arbitrary URLs.
 import { createClient } from "@/lib/supabase/server";
 import { parseJobUrl } from "@/lib/job-url";
+import { getAtsJson as getJson } from "@/lib/ats-fetch";
 
 export type JobPrefill = {
   company_name: string;
@@ -20,23 +21,6 @@ export type LookupResult =
   | { kind: "found"; prefill: JobPrefill; fromFeed: boolean }
   | { kind: "unsupported" }
   | { kind: "error"; message: string };
-
-const TIMEOUT_MS = 8000;
-const MAX_BYTES = 3_000_000;
-
-async function getJson(url: string): Promise<unknown> {
-  const res = await fetch(url, {
-    redirect: "error",
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-    headers: { Accept: "application/json", "User-Agent": "TrackrJobsBot/1.0" },
-    cache: "no-store",
-  });
-  if (res.status === 404) throw new Error("That posting no longer exists.");
-  if (!res.ok) throw new Error(`The job board returned ${res.status}.`);
-  const text = await res.text();
-  if (text.length > MAX_BYTES) throw new Error("The job board response was too large.");
-  return JSON.parse(text);
-}
 
 function plainText(html: string | undefined | null, limit = 20_000): string | undefined {
   if (!html) return undefined;

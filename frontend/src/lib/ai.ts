@@ -18,7 +18,7 @@ const MODELS: Record<Provider, { model: string; price: { input: number; output: 
 
 export type AiFeature =
   | "tailor" | "cover_letter" | "interview_question" | "interview_feedback" | "job_match" | "job_question" | "assistant"
-  | "resume_parse";
+  | "resume_parse" | "screener_answers";
 
 /** Features every signed-in user gets even when AI is Pro-only: onboarding can't depend on a plan. */
 const ALWAYS_FREE = new Set<AiFeature>(["resume_parse"]);
@@ -33,6 +33,7 @@ export const MONTHLY_LIMITS: Record<AiFeature, number> = {
   job_question: 300,
   assistant: 300,
   resume_parse: 10,
+  screener_answers: 30,
 };
 
 /** Monthly calls for free accounts while AI_FREE_TIER is on. Kept low: every user shares one free API quota. */
@@ -45,6 +46,7 @@ const FREE_MONTHLY_LIMITS: Record<AiFeature, number> = {
   job_question: 30,
   assistant: 40,
   resume_parse: 5,
+  screener_answers: 5,
 };
 
 /**

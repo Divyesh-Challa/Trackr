@@ -5,6 +5,8 @@ import { ExternalLink, Loader2, Trash2 } from "lucide-react";
 import Dialog from "../ui/Dialog";
 import { Field, inputClass } from "./AddApplicationDialog";
 import AiTab from "./AiTab";
+import { useQuery } from "@tanstack/react-query";
+import { listReceipts } from "@/app/actions/apply-kit";
 import { COLUMNS, STATUS_LABEL } from "@/lib/board";
 import {
   useApplication,
@@ -21,7 +23,7 @@ import {
 } from "@/lib/tracker-hooks";
 import type { Application, ApplicationStatus } from "@/types";
 
-type Tab = "details" | "tasks" | "contacts" | "notes" | "ai" | "history";
+type Tab = "details" | "tasks" | "contacts" | "notes" | "ai" | "receipts" | "history";
 
 function formatDate(iso: string) {
   return new Date(iso.length === 10 ? `${iso}T00:00:00` : iso).toLocaleDateString(undefined, {
@@ -347,6 +349,41 @@ function HistoryTab({ appId }: { appId: string }) {
   );
 }
 
+/** What was sent with this application, as saved from the apply kit. */
+function ReceiptsTab({ appId }: { appId: string }) {
+  const { data: receipts = [], isLoading, error } = useQuery({ queryKey: ["applications", appId, "receipts"], queryFn: () => listReceipts(appId) });
+  return (
+    <div className="space-y-4">
+      <ListState loading={isLoading} error={error} empty={!receipts.length} emptyText="No receipts yet. Build an apply kit from the job's page and mark it submitted." />
+      {receipts.map((r) => (
+        <article key={r.id} className="space-y-3 rounded-xl border border-slate-200 p-3 text-sm">
+          <p className="text-xs text-slate-500">Submitted {new Date(r.submitted_at).toLocaleString()}</p>
+          <dl className="space-y-1.5">
+            {r.answers.filter((a) => a.value).map((a, i) => (
+              <div key={i}>
+                <dt className="text-[13px] text-slate-500">{a.label}</dt>
+                <dd className="whitespace-pre-wrap text-slate-900">{a.value}</dd>
+              </div>
+            ))}
+          </dl>
+          {r.bullets && (
+            <details>
+              <summary className="cursor-pointer font-medium text-slate-800">Tailored resume bullets</summary>
+              <ul className="mt-1 list-disc space-y-1 pl-5 text-slate-700">{r.bullets.map((b) => <li key={b.bullet_id}>{b.text}</li>)}</ul>
+            </details>
+          )}
+          {r.cover_letter && (
+            <details>
+              <summary className="cursor-pointer font-medium text-slate-800">Cover letter</summary>
+              <p className="mt-1 whitespace-pre-wrap text-slate-700">{r.cover_letter}</p>
+            </details>
+          )}
+        </article>
+      ))}
+    </div>
+  );
+}
+
 export default function ApplicationDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
   const app = useApplication(id);
   const [tab, setTab] = useState<Tab>("details");
@@ -358,6 +395,7 @@ export default function ApplicationDrawer({ id, onClose }: { id: string | null; 
     { id: "contacts", label: "Contacts", count: app?.contact_count },
     { id: "notes", label: "Notes", count: app?.note_count },
     { id: "ai", label: "AI" },
+    { id: "receipts", label: "Receipts" },
     { id: "history", label: "History" },
   ];
 
@@ -394,6 +432,7 @@ export default function ApplicationDrawer({ id, onClose }: { id: string | null; 
             {tab === "contacts" && <ContactsTab appId={app.id} />}
             {tab === "notes" && <NotesTab appId={app.id} />}
             {tab === "ai" && <AiTab appId={app.id} label={`${app.role_title} at ${app.company_name}`} />}
+            {tab === "receipts" && <ReceiptsTab appId={app.id} />}
             {tab === "history" && <HistoryTab appId={app.id} />}
           </div>
         </div>
