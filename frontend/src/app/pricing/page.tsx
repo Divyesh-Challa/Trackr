@@ -47,7 +47,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
   return (
     <div className="mx-auto max-w-4xl space-y-8 py-8">
       <header className="text-center">
-        <h1 className="font-serif text-4xl font-semibold tracking-tight text-slate-900">Simple pricing</h1>
+        <h1 className="text-4xl font-semibold tracking-tight text-slate-900">Simple pricing</h1>
         <p className="mt-2 text-slate-600">The jobs feed and tracker are free. Pro adds unlimited tracking and AI tools.</p>
         {(params.billing === "unavailable" || !enabled) && (
           <p role="status" className="mx-auto mt-4 max-w-md rounded-xl bg-amber-50 px-4 py-2 text-sm text-amber-800">

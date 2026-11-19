@@ -387,7 +387,7 @@ function JobDetail({
             </p>
           </div>
         </div>
-        <h2 className="font-serif text-2xl font-semibold leading-tight text-slate-900">{job.role_title}</h2>
+        <h2 className="text-2xl font-semibold leading-tight text-slate-900">{job.role_title}</h2>
 
         {(flags.length > 0 || job.is_repost) && (
           <ul className="flex flex-wrap gap-1.5" aria-label="Eligibility">
@@ -805,7 +805,7 @@ export default function DiscoverView({
     <div className="space-y-4">
       <header className="relative overflow-hidden rounded-2xl border border-slate-200 bg-surface p-5">
         <div className="relative space-y-2">
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-slate-900">
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
             Internships, co-ops &amp; new grad roles in Canada
           </h1>
           <PulseLine pulse={pulse} />

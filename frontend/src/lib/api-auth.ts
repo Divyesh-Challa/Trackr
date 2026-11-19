@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { sessionClaims, signJwt, signingKeyFromEnv } from "./jwt";
 import { createAdminClient } from "./supabase/admin";
 import type { Database } from "./supabase/database.types";
 
@@ -32,9 +33,9 @@ const noPersist = { auth: { persistSession: false, autoRefreshToken: false } };
 
 /**
  * A client that acts as the user, so RLS and auth.uid() apply (the feed's match % needs it).
- * It mints a session server-side: a magic-link token from the admin API, verified at once and
- * never emailed. shortcut: one session per user per instance per hour; switch to signing JWTs
- * with Supabase's signing keys if auth rate limits bite.
+ * The session is a JWT we sign with Supabase's signing key (or the legacy secret locally), so
+ * no auth API call is spent. Without a key it falls back to a magic-link token from the admin
+ * API, verified at once and never emailed.
  */
 export async function userClient(db: SupabaseClient<Database>, userId: string): Promise<{ client: SupabaseClient<Database>; email: string } | null> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -44,11 +45,17 @@ export async function userClient(db: SupabaseClient<Database>, userId: string): 
     const { data: user } = await db.auth.admin.getUserById(userId);
     const email = user.user?.email;
     if (!email) return null;
-    const { data: link, error } = await db.auth.admin.generateLink({ type: "magiclink", email });
-    if (error) return null;
-    const { data: verified } = await createClient(url, key, noPersist).auth.verifyOtp({ token_hash: link.properties.hashed_token, type: "magiclink" });
-    if (!verified.session) return null;
-    session = { accessToken: verified.session.access_token, expiresAt: verified.session.expires_at ?? Date.now() / 1000 + 3600, email };
+    const signing = signingKeyFromEnv();
+    if (signing) {
+      const claims = sessionClaims(url, userId, email, 3600);
+      session = { accessToken: signJwt(claims, signing), expiresAt: claims.exp, email };
+    } else {
+      const { data: link, error } = await db.auth.admin.generateLink({ type: "magiclink", email });
+      if (error) return null;
+      const { data: verified } = await createClient(url, key, noPersist).auth.verifyOtp({ token_hash: link.properties.hashed_token, type: "magiclink" });
+      if (!verified.session) return null;
+      session = { accessToken: verified.session.access_token, expiresAt: verified.session.expires_at ?? Date.now() / 1000 + 3600, email };
+    }
     sessions.set(userId, session);
   }
   return {

@@ -85,7 +85,7 @@ export function Assistant() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open Scout, the Trackr assistant"
-          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-accent-ink shadow-lg transition hover:bg-accent-hover"
+          className="fixed bottom-5 right-5 z-40 max-md:bottom-24 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-accent-ink shadow-lg transition hover:bg-accent-hover"
         >
           <Sparkles className="h-4 w-4" aria-hidden /> Ask Scout
         </button>

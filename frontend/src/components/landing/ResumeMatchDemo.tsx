@@ -51,7 +51,7 @@ export function ResumeMatchDemo({ jobs }: { jobs: DiscoveredJob[] }) {
           onChange={(e) => setText(e.target.value)}
           rows={7}
           placeholder="Built a React app with a Node.js API and PostgreSQL…"
-          className="mt-8 w-full max-w-[34ch] resize-none bg-transparent font-serif text-xl leading-relaxed text-stage-ink placeholder:text-stage-muted focus:outline-none sm:text-2xl"
+          className="mt-8 w-full max-w-[34ch] resize-none bg-transparent text-xl leading-relaxed text-stage-ink placeholder:text-stage-muted focus:outline-none sm:text-2xl"
         />
         <div className="mt-6 flex flex-wrap gap-3">
           <button
@@ -74,7 +74,7 @@ export function ResumeMatchDemo({ jobs }: { jobs: DiscoveredJob[] }) {
             Try a sample
           </button>
         </div>
-        <h2 id="match-title" className="mt-auto pt-12 font-serif text-[clamp(2.5rem,5vw,5rem)] font-semibold leading-none text-stage-ink">
+        <h2 id="match-title" className="mt-auto pt-12 text-[clamp(2.5rem,5vw,5rem)] font-semibold leading-none text-stage-ink">
           Paste your resume
         </h2>
       </div>
@@ -116,7 +116,7 @@ export function ResumeMatchDemo({ jobs }: { jobs: DiscoveredJob[] }) {
             </>
           )}
         </div>
-        <p aria-hidden className="mt-auto pt-12 font-serif text-[clamp(2.5rem,5vw,5rem)] font-semibold leading-none text-slate-900">
+        <p aria-hidden className="mt-auto pt-12 text-[clamp(2.5rem,5vw,5rem)] font-semibold leading-none text-slate-900">
           see where you fit
         </p>
       </div>
